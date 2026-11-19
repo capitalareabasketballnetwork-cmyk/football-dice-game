@@ -1,5 +1,5 @@
 'use strict';
-/* DieBall TV beta: host browser owns match state. Public PeerJS cloud handles WebRTC signaling. */
+/* DieBall TV beta: host browser owns match state. Same-origin Vercel Runtime Cache relay handles temporary game rooms. */
 const E=id=>document.getElementById(id);
 const rand=n=>1+Math.floor(Math.random()*n),sum=a=>(a||[]).reduce((x,y)=>x+y,0),clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
 const escapeText=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -21,28 +21,22 @@ function showRetry(message){
  const button=E('retryJoinBtn');if(button)button.hidden=false;
 }
 function retryJoin(){const el=E('joinForm');if(el&&typeof el.requestSubmit==='function')el.requestSubmit();else joinGame({preventDefault(){}})}
-function peerCloudOptions(){
- // Explicitly configure TLS rather than depending on defaults from a CDN version.
- return {host:'0.peerjs.com',port:443,path:'/',secure:true,
-  config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},
-   {urls:'stun:stun1.l.google.com:19302'},
-   {urls:['turn:eu-0.turn.peerjs.com:3478','turn:us-0.turn.peerjs.com:3478'],username:'peerjs',credential:'peerjsp'}]}};
-}
+
 function recoverPeerSignal(destination){
  if(!peer||peer.destroyed||role!==destination)return;
- if(peer.disconnected){try{peer.reconnect()}catch(e){if(role==='host')tell('Could not reconnect to signaling. Exit and create a new room.');else showRetry('Signaling disconnected. Retry joining this room.')}}
+ if(peer.disconnected){try{peer.reconnect()}catch(e){if(role==='host')tell('Could not reconnect to TV room service. Exit and create a new room.');else showRetry('Room service disconnected. Retry joining this room.')}}
 }
 
 function hostGame(){
  role='host';if(typeof window.Peer!=='function'){
-  showScreen('lobbyScreen');tell('The multiplayer connection library did not load. Check your internet connection.');return;
+  showScreen('lobbyScreen');tell('The DieBall room relay did not load. Check internet access.');return;
  }
  clearConnectionTimers();
  room=makeCode();names=['',''];links=[null,null];G=null;hostRegistered=false;
  E('lobbyCode').textContent='CONNECTING';
  E('joinAddress').textContent=location.host+'/tv';
- showScreen('lobbyScreen');lobby();tell('Registering your room with the signaling server…');
- peer=new Peer('dieball-'+room.toLowerCase(),peerCloudOptions());
+ showScreen('lobbyScreen');lobby();tell('Creating room on the DieBall TV service…');
+ peer=new Peer('dieball-'+room.toLowerCase());
  peer.on('open',()=>{
   hostRegistered=true;clearTimeout(signalTimer);
   E('lobbyCode').textContent=room;
@@ -51,15 +45,15 @@ function hostGame(){
  peer.on('connection',registerConnection);
  peer.on('error',e=>{
   if(e.type==='unavailable-id')tell('This room code is already in use. Exit and create another room.');
-  else tell('Room signaling issue: '+(e.message||e.type)+'. Try reopening DieBall TV if this persists.');
+  else tell('Room service issue: '+(e.message||e.type)+'. Try reopening DieBall TV if this persists.');
  });
  peer.on('disconnected',()=>{
   hostRegistered=false;
-  tell('Lost connection to public signaling server. Attempting to reconnect…');
+  tell('Lost connection to the DieBall TV room relay. Attempting to reconnect…');
   setTimeout(()=>recoverPeerSignal('host'),1200);
  });
  signalTimer=setTimeout(()=>{
-  if(!hostRegistered)tell('Room registration is taking too long. The public signaling service may be unavailable. Exit and create another room.');
+  if(!hostRegistered)tell('Room registration took too long. Exit and create a new room.');
  },15000);
 }
 function lobby(){
@@ -92,18 +86,18 @@ function joinGame(ev){
  ev?.preventDefault?.();
  const player=E('joinName').value.trim().slice(0,20),code=E('joinCode').value.trim().toUpperCase();
  if(player.length<2||!/^[A-Z2-9]{6}$/.test(code)){showRetry('Enter a player name and a valid six-character game code.');return}
- if(typeof window.Peer!=='function'){showRetry('The multiplayer connection library did not load. Check your internet connection.');return}
+ if(typeof window.Peer!=='function'){showRetry('The DieBall room relay did not load. Check internet access.');return}
  clearConnectionTimers();
  if(peer){try{peer.destroy()}catch(e){}}
  room=code;role='player';seat=-1;connection=null;joinAttempt++;
  const attempt=joinAttempt;
  const retry=E('retryJoinBtn');if(retry)retry.hidden=true;
- tell('Connecting to the signaling server…','joinError');
- peer=new Peer(undefined,peerCloudOptions());
+ tell('Connecting to the DieBall TV service…','joinError');
+ peer=new Peer();
  peer.on('open',()=>{
   if(joinAttempt!==attempt)return;
   clearTimeout(signalTimer);
-  tell('Server reached. Connecting to host…','joinError');
+  tell('Room service reached. Connecting to host…','joinError');
   connection=peer.connect('dieball-'+room.toLowerCase(),{reliable:true,serialization:'json'});
   connection.on('open',()=>{
    if(joinAttempt!==attempt)return;
@@ -118,21 +112,21 @@ function joinGame(ev){
   });
   connection.on('error',e=>{if(joinAttempt===attempt)showRetry('Could not connect to host: '+(e.message||'Connection rejected')+'. Retry or check both devices are online.')});
   connectionTimer=setTimeout(()=>{
-   if(joinAttempt===attempt&&seat<0)showRetry('Host did not respond in 18 seconds. The public signaling service may be overloaded; retry the connection. If this continues, host a new room.');
+   if(joinAttempt===attempt&&seat<0)showRetry('Host did not respond in 18 seconds. The room may have expired or lost its host; retry or create a new room.');
   },18000);
  });
  peer.on('disconnected',()=>{
   if(joinAttempt!==attempt)return;
-  if(seat<0)tell('Signaling server disconnected. Reconnecting…','joinError');
+  if(seat<0)tell('DieBall TV service disconnected. Reconnecting…','joinError');
   setTimeout(()=>recoverPeerSignal('player'),1200);
  });
  peer.on('error',err=>{
   if(joinAttempt!==attempt)return;
-  const message=err.type==='peer-unavailable'?'No active host registered for that code. Check that the TV says Room online.':err.type==='network'?'The signaling server lost its connection.':err.message||String(err.type);
+  const message=err.type==='peer-unavailable'?'No active host registered for that code. Check that the TV says Room online.':err.type==='network'?'The DieBall TV service lost its connection.':err.message||String(err.type);
   showRetry(message+' Retry or host a fresh game.');
  });
  signalTimer=setTimeout(()=>{
-  if(joinAttempt===attempt&&seat<0)showRetry('Signaling server did not respond in 15 seconds. Retry joining, or close and reopen the room on the TV.');
+  if(joinAttempt===attempt&&seat<0)showRetry('DieBall TV service did not respond in 15 seconds. Retry or reopen the room on the TV.');
  },15000);
 }
 function receive(m){
