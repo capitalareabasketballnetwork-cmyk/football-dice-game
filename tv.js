@@ -6,23 +6,61 @@ const escapeText=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;'
 let role='',room='',peer=null,connection=null,seat=-1,links=[null,null],names=['',''],G=null,V=null;
 let selected=new Set(),cardsShown=false,kickType=null,kickValue=0,kickDir=1,kickTimer=null,hostSpinTimer=null,clientSpinTimer=null;
 let hostRollSeen=[0,0],hostSpinUntil=[0,0],clientRollSeen=-1,clientSpinUntil=0,seenFlight=0;
+let signalTimer=null,connectionTimer=null,joinAttempt=0,hostRegistered=false;
 const screens=['chooseScreen','lobbyScreen','joinScreen','waitingScreen','hostScreen','controllerScreen'];
 function showScreen(id){for(const x of screens)E(x).hidden=x!==id;window.scrollTo(0,0)}
 function tell(text,id='lobbyStatus'){if(E(id))E(id).textContent=text}
 function nameOf(side){return names[side]|| (side===0?'Home':'Away')}
 function makeCode(){let chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',b=new Uint8Array(6);crypto.getRandomValues(b);return Array.from(b,v=>chars[v%chars.length]).join('')}
-function exitGame(){if(peer)peer.destroy();clearInterval(kickTimer);clearInterval(hostSpinTimer);clearInterval(clientSpinTimer);location.href='/'}
+function exitGame(){clearConnectionTimers();if(peer)peer.destroy();clearInterval(kickTimer);clearInterval(hostSpinTimer);clearInterval(clientSpinTimer);location.href='/'}
 function showJoinForm(){showScreen('joinScreen');E('joinError').textContent='';E('joinName').focus()}
+
+function clearConnectionTimers(){clearTimeout(signalTimer);clearTimeout(connectionTimer);signalTimer=null;connectionTimer=null}
+function showRetry(message){
+ tell(message,'joinError');
+ const button=E('retryJoinBtn');if(button)button.hidden=false;
+}
+function retryJoin(){const el=E('joinForm');if(el&&typeof el.requestSubmit==='function')el.requestSubmit();else joinGame({preventDefault(){}})}
+function peerCloudOptions(){
+ // Explicitly configure TLS rather than depending on defaults from a CDN version.
+ return {host:'0.peerjs.com',port:443,path:'/',secure:true,
+  config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},
+   {urls:'stun:stun1.l.google.com:19302'},
+   {urls:['turn:eu-0.turn.peerjs.com:3478','turn:us-0.turn.peerjs.com:3478'],username:'peerjs',credential:'peerjsp'}]}};
+}
+function recoverPeerSignal(destination){
+ if(!peer||peer.destroyed||role!==destination)return;
+ if(peer.disconnected){try{peer.reconnect()}catch(e){if(role==='host')tell('Could not reconnect to signaling. Exit and create a new room.');else showRetry('Signaling disconnected. Retry joining this room.')}}
+}
+
 function hostGame(){
- role='host';if(typeof window.Peer!=='function'){showScreen('lobbyScreen');tell('Connection library could not load. Check internet access.');return}
- room=makeCode();names=['',''];links=[null,null];G=null;
- E('lobbyCode').textContent=room;E('joinAddress').textContent=location.host+'/tv';
- showScreen('lobbyScreen');lobby();
- peer=new Peer('dieball-'+room.toLowerCase());
- peer.on('open',()=>tell('Room online. Waiting for players.'));
+ role='host';if(typeof window.Peer!=='function'){
+  showScreen('lobbyScreen');tell('The multiplayer connection library did not load. Check your internet connection.');return;
+ }
+ clearConnectionTimers();
+ room=makeCode();names=['',''];links=[null,null];G=null;hostRegistered=false;
+ E('lobbyCode').textContent='CONNECTING';
+ E('joinAddress').textContent=location.host+'/tv';
+ showScreen('lobbyScreen');lobby();tell('Registering your room with the signaling server…');
+ peer=new Peer('dieball-'+room.toLowerCase(),peerCloudOptions());
+ peer.on('open',()=>{
+  hostRegistered=true;clearTimeout(signalTimer);
+  E('lobbyCode').textContent=room;
+  tell('Room online. Share the code with both phones.');
+ });
  peer.on('connection',registerConnection);
- peer.on('error',e=>tell('Room error: '+(e.message||e.type)+'. Exit and create a new room.'));
- peer.on('disconnected',()=>tell('Room signaling disconnected. Check your network.'));
+ peer.on('error',e=>{
+  if(e.type==='unavailable-id')tell('This room code is already in use. Exit and create another room.');
+  else tell('Room signaling issue: '+(e.message||e.type)+'. Try reopening DieBall TV if this persists.');
+ });
+ peer.on('disconnected',()=>{
+  hostRegistered=false;
+  tell('Lost connection to public signaling server. Attempting to reconnect…');
+  setTimeout(()=>recoverPeerSignal('host'),1200);
+ });
+ signalTimer=setTimeout(()=>{
+  if(!hostRegistered)tell('Room registration is taking too long. The public signaling service may be unavailable. Exit and create another room.');
+ },15000);
 }
 function lobby(){
  E('homeSlot').textContent=names[0]||'Waiting for player...';
@@ -51,25 +89,57 @@ function registerConnection(c){
  c.on('error',()=>{});
 }
 function joinGame(ev){
- ev.preventDefault();
+ ev?.preventDefault?.();
  const player=E('joinName').value.trim().slice(0,20),code=E('joinCode').value.trim().toUpperCase();
- if(player.length<2||!/^[A-Z2-9]{6}$/.test(code)){tell('Enter a name and 6-character game code.','joinError');return}
- if(typeof window.Peer!=='function'){tell('Connection library unavailable. Check internet.','joinError');return}
- room=code;role='player';tell('Connecting to host...','joinError');peer=new Peer();
+ if(player.length<2||!/^[A-Z2-9]{6}$/.test(code)){showRetry('Enter a player name and a valid six-character game code.');return}
+ if(typeof window.Peer!=='function'){showRetry('The multiplayer connection library did not load. Check your internet connection.');return}
+ clearConnectionTimers();
+ if(peer){try{peer.destroy()}catch(e){}}
+ room=code;role='player';seat=-1;connection=null;joinAttempt++;
+ const attempt=joinAttempt;
+ const retry=E('retryJoinBtn');if(retry)retry.hidden=true;
+ tell('Connecting to the signaling server…','joinError');
+ peer=new Peer(undefined,peerCloudOptions());
  peer.on('open',()=>{
+  if(joinAttempt!==attempt)return;
+  clearTimeout(signalTimer);
+  tell('Server reached. Connecting to host…','joinError');
   connection=peer.connect('dieball-'+room.toLowerCase(),{reliable:true,serialization:'json'});
-  connection.on('open',()=>connection.send({t:'join',name:player}));
+  connection.on('open',()=>{
+   if(joinAttempt!==attempt)return;
+   tell('Connected to host. Waiting for room assignment…','joinError');
+   connection.send({t:'join',name:player});
+  });
   connection.on('data',receive);
-  connection.on('close',()=>{tell('Disconnected from host.','waitStatus');tell('Host connection lost.','controllerError')});
-  connection.on('error',()=>tell('Failed to connect. Please try again.','joinError'));
+  connection.on('close',()=>{
+   if(joinAttempt!==attempt)return;
+   if(seat<0)showRetry('Lost connection before joining the host. Retry or create a new room on the TV.');
+   else{tell('Disconnected from host.','waitStatus');tell('Host connection lost.','controllerError')}
+  });
+  connection.on('error',e=>{if(joinAttempt===attempt)showRetry('Could not connect to host: '+(e.message||'Connection rejected')+'. Retry or check both devices are online.')});
+  connectionTimer=setTimeout(()=>{
+   if(joinAttempt===attempt&&seat<0)showRetry('Host did not respond in 18 seconds. The public signaling service may be overloaded; retry the connection. If this continues, host a new room.');
+  },18000);
  });
- peer.on('error',err=>tell(err.type==='peer-unavailable'?'No active room matches that code.':err.message||String(err.type),'joinError'));
+ peer.on('disconnected',()=>{
+  if(joinAttempt!==attempt)return;
+  if(seat<0)tell('Signaling server disconnected. Reconnecting…','joinError');
+  setTimeout(()=>recoverPeerSignal('player'),1200);
+ });
+ peer.on('error',err=>{
+  if(joinAttempt!==attempt)return;
+  const message=err.type==='peer-unavailable'?'No active host registered for that code. Check that the TV says Room online.':err.type==='network'?'The signaling server lost its connection.':err.message||String(err.type);
+  showRetry(message+' Retry or host a fresh game.');
+ });
+ signalTimer=setTimeout(()=>{
+  if(joinAttempt===attempt&&seat<0)showRetry('Signaling server did not respond in 15 seconds. Retry joining, or close and reopen the room on the TV.');
+ },15000);
 }
 function receive(m){
  if(!m||typeof m!=='object')return;
  if(m.t==='reject'){tell(m.reason||'Room unavailable.','joinError');connection?.close();return}
  if(m.t==='assigned'){
-  seat=m.side;clientRollSeen=0;names=m.names;room=m.room;E('waitingCode').textContent=room;
+  clearConnectionTimers();const retry=E('retryJoinBtn');if(retry)retry.hidden=true;seat=m.side;clientRollSeen=0;names=m.names;room=m.room;E('waitingCode').textContent=room;
   E('waitingInfo').textContent='Joined as '+nameOf(seat)+' · '+(seat===0?'HOME':'AWAY')+'. Waiting for the host.';
   E('controllerRoom').textContent='ROOM '+room;showScreen('waitingScreen');return;
  }
