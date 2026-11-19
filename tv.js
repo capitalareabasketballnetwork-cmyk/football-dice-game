@@ -4,7 +4,7 @@ const E=id=>document.getElementById(id);
 const rand=n=>1+Math.floor(Math.random()*n),sum=a=>(a||[]).reduce((x,y)=>x+y,0),clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
 const escapeText=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let role='',room='',peer=null,connection=null,seat=-1,links=[null,null],names=['',''],G=null,V=null;
-let selected=new Set(),cardsShown=false,kickType=null,kickValue=0,kickDir=1,kickTimer=null,hostSpinTimer=null,clientSpinTimer=null;
+let selected=new Set(),counterSelected=new Set(),activeCounterRound=-1,submittedCounterRound=-1,cardsShown=false,kickType=null,kickValue=0,kickDir=1,kickTimer=null,hostSpinTimer=null,clientSpinTimer=null;
 let hostRollSeen=[0,0],hostSpinUntil=[0,0],clientRollSeen=-1,clientSpinUntil=0,seenFlight=0,seenGoalKick=0;
 let signalTimer=null,connectionTimer=null,joinAttempt=0,hostRegistered=false;
 const screens=['chooseScreen','lobbyScreen','joinScreen','waitingScreen','hostScreen','controllerScreen'];
@@ -158,7 +158,7 @@ function startHostedMatch(){
  if(!links.every(c=>c?.open))return;
  G={stage:'play',scores:[0,0],off:0,pos:35,goal:45,down:1,passes:2,play:'run',
  ready:[false,false],dice:[null,null],rollSeq:[0,0],net:null,move:null,triple:false,passDouble:false,xpReady:[false,false],
- deck:shuffledDeck(),hands:[[],[]],usedCards:[false,false],cardPicks:[null,null],starter:-1,
+ deck:shuffledDeck(),hands:[[],[]],usedCards:[false,false],cardPicks:[null,null],starter:-1,cardRound:0,
  convKind:0,convPicks:[null,null],convCommitted:[false,false],convNet:0,
  results:[[],[]],startScore:0,lastDrive:[false,false],flight:null,flightId:0,
  serial:0,annId:0,announcement:null,quarterBreaks:[false,false,false],goalKick:null,goalKickId:0,message:'HOME takes possession. Both players roll.'};
@@ -263,8 +263,8 @@ function resolveRoll(){
    announce(good?'2 points converted':'2 points not converted',good?'good':'bad',(pass?'PASS':'RUN')+' · '+(good?'+2':'NO POINTS'),2700);
   };
   if(G.triple){
-   G.stage='triple';announce('Triple die!',G.off===0?'good':'bad','Three matching dice · ×2',1300);
-   setTimeout(finish,1400);
+   G.stage='triple';announce('Triple die!',G.off===0?'good':'bad','Three matching dice · ×2',2000);
+   setTimeout(finish,2000);
   }else finish();
   return;
  }
@@ -297,8 +297,8 @@ function resolveRoll(){
  const finish=()=>{if(!G||G.serial!==serial||!['play','triple'].includes(G.stage))return;G.stage='play';advance(yards)};
  if(G.triple){
   G.stage='triple';G.message='TRIPLE DIE! Offense gets ×2';
-  announce('Triple die!',G.off===0?'good':'bad','Three matching dice · ×2',1300);
-  setTimeout(finish,1400);
+  announce('Triple die!',G.off===0?'good':'bad','Three matching dice · ×2',2000);
+  setTimeout(finish,2000);
  }else finish();
 }
 function ballFlight(from,to,done,text,landingType='normal'){
@@ -387,7 +387,7 @@ function cards(side,indices,conversion=false){
  }
  if(G.stage==='play'){
   if(G.usedCards[side]||valid.length===0||G.ready.some(Boolean))return;
-  G.stage='cards';G.starter=side;G.cardPicks=[null,null];G.cardPicks[side]=valid;G.usedCards[side]=true;
+  G.stage='cards';G.starter=side;G.cardRound++;G.cardPicks=[null,null];G.cardPicks[side]=valid;G.usedCards[side]=true;
   G.message=nameOf(side)+' played '+valid.length+' card(s). Opponent can counter.';if(G.usedCards[1-side]){G.cardPicks[1-side]=[];resolveCardBattle()}else broadcast();return;
  }
  if(G.stage==='cards'&&side!==G.starter&&G.cardPicks[side]===null&&!G.usedCards[side]){
@@ -420,6 +420,10 @@ function action(side,a){
  }
  if(kind==='roll'&&['play','two-ready'].includes(G.stage)&&!G.ready[side]){
   if(G.stage==='play'&&side===G.off&&G.play==='pass'&&G.passes<=0){G.play='run';announce('No more Pass plays left','bad','Choose Run',1200);return}
+  // A fresh roll clears both old dice before displaying the first new result.
+  if(!G.ready.some(Boolean)){
+   G.dice=[null,null];G.net=null;G.triple=false;G.passDouble=false;
+  }
   G.dice[side]=Array.from({length:side===G.off?3:2},()=>rand(6));G.rollSeq[side]++;G.ready[side]=true;
   G.message=nameOf(side)+' rolled. Waiting for '+nameOf(1-side);broadcast();
   if(G.ready.every(Boolean)){const seq=++G.serial;setTimeout(()=>{if(G&&G.serial===seq&&G.ready.every(Boolean))resolveRoll()},1500)}
@@ -447,6 +451,8 @@ function renderHost(){
  E('homePanelName').textContent=nameOf(0);E('awayPanelName').textContent=nameOf(1);
  E('hostHomeScore').textContent=g.scores[0];E('hostAwayScore').textContent=g.scores[1];
  E('hostPosition').textContent=fieldPosition(g);E('hostDown').textContent=downText(g);
+ const showDownColor=['play','cards','triple','fumble','fumble-rolling'].includes(g.stage);
+ E('hostDownCard').className='score-fact tv-down-card '+(showDownColor?'down-'+g.down:'down-neutral');
  E('hostLos').style.left=g.pos+'%';E('hostGoal').style.left=g.goal+'%';
  E('homeRole').textContent=g.off===0?'OFFENSE':'DEFENSE';E('awayRole').textContent=g.off===1?'OFFENSE':'DEFENSE';
  E('hostMessage').textContent=g.message;
@@ -456,22 +462,27 @@ function renderHost(){
   if(g.rollSeq[side]!==hostRollSeen[side]){
    hostRollSeen[side]=g.rollSeq[side];hostSpinUntil[side]=Date.now()+850;startHostSpin();
   }
-  const values=g.dice[side]||Array.from({length:side===g.off?3:2},()=>1);
+  const values=g.dice[side]||Array.from({length:side===g.off?3:2},()=>null);
   const anim=Date.now()<hostSpinUntil[side];
-  box.innerHTML=values.map(n=>'<div class="die '+(anim?'spinning':'')+'">'+(anim?rand(6):n)+'</div>').join('');
+  box.innerHTML=values.map(n=>'<div class="die '+(n===null?'empty':anim?'spinning':'')+'">'+(n===null?'&nbsp;':anim?rand(6):n)+'</div>').join('');
   total.innerHTML=(anim?'= ...':g.dice[side]?'= '+sum(g.dice[side]):'= —')+(!anim&&side===g.off&&g.dice[side]?(g.triple?'<span class="tv-multiplier">×2</span>':'')+(g.passDouble?'<span class="tv-multiplier">×2</span>':''):'');
   cards.innerHTML='<span class="tiny">CARDS LEFT</span>'+Array.from({length:g.hands[side].length},()=>'<span class="card-back">PC</span>').join('');
  }
- const net=E('hostNet');net.textContent=g.net===null?'—':(g.net>0?'+':'')+g.net;
+ const net=E('hostNet');E('hostNetValue').textContent=g.net===null?'—':(g.net>0?'+':'')+g.net;
  net.className='net-big '+(g.net>0?'good':g.net<0?'bad':'');
  E('hostDrives').innerHTML=Array.from({length:8},(_,i)=>[0,1].map(side=>{
   const v=g.results[side][i];return '<div class="drive-box '+(v===undefined?'':v>=6?'td':v===3?'fg':'fail')+'" title="'+(side===0?'Home':'Away')+' drive '+(i+1)+'">'+(v===undefined?'':v>0?v:'×')+'</div>'
  }).join('')).join('');
- const move=E('hostMovement');
- if(g.move&&g.move.from!==g.move.to){
-  move.hidden=false;move.style.left=Math.min(g.move.from,g.move.to)+'%';move.style.width=Math.abs(g.move.to-g.move.from)+'%';
-  move.className='field-moving'+(g.move.forward?'':' loss');
- }else move.hidden=true;
+ const previous=E('hostPreviousLos'),arrow=E('hostYardArrow');
+ if(g.move&&g.move.from!==g.move.to&&!['flight','kickoff','finished'].includes(g.stage)){
+  const start=clamp(g.move.from,0,100),finish=clamp(g.move.to,0,100);
+  previous.hidden=false;previous.style.left=start+'%';
+  arrow.hidden=false;
+  arrow.style.left=Math.min(start,finish)+'%';
+  arrow.style.width=Math.abs(finish-start)+'%';
+  arrow.className='tv-yard-arrow '+(g.move.forward?'gain':'loss')+' '+(finish>start?'point-right':'point-left');
+  arrow.setAttribute('aria-label',(g.move.forward?'Gained':'Lost')+' '+Math.abs(finish-start)+' yards');
+ }else{previous.hidden=true;arrow.hidden=true}
  const ball=E('hostBall');
  if(g.flight&&seenFlight!==g.flight.id){
   seenFlight=g.flight.id;
@@ -524,6 +535,46 @@ function controllerAvailableCards(){
   V.stage==='cards'&&V.starter!==seat&&V.cardPending[seat]===null||
   V.stage==='conversion-cards'&&!V.convCommitted[seat];
 }
+
+function waitingOnCardResponse(v=V){
+ return !!(v&&seat>=0&&v.stage==='cards'&&v.starter!==seat&&v.cardPending?.[seat]===null&&!v.usedCards[seat]);
+}
+function renderCounterCardPopup(){
+ const overlay=E('counterCardModal');
+ const pending=waitingOnCardResponse()&&submittedCounterRound!==V.cardRound;
+ overlay.hidden=!pending;
+ document.body.classList.toggle('tv-counter-visible',pending);
+ if(!pending)return;
+ if(activeCounterRound!==V.cardRound){
+  activeCounterRound=V.cardRound;counterSelected.clear();
+ }
+ const count=V.cardPending[V.starter]||0;
+ E('counterCardDeclared').textContent='OPPONENT DECLARED '+count+' CARD'+(count===1?'':'S');
+ E('counterCardDescription').textContent=nameOf(V.starter)+' declared '+count+' penalty card'+(count===1?'':'s')+'. Choose your own cards to counter, or press PLAY NONE.';
+ E('counterCardSelected').textContent=counterSelected.size+' selected';
+ E('counterCardChoices').innerHTML=V.hand.length?V.hand.map((value,i)=>
+  '<button type="button" aria-pressed="'+counterSelected.has(i)+'" class="'+(counterSelected.has(i)?'selected':'')+'" onclick="toggleCounterCard('+i+')">'+value+'</button>'
+ ).join(''):'<span class="tiny">No cards left. Choose PLAY NONE.</span>';
+ const commit=E('counterSubmitBtn');
+ commit.disabled=counterSelected.size===0;
+ commit.textContent='COMMIT SELECTED ('+counterSelected.size+')';
+}
+function toggleCounterCard(index){
+ if(!waitingOnCardResponse()||submittedCounterRound===V.cardRound||
+  !Number.isInteger(index)||index<0||index>=V.hand.length)return;
+ if(counterSelected.has(index))counterSelected.delete(index);else counterSelected.add(index);
+ renderCounterCardPopup();
+}
+function respondToCardDeclaration(useSelected){
+ if(!waitingOnCardResponse()||submittedCounterRound===V.cardRound)return;
+ if(useSelected&&counterSelected.size===0)return;
+ const indices=useSelected?[...counterSelected]:[];
+ submittedCounterRound=V.cardRound;
+ counterSelected.clear();
+ sendAction({kind:'cards',indices});
+ renderController();
+}
+
 function renderController(){
  if(!V||seat<0)return;
  const v=V,offense=v.off===seat,available=controllerAvailableCards();
@@ -532,7 +583,7 @@ function renderController(){
  let message=v.message;
  if(v.stage==='conversion-choice')message=offense?'Choose one or two points.':'Opponent chooses conversion.';
  if(v.stage==='conversion-cards')message=v.convCommitted[seat]?'Cards committed; waiting for opponent.':'Choose cards for the conversion, or commit zero.';
- if(v.stage==='cards')message=v.starter===seat?'Waiting for opponent to counter cards.':'Opponent played '+(v.cardPending[v.starter]||0)+' cards. Counter or commit zero.';
+ if(v.stage==='cards')message=v.starter===seat?'Waiting for opponent to counter cards.':submittedCounterRound===v.cardRound?'Card response sent. Waiting for host...':'Opponent declared '+(v.cardPending[v.starter]||0)+' cards. Respond in the popup.';
  if(v.stage==='fumble')message=offense?'Fumble! Press Roll Recovery Die.':'Offense is rolling for fumble recovery.';
  if(v.stage==='kickoff')message=offense?'Kickoff — aim near the opponent’s own 1.':'Waiting for kickoff.';
  if(v.stage==='two-ready')message='Two-point attempt: both players roll dice.';
@@ -542,12 +593,12 @@ function renderController(){
  if(v.stage==='finished')message='GAME OVER\n'+(v.winner<0?'GAME TIED':v.winner===seat?'YOU WIN!':'YOU LOSE!')+'\n'+nameOf(0)+' '+v.scores[0]+' — '+v.scores[1]+' '+nameOf(1);
  E('controllerStatus').textContent=message;E('controllerStatus').classList.toggle('game-over',v.stage==='finished');
  E('controllerRole').textContent=(offense?'OFFENSE · 3 DICE':'DEFENSE · 2 DICE')+(v.ready[seat]?' · READY':'');
- const values=v.dice[seat]||Array.from({length:offense?3:2},()=>1);
+ const values=v.dice[seat]||Array.from({length:offense?3:2},()=>null);
  if(v.rollSeq[seat]!==clientRollSeen){
   clientRollSeen=v.rollSeq[seat];clientSpinUntil=Date.now()+850;startClientSpin();
  }
  const spinning=Date.now()<clientSpinUntil;
- E('controllerDice').innerHTML=values.map(n=>'<div class="die '+(spinning?'spinning':'')+'">'+(spinning?rand(6):n)+'</div>').join('');
+ E('controllerDice').innerHTML=values.map(n=>'<div class="die '+(n===null?'empty':spinning?'spinning':'')+'">'+(n===null?'&nbsp;':spinning?rand(6):n)+'</div>').join('');
  E('controllerTotal').innerHTML=(v.dice[seat]&&!spinning?'TOTAL '+sum(v.dice[seat]):'TOTAL —')+(!spinning&&seat===v.off?(v.triple?'<span class="tv-multiplier">×2</span>':'')+(v.passDouble?'<span class="tv-multiplier">×2</span>':''):'');
  if(!available)selected.clear();
  E('cardEye').textContent=cardsShown?'◉':'◎';
@@ -586,6 +637,7 @@ function renderController(){
  if(kickType&&!(v.stage==='play'&&offense||v.stage==='kickoff'&&offense||(v.stage==='xp-ready'||v.stage==='xp-kick')&&offense)){
   stopKick();E('controllerKickPanel').hidden=true;
  }
+ renderCounterCardPopup();
 }
 function startClientSpin(){
  if(clientSpinTimer)return;
