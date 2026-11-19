@@ -212,6 +212,13 @@ function doExtraPoint(value){
  if(success)G.scores[G.off]++;G.pos=G.off===0?20:80;G.stage='kickoff';
  announce(success?'Extra point good':'extra point no good',success?'good':'bad',success?'+1':'NO POINTS',2400);
 }
+
+function resolveCardBattle(){
+ const offense=removePicks(G.off,G.cardPicks[G.off]||[]),defense=removePicks(1-G.off,G.cardPicks[1-G.off]||[]);
+ G.cardPicks=[null,null];G.starter=-1;G.stage='play';
+ advance(sum(offense)-sum(defense),true);
+}
+
 function cards(side,indices,conversion=false){
  const valid=validPicks(side,indices);if(!valid)return;
  if(conversion){
@@ -231,12 +238,11 @@ function cards(side,indices,conversion=false){
  if(G.stage==='play'){
   if(G.usedCards[side]||valid.length===0||G.ready.some(Boolean))return;
   G.stage='cards';G.starter=side;G.cardPicks=[null,null];G.cardPicks[side]=valid;G.usedCards[side]=true;
-  G.message=nameOf(side)+' played '+valid.length+' card(s). Opponent can counter.';broadcast();return;
+  G.message=nameOf(side)+' played '+valid.length+' card(s). Opponent can counter.';if(G.usedCards[1-side]){G.cardPicks[1-side]=[];resolveCardBattle()}else broadcast();return;
  }
- if(G.stage==='cards'&&side!==G.starter&&G.cardPicks[side]===null){
+ if(G.stage==='cards'&&side!==G.starter&&G.cardPicks[side]===null&&!G.usedCards[side]){
   G.cardPicks[side]=valid;if(valid.length)G.usedCards[side]=true;
-  const off=removePicks(G.off,G.cardPicks[G.off]||[]),def=removePicks(1-G.off,G.cardPicks[1-G.off]||[]);
-  G.cardPicks=[null,null];G.stage='play';advance(sum(off)-sum(def),true);
+  resolveCardBattle();
  }
 }
 function action(side,a){
