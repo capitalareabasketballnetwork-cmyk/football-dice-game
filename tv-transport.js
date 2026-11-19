@@ -27,7 +27,7 @@
   constructor(peer,side,role){super();this.peer=peer;this.side=side;this.role=role;this.open=true;this.seq=0;this.queue=Promise.resolve()}
   send(payload){
    if(!this.open||this.peer.destroyed)return;
-   if(this.role==='player'&&payload?.t==='join'){
+   if(this.role==='player'&&payload?.t==='join'&&this.side<0){
     this.peer.joinAs(payload.name,this);return;
    }
    const item={op:'send',code:this.peer.code,token:this.peer.token,role:this.role,side:this.side,seq:++this.seq,payload};
