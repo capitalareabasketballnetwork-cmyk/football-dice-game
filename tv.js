@@ -275,3 +275,171 @@ function action(side,a){
   else if(G.stage==='xp-ready'&&a.type==='xp')doExtraPoint(a.position);
  }
 }
+
+function renderHost(){
+ if(!G||role!=='host')return;
+ const g=G;
+ E('hostHomeName').textContent=nameOf(0).toUpperCase();E('hostAwayName').textContent=nameOf(1).toUpperCase();
+ E('homePanelName').textContent=nameOf(0);E('awayPanelName').textContent=nameOf(1);
+ E('hostHomeScore').textContent=g.scores[0];E('hostAwayScore').textContent=g.scores[1];
+ E('hostPosition').textContent=fieldPosition(g);E('hostDown').textContent=downText(g);
+ E('hostLos').style.left=g.pos+'%';E('hostGoal').style.left=g.goal+'%';
+ E('homeRole').textContent=g.off===0?'OFFENSE':'DEFENSE';E('awayRole').textContent=g.off===1?'OFFENSE':'DEFENSE';
+ E('hostMessage').textContent=g.message;
+ for(let side=0;side<2;side++){
+  const box=E(side===0?'homeDice':'awayDice'),total=E(side===0?'homeTotal':'awayTotal');
+  const cards=E(side===0?'homeCardCount':'awayCardCount');
+  if(g.rollSeq[side]!==hostRollSeen[side]){
+   hostRollSeen[side]=g.rollSeq[side];hostSpinUntil[side]=Date.now()+850;startHostSpin();
+  }
+  const values=g.dice[side]||Array.from({length:side===g.off?3:2},()=>1);
+  const anim=Date.now()<hostSpinUntil[side];
+  box.innerHTML=values.map(n=>'<div class="die '+(anim?'spinning':'')+'">'+(anim?rand(6):n)+'</div>').join('');
+  total.textContent=anim?'= ...':g.dice[side]?'= '+sum(g.dice[side]):'= —';
+  cards.innerHTML='<span class="tiny">CARDS LEFT</span>'+Array.from({length:g.hands[side].length},()=>'<span class="card-back">PC</span>').join('');
+ }
+ const net=E('hostNet');net.textContent=g.net===null?'—':(g.net>0?'+':'')+g.net;
+ net.className='net-big '+(g.net>0?'good':g.net<0?'bad':'');
+ E('hostDrives').innerHTML=Array.from({length:8},(_,i)=>[0,1].map(side=>{
+  const v=g.results[side][i];return '<div class="drive-box '+(v===undefined?'':v>=6?'td':v===3?'fg':'fail')+'" title="'+(side===0?'Home':'Away')+' drive '+(i+1)+'">'+(v===undefined?'':v>0?v:'×')+'</div>'
+ }).join('')).join('');
+ const move=E('hostMovement');
+ if(g.move&&g.move.from!==g.move.to){
+  move.hidden=false;move.style.left=Math.min(g.move.from,g.move.to)+'%';move.style.width=Math.abs(g.move.to-g.move.from)+'%';
+  move.className='field-moving'+(g.move.forward?'':' loss');
+ }else move.hidden=true;
+ const ball=E('hostBall');
+ if(g.flight&&seenFlight!==g.flight.id){
+  seenFlight=g.flight.id;ball.classList.remove('flying');ball.style.transition='none';ball.style.left=g.flight.from+'%';
+  void ball.offsetWidth;ball.style.transition='left 1.6s ease-in-out';ball.classList.add('flying');
+  requestAnimationFrame(()=>{ball.style.left=g.flight.to+'%'});
+ }else if(!g.flight){
+  ball.classList.remove('flying');ball.style.transition='left .65s ease';ball.style.left=g.pos+'%';
+ }
+ const announ=E('hostAnnouncement');announ.hidden=!g.announcement;
+ if(g.announcement){
+  announ.className='tv-announcement '+g.announcement.tone;
+  E('hostAnnouncementTitle').textContent=g.announcement.title;E('hostAnnouncementDetail').textContent=g.announcement.detail;
+ }
+}
+function startHostSpin(){
+ if(hostSpinTimer)return;
+ hostSpinTimer=setInterval(()=>{
+  if(!G||!hostSpinUntil.some(t=>t>Date.now())){clearInterval(hostSpinTimer);hostSpinTimer=null}
+  renderHost();
+ },95);
+}
+function toggleCards(){cardsShown=!cardsShown;renderController()}
+function controllerAvailableCards(){
+ if(!V)return false;
+ return V.stage==='play'&&!V.usedCards[seat]&&!V.ready.some(Boolean)||
+  V.stage==='cards'&&V.starter!==seat&&V.cardPending[seat]===null||
+  V.stage==='conversion-cards'&&!V.convCommitted[seat];
+}
+function renderController(){
+ if(!V||seat<0)return;
+ const v=V,offense=v.off===seat,available=controllerAvailableCards();
+ E('controlTeam0').textContent=nameOf(0).toUpperCase();E('controlTeam1').textContent=nameOf(1).toUpperCase();
+ E('controlScore0').textContent=v.scores.join(' – ');
+ let message=v.message;
+ if(v.stage==='conversion-choice')message=offense?'Choose one or two points.':'Opponent chooses conversion.';
+ if(v.stage==='conversion-cards')message=v.convCommitted[seat]?'Cards committed; waiting for opponent.':'Choose cards for the conversion, or commit zero.';
+ if(v.stage==='cards')message=v.starter===seat?'Waiting for opponent to counter cards.':'Opponent played '+(v.cardPending[v.starter]||0)+' cards. Counter or commit zero.';
+ if(v.stage==='fumble')message=offense?'Fumble! Press Roll Recovery Die.':'Offense is rolling for fumble recovery.';
+ if(v.stage==='kickoff')message=offense?'Kickoff — aim near the opponent’s own 1.':'Waiting for kickoff.';
+ if(v.stage==='two-ready')message='Two-point attempt: both players roll dice.';
+ if(v.stage==='xp-ready')message=offense?'Kick the extra point.':'Opponent is kicking an extra point.';
+ if(v.stage==='finished')message=v.announcement?.title||'Final score';
+ E('controllerStatus').textContent=message;
+ E('controllerRole').textContent=(offense?'OFFENSE · 3 DICE':'DEFENSE · 2 DICE')+(v.ready[seat]?' · READY':'');
+ const values=v.dice[seat]||Array.from({length:offense?3:2},()=>1);
+ if(v.rollSeq[seat]!==clientRollSeen){
+  clientRollSeen=v.rollSeq[seat];clientSpinUntil=Date.now()+850;startClientSpin();
+ }
+ const spinning=Date.now()<clientSpinUntil;
+ E('controllerDice').innerHTML=values.map(n=>'<div class="die '+(spinning?'spinning':'')+'">'+(spinning?rand(6):n)+'</div>').join('');
+ E('controllerTotal').textContent=v.dice[seat]&&!spinning?'TOTAL '+sum(v.dice[seat]):'TOTAL —';
+ if(!available)selected.clear();
+ E('cardEye').textContent=cardsShown?'◉':'◎';
+ E('cardEye').setAttribute('aria-label',cardsShown?'Hide cards':'Reveal cards');
+ E('controllerCards').innerHTML=v.hand.length?v.hand.map((n,i)=>'<button class="'+(!cardsShown?'back ':'')+(selected.has(i)?'selected':'')+'" '+(!available?'disabled':'')+' onclick="pickCard('+i+')">'+(cardsShown?n:'?')+'</button>').join(''):'<span class="tiny">No cards remain</span>';
+ const commit=E('commitCards');
+ commit.disabled=!available||(v.stage==='play'&&selected.size===0);
+ commit.textContent=v.stage==='conversion-cards'?'COMMIT ('+selected.size+')':v.stage==='cards'?'COUNTER ('+selected.size+')':'PLAY CARDS ('+selected.size+')';
+ E('cardHint').textContent=v.stage==='play'?'One penalty-card play per dice play.':v.stage==='cards'?'Counter or commit zero.':v.stage==='conversion-cards'?'Both teams may commit remaining cards.':'Keep your cards private.';
+ E('controllerPlayCalls').hidden=!(v.stage==='play'&&offense&&!v.ready.some(Boolean));
+ E('callRun').classList.toggle('active',v.play==='run');
+ E('callPass').classList.toggle('active',v.play==='pass');
+ E('callPass').textContent='PASS ('+v.passes+' left)';
+ E('callPass').disabled=v.passes<=0;
+ E('controllerRoll').disabled=!(['play','two-ready'].includes(v.stage)&&!v.ready[seat]);
+ E('controllerRoll').textContent=v.ready[seat]?'WAITING FOR OPPONENT':v.stage==='two-ready'?'ROLL FOR 2 POINTS':'ROLL DICE';
+ const actions=E('controllerActions');
+ const enabled=offense&&!v.ready.some(Boolean);
+ actions.hidden=!(v.stage==='play'&&enabled||v.stage==='kickoff'&&offense||v.stage==='xp-ready'&&offense||v.stage==='conversion-choice'&&offense||v.stage==='fumble'&&offense);
+ const first=E('controllerFg'),second=E('controllerPunt');
+ second.hidden=false;
+ if(v.stage==='play'){
+  first.textContent='FIELD GOAL';first.onclick=()=>startKick('fg');
+  second.textContent='PUNT';second.onclick=()=>startKick('punt');
+ }else if(v.stage==='kickoff'){
+  first.textContent='KICKOFF';first.onclick=()=>startKick('kickoff');second.hidden=true;
+ }else if(v.stage==='xp-ready'){
+  first.textContent='KICK EXTRA POINT';first.onclick=()=>startKick('xp');second.hidden=true;
+ }else if(v.stage==='conversion-choice'){
+  first.textContent='KICK FOR 1';first.onclick=()=>sendAction({kind:'convert',value:1});
+  second.textContent='GO FOR 2';second.onclick=()=>sendAction({kind:'convert',value:2});
+ }else if(v.stage==='fumble'){
+  first.textContent='ROLL RECOVERY DIE';first.onclick=()=>sendAction({kind:'recover'});second.hidden=true;
+ }
+ if(kickType&&!(v.stage==='play'&&offense||v.stage==='kickoff'&&offense||v.stage==='xp-ready'&&offense)){
+  stopKick();E('controllerKickPanel').hidden=true;
+ }
+}
+function startClientSpin(){
+ if(clientSpinTimer)return;
+ clientSpinTimer=setInterval(()=>{
+  if(!V||Date.now()>=clientSpinUntil){clearInterval(clientSpinTimer);clientSpinTimer=null}
+  renderController();
+ },95);
+}
+function pickCard(i){
+ if(!V||!controllerAvailableCards()||!Number.isInteger(i)||i<0||i>=V.hand.length)return;
+ if(selected.has(i))selected.delete(i);else selected.add(i);
+ renderController();
+}
+function sendCards(){
+ if(!V)return;const type=V.stage==='conversion-cards'?'conversionCards':'cards';
+ sendAction({kind:type,indices:[...selected]});selected.clear();renderController();
+}
+function callPlay(which){sendAction({kind:'play',play:which})}
+function requestRoll(){sendAction({kind:'roll'})}
+function stopKick(){clearInterval(kickTimer);kickTimer=null;kickType=null}
+function startKick(type){
+ if(!V||seat!==V.off)return;
+ stopKick();kickType=type;kickValue=0;kickDir=1;
+ const panel=E('controllerKickPanel');panel.hidden=false;
+ if(type==='punt'){
+  panel.innerHTML='<div class="controller-heading">PUNT POWER</div><label class="tiny" for="puntPower">POWER <b id="puntPowerValue">65</b>%</label><input type="range" id="puntPower" min="0" max="100" value="65" style="width:100%;margin:18px 0"><button class="primary" onclick="completeKick()">PUNT BALL</button>';
+  E('puntPower').addEventListener('input',ev=>{E('puntPowerValue').textContent=ev.target.value});
+  return;
+ }
+ if(type==='kickoff'){
+  panel.innerHTML='<div class="controller-heading">KICKOFF · AIM FOR OWN 1</div><div class="kick-vertical"><div class="kick-needle" id="kickNeedle"></div></div><button class="primary" onclick="completeKick()">STOP KICKOFF</button>';
+ }else{
+  const dist=type==='xp'?42:Math.round((V.off===0?100-V.pos:V.pos)+17);
+  const width=Math.max(.5,Math.min(55,55*Math.exp(-.045*(dist-20))+(type==='xp'?V.convNet*.7:0)));
+  panel.innerHTML='<div class="controller-heading">'+(type==='xp'?'EXTRA POINT':'FIELD GOAL')+' · '+dist+' YARDS</div><div class="kick-meter"><div class="kick-zone" style="width:'+width+'%"></div><div class="kick-needle" id="kickNeedle"></div></div><button class="primary" onclick="completeKick()">STOP KICK</button>';
+ }
+ kickTimer=setInterval(()=>{
+  kickValue+=kickDir*(type==='kickoff'?3.3:2.4);
+  if(kickValue>=100||kickValue<=0){kickDir*=-1;kickValue=clamp(kickValue,0,100)}
+  const mark=E('kickNeedle');if(mark)mark.style[type==='kickoff'?'top':'left']=kickValue+'%';
+ },20);
+}
+function completeKick(){
+ if(!kickType)return;const type=kickType,value=type==='punt'?Number(E('puntPower').value):kickValue;
+ stopKick();E('controllerKickPanel').hidden=true;
+ sendAction({kind:'kick',type,position:value,power:value});
+}
+showScreen('chooseScreen');
