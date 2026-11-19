@@ -1,1 +1,1 @@
-{"cleanUrls":true}
+{"cleanUrls":true,"functions":{"api/tv-room.js":{"maxDuration":30}}}
