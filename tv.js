@@ -7,12 +7,42 @@ let role='',room='',peer=null,connection=null,seat=-1,links=[null,null],names=['
 let selected=new Set(),counterSelected=new Set(),activeCounterRound=-1,submittedCounterRound=-1,cardsShown=false,kickType=null,kickValue=0,kickDir=1,kickTimer=null,hostSpinTimer=null,clientSpinTimer=null;
 let hostRollSeen=[0,0],hostSpinUntil=[0,0],clientRollSeen=-1,clientSpinUntil=0,seenFlight=0,seenGoalKick=0;
 let signalTimer=null,connectionTimer=null,joinAttempt=0,hostRegistered=false;
+let hostRecoverySpinTimer=null,phoneRecoverySpinTimer=null,recoveryRequestSent=false;
+
+const TV_DICE_REVIEW_MS=3400,TV_DICE_PREVIEW_MS=1100,TV_RECOVERY_SPIN_MS=1600,TV_RECOVERY_HOLD_MS=2400;
+function previewDiceTotals(){
+ if(!G||!['play','two-ready'].includes(G.stage)||!G.ready.every(Boolean))return;
+ const offense=G.dice[G.off],defense=G.dice[1-G.off],raw=sum(offense),def=sum(defense);
+ const triple=offense.every(x=>x===offense[0]),adv=(triple?2*raw:raw)-def,pass=G.play==='pass'&&G.passes>0;
+ let yards=raw===def?(pass?-5:0):pass?(adv>=4?adv*2:-5):adv;
+ if(pass&&raw!==def&&adv>=4&&G.stage==='play'&&yards>=(G.off===0?110-G.pos:G.pos+10))yards=0;
+ G.net=yards;G.triple=raw!==def&&triple;G.passDouble=raw!==def&&pass&&adv>=4;
+ G.message='Both players rolled · Review the dice totals and net yards.';
+ broadcast();
+}
+function stopHostRecoverySpin(){if(hostRecoverySpinTimer){clearInterval(hostRecoverySpinTimer);hostRecoverySpinTimer=null}}
+function startHostRecoverySpin(){
+ if(hostRecoverySpinTimer)return;
+ hostRecoverySpinTimer=setInterval(()=>{
+  if(!G||G.stage!=='fumble-rolling'){stopHostRecoverySpin();return}
+  E('hostRecoveryDie').textContent=rand(6);
+ },95);
+}
+function stopPhoneRecoverySpin(){if(phoneRecoverySpinTimer){clearInterval(phoneRecoverySpinTimer);phoneRecoverySpinTimer=null}}
+function startPhoneRecoverySpin(){
+ if(phoneRecoverySpinTimer)return;
+ phoneRecoverySpinTimer=setInterval(()=>{
+  if(!V||V.stage!=='fumble-rolling'||seat!==V.off){stopPhoneRecoverySpin();return}
+  E('playerRecoveryDie').textContent=rand(6);
+ },95);
+}
+
 const screens=['chooseScreen','lobbyScreen','joinScreen','waitingScreen','hostScreen','controllerScreen'];
 function showScreen(id){for(const x of screens)E(x).hidden=x!==id;window.scrollTo(0,0)}
 function tell(text,id='lobbyStatus'){if(E(id))E(id).textContent=text}
 function nameOf(side){return names[side]|| (side===0?'Home':'Away')}
 function makeCode(){let chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',b=new Uint8Array(6);crypto.getRandomValues(b);return Array.from(b,v=>chars[v%chars.length]).join('')}
-function exitGame(){clearConnectionTimers();if(peer)peer.destroy();clearInterval(kickTimer);clearInterval(hostSpinTimer);clearInterval(clientSpinTimer);location.href='/'}
+function exitGame(){clearConnectionTimers();if(peer)peer.destroy();clearInterval(kickTimer);clearInterval(hostSpinTimer);clearInterval(clientSpinTimer);stopHostRecoverySpin();stopPhoneRecoverySpin();location.href='/'}
 function showJoinForm(){showScreen('joinScreen');E('joinError').textContent='';E('joinName').focus()}
 
 function clearConnectionTimers(){clearTimeout(signalTimer);clearTimeout(connectionTimer);signalTimer=null;connectionTimer=null}
@@ -161,7 +191,7 @@ function startHostedMatch(){
  deck:shuffledDeck(),hands:[[],[]],usedCards:[false,false],cardPicks:[null,null],starter:-1,cardRound:0,
  convKind:0,convPicks:[null,null],convCommitted:[false,false],convNet:0,
  results:[[],[]],startScore:0,lastDrive:[false,false],flight:null,flightId:0,
- serial:0,annId:0,announcement:null,quarterBreaks:[false,false,false],goalKick:null,goalKickId:0,message:'HOME takes possession. Both players roll.'};
+ serial:0,annId:0,announcement:null,recovery:null,quarterBreaks:[false,false,false],goalKick:null,goalKickId:0,message:'HOME takes possession. Both players roll.'};
  deal();E('gameCode').textContent=room;showScreen('hostScreen');broadcast();announce('Game On!','gold','Both teams ready',2100);
 }
 function sharePublic(){
@@ -191,7 +221,7 @@ function recordDrive(){const n=Math.max(0,G.scores[G.off]-G.startScore);if(G.res
 function endDrive(location,description){
  recordDrive();
  if(G.results[0].length>=8&&G.results[1].length>=8){
-  G.stage='finished';G.ready=[false,false];G.dice=[null,null];
+  G.stage='finished';G.ready=[false,false];G.dice=[null,null];G.recovery=null;
   G.winner=G.scores[0]===G.scores[1]?-1:G.scores[0]>G.scores[1]?0:1;
   const verdict=G.winner<0?'GAME TIED':nameOf(G.winner)+' WINS!';
   G.message='FINAL '+G.scores.join(' – ');announce('GAME OVER',G.winner===0?'good':G.winner===1?'bad':'gold',verdict+'\n'+nameOf(0)+' '+G.scores[0]+' — '+G.scores[1]+' '+nameOf(1),0);return;
@@ -199,7 +229,7 @@ function endDrive(location,description){
  G.off=1-G.off;G.pos=clamp(location,1,99);G.goal=clamp(G.pos+(G.off===0?10:-10),0,100);
  G.down=1;G.passes=2;G.play='run';G.ready=[false,false];G.dice=[null,null];G.net=null;G.move=null;
  G.usedCards=[false,false];G.cardPicks=[null,null];G.starter=-1;G.convKind=0;G.convPicks=[null,null];G.convNet=0;G.triple=false;G.passDouble=false;G.xpReady=[false,false];
- G.stage='play';G.flight=null;G.message=description+' · '+nameOf(G.off)+' takes over.';
+ G.stage='play';G.flight=null;G.recovery=null;G.message=description+' · '+nameOf(G.off)+' takes over.';
  deal();G.startScore=G.scores[G.off];broadcast();
  for(const period of [1,2,3]){
   const count=period*2;
@@ -422,19 +452,46 @@ function action(side,a){
   if(G.stage==='play'&&side===G.off&&G.play==='pass'&&G.passes<=0){G.play='run';announce('No more Pass plays left','bad','Choose Run',1200);return}
   // A fresh roll clears both old dice before displaying the first new result.
   if(!G.ready.some(Boolean)){
-   G.dice=[null,null];G.net=null;G.triple=false;G.passDouble=false;
+   G.dice=[null,null];G.net=null;G.move=null;G.triple=false;G.passDouble=false;
   }
   G.dice[side]=Array.from({length:side===G.off?3:2},()=>rand(6));G.rollSeq[side]++;G.ready[side]=true;
-  G.message=nameOf(side)+' rolled. Waiting for '+nameOf(1-side);broadcast();
-  if(G.ready.every(Boolean)){const seq=++G.serial;setTimeout(()=>{if(G&&G.serial===seq&&G.ready.every(Boolean))resolveRoll()},1500)}
+  G.message=G.ready.every(Boolean)?'Both teams rolled · Showing dice totals before the play resolves.':nameOf(side)+' rolled. Waiting for '+nameOf(1-side);
+  broadcast();
+  if(G.ready.every(Boolean)){
+   const seq=++G.serial;
+   setTimeout(()=>{if(G&&G.serial===seq&&G.ready.every(Boolean))previewDiceTotals()},TV_DICE_PREVIEW_MS);
+   setTimeout(()=>{if(G&&G.serial===seq&&G.ready.every(Boolean))resolveRoll()},TV_DICE_REVIEW_MS);
+  }
   return;
  }
  if(kind==='recover'&&G.stage==='fumble'&&side===G.off){
-  const v=rand(6),seq=++G.serial;G.stage='fumble-rolling';announce('Recovery Roll','gold','Rolling one die...',1300);const recoverySpin=setInterval(()=>{if(!G||G.serial!==seq){clearInterval(recoverySpin);return}G.message='Recovery die rolling: '+rand(6);broadcast()},100);
-  setTimeout(()=>{clearInterval(recoverySpin);if(!G||G.serial!==seq)return;G.message='Recovery die landed on '+v;broadcast();
-   if(v>=5){endDrive(G.pos,'Fumble turnover');announce('Ball Lost','bad','Recovery die '+v,2400)}
-   else{G.down++;if(G.down>4)endDrive(G.pos,'Turnover on downs');else{G.stage='play';G.message='Ball Retained · down lost';broadcast()}announce('Ball Retained','good','Recovery die '+v,2400)}
-  },1550);return;
+  const face=rand(6),seq=++G.serial;
+  G.stage='fumble-rolling';G.recovery={phase:'rolling',face:null};
+  G.message=nameOf(side)+' is rolling the recovery die...';broadcast();
+  setTimeout(()=>{
+   if(!G||G.serial!==seq||G.stage!=='fumble-rolling')return;
+   G.stage='fumble-landed';G.recovery={phase:'landed',face};
+   G.message='Recovery die: '+face+(face>=5?' · BALL LOST':' · BALL RETAINED')+' · Showing result...';
+   broadcast();
+   setTimeout(()=>{
+    if(!G||G.serial!==seq||G.stage!=='fumble-landed')return;
+    G.recovery=null;
+    if(face>=5){
+     endDrive(G.pos,'Fumble turnover');
+     announce('Ball Lost','bad','Recovery die '+face,2400);
+    }else{
+     G.down++;
+     if(G.down>4){
+      endDrive(G.pos,'Turnover on downs after fumble');
+      announce('Turnover on Downs','bad','Recovery die '+face+' · Down lost',2400);
+     }else{
+      G.stage='play';G.message='Ball Retained · Recovery die '+face+' · Down lost';broadcast();
+      announce('Ball Retained','good','Recovery die '+face,2400);
+     }
+    }
+   },TV_RECOVERY_HOLD_MS);
+  },TV_RECOVERY_SPIN_MS);
+  return;
  }
  if(kind==='kick'&&side===G.off){
   if(G.stage==='play'&&!G.ready.some(Boolean)&&a.type==='punt')doPunt(a.position);
@@ -616,14 +673,14 @@ function renderController(){
  const roll=E('controllerRoll');
  const stage=v.stage;
  const canRoll=stage==='play'||stage==='two-ready'? !v.ready[seat]:
-  stage==='kickoff'||stage==='conversion-choice'||stage==='fumble'||stage==='xp-kick'?offense:
+  stage==='kickoff'||stage==='conversion-choice'||stage==='xp-kick'?offense:
   stage==='xp-ready'?!v.xpReady[seat]:false;
  roll.disabled=!canRoll;
- roll.textContent=v.ready[seat]?'WAITING FOR OPPONENT':
+ roll.textContent=v.ready[seat]?(v.ready.every(Boolean)?'REVIEWING DICE':'WAITING FOR OPPONENT'):
   stage==='conversion-choice'?'CHOOSE CONVERSION':stage==='kickoff'?'KICKOFF':
   stage==='xp-ready'?(v.xpReady[seat]?'READY · WAITING':'ROLL DICE · EXTRA POINT'):
   stage==='xp-kick'?(offense?'KICK EXTRA POINT':'WAITING FOR KICK'):
-  stage==='fumble'?'ROLL RECOVERY DIE':
+  stage==='fumble'?'RECOVERY POPUP OPEN':stage==='fumble-rolling'||stage==='fumble-landed'?'RECOVERY DIE':
   stage==='two-ready'?'ROLL FOR 2 POINTS':'ROLL DICE';
  const actions=E('controllerActions');
  actions.hidden=!(stage==='play'&&offense&&!v.ready.some(Boolean));
