@@ -31,6 +31,8 @@ export default async function handler(req,res){
  if(req.method!=='GET'&&req.method!=='POST'){res.setHeader('Allow','GET, POST');return response(res,405,{error:'Method not allowed'})}
  try{
   if(req.method==='GET'&&req.query?.op==='health')return response(res,200,{ok:true,transport:'runtime-cache',version:2});
+  if(req.method==='GET'&&req.query?.op==='probeWrite'){const key=String(req.query.k||'').replace(/[^a-z0-9]/gi,'').slice(0,60);await cache.set('probe:'+key,{stamp:'relay-cache-check',key},{ttl:90});return response(res,200,{written:!!key})}
+  if(req.method==='GET'&&req.query?.op==='probeRead'){const key=String(req.query.k||'').replace(/[^a-z0-9]/gi,'').slice(0,60);return response(res,200,{value:await cache.get('probe:'+key)??null})}
   const input=req.method==='POST'?(typeof req.body==='string'?JSON.parse(req.body||'{}'):req.body||{}):req.query||{};
   const op=String(input.op||''),code=String(input.code||'').toUpperCase(),role=String(input.role||''),token=String(input.token||'');
   if(!okCode(code))return response(res,400,{error:'Invalid room code'});
