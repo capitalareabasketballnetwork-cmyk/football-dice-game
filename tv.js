@@ -5,7 +5,7 @@ const rand=n=>1+Math.floor(Math.random()*n),sum=a=>(a||[]).reduce((x,y)=>x+y,0),
 const escapeText=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let role='',room='',peer=null,connection=null,seat=-1,links=[null,null],names=['',''],G=null,V=null;
 let selected=new Set(),cardsShown=false,kickType=null,kickValue=0,kickDir=1,kickTimer=null,hostSpinTimer=null,clientSpinTimer=null;
-let hostRollSeen=[0,0],hostSpinUntil=[0,0],clientRollSeen=-1,clientSpinUntil=0,seenFlight=0;
+let hostRollSeen=[0,0],hostSpinUntil=[0,0],clientRollSeen=-1,clientSpinUntil=0,seenFlight=0,seenGoalKick=0;
 let signalTimer=null,connectionTimer=null,joinAttempt=0,hostRegistered=false;
 const screens=['chooseScreen','lobbyScreen','joinScreen','waitingScreen','hostScreen','controllerScreen'];
 function showScreen(id){for(const x of screens)E(x).hidden=x!==id;window.scrollTo(0,0)}
@@ -288,17 +288,38 @@ function doPunt(marker){
  const touchback=to<=0||to>=100,location=touchback?(G.off===0?65:35):clamp(to,1,99);
  ballFlight(start,clamp(to,0,100),()=>endDrive(location,touchback?'Punt touchback':'Punt landed · '+distance+' yards'),'Punt in the air · '+distance+' yards...');
 }
+function animateGoalKick(success,kind,done){
+ const side=G.off,id=++G.goalKickId,serial=G.serial;
+ G.goalKick={id,success,side,from:G.pos,to:side===0?95:5};
+ G.stage='flight';G.message=kind==='xp'?'Extra point kick flying…':'Field goal kick flying…';
+ broadcast();
+ setTimeout(()=>{
+  if(!G||G.goalKick?.id!==id||G.serial!==serial)return;
+  G.goalKick=null;done();broadcast();
+ },1840);
+}
 function doFieldGoal(value){
  const distance=(G.off===0?100-G.pos:G.pos)+17,width=Math.max(.5,Math.min(55,55*Math.exp(-.045*(distance-20))));
  const success=Math.abs(clamp(Number(value),0,100)-50)<width/2;
- if(success){G.scores[G.off]+=3;G.pos=G.off===0?20:80;G.stage='kickoff';announce('Field Goal Good','good',nameOf(G.off)+' +3',2700)}
- else{const pos=G.pos;endDrive(pos,'Missed field goal');announce('Missed Field Goal','bad','No points',2300)}
+ const side=G.off,previousSpot=G.pos;
+ animateGoalKick(success,'fg',()=>{
+  if(success){
+   G.scores[side]+=3;G.pos=side===0?20:80;G.stage='kickoff';
+   announce('Field Goal Good','good',nameOf(side)+' +3 · THROUGH THE UPRIGHTS',2700);
+  }else{
+   G.off=side;G.pos=previousSpot;endDrive(previousSpot,'Missed field goal');
+   announce('Missed Field Goal','bad','Kick went wide of the uprights',2400);
+  }
+ });
 }
 function doExtraPoint(value){
  const width=Math.max(.5,Math.min(55,55*Math.exp(-.045*(42-20))+G.convNet*.7));
- const success=Math.abs(clamp(Number(value),0,100)-50)<width/2;
- if(success)G.scores[G.off]++;G.pos=G.off===0?20:80;G.stage='kickoff';
- announce(success?'Extra point good':'extra point no good',success?'good':'bad',success?'+1':'NO POINTS',2400);
+ const success=Math.abs(clamp(Number(value),0,100)-50)<width/2,side=G.off;
+ animateGoalKick(success,'xp',()=>{
+  if(success)G.scores[side]++;
+  G.pos=side===0?20:80;G.stage='kickoff';
+  announce(success?'Extra point good':'extra point no good',success?'good':'bad',success?'THROUGH THE UPRIGHTS · +1':'KICK SWERVES WIDE',2400);
+ });
 }
 
 function resolveCardBattle(){
@@ -410,6 +431,24 @@ function renderHost(){
  }else if(!g.flight){
   ball.classList.remove('flying');ball.style.transition='left .65s ease';ball.style.left=g.pos+'%';
  }
+ const flightKick=E('hostKickBall');
+ const post=E('hostField').querySelectorAll('.tv-goalpost');
+ post.forEach((p,i)=>p.classList.toggle('active',!!g.goalKick&&i===1-g.goalKick.side));
+ if(g.goalKick){
+  if(seenGoalKick!==g.goalKick.id){
+   seenGoalKick=g.goalKick.id;
+   flightKick.classList.remove('in-flight');
+   flightKick.style.transition='none';
+   flightKick.style.left=(8+.84*g.goalKick.from)+'%';flightKick.style.top='65%';
+   flightKick.style.display='block';void flightKick.offsetWidth;
+   flightKick.classList.add('in-flight');
+   flightKick.style.transition='left 1.8s ease-out, top 1.8s cubic-bezier(.2,.15,.8,.9)';
+   requestAnimationFrame(()=>{
+    flightKick.style.left=g.goalKick.to+'%';
+    flightKick.style.top=g.goalKick.success?'47%':g.goalKick.id%2===0?'9%':'86%';
+   });
+  }
+ }else {flightKick.classList.remove('in-flight');flightKick.style.display='none'}
  const announ=E('hostAnnouncement');announ.hidden=!g.announcement;
  if(g.announcement){
   announ.className='tv-announcement '+g.announcement.tone;
