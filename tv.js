@@ -69,7 +69,7 @@ function registerConnection(c){
   if(m.t==='join'){
    if(side>=0)return;
    if(G){c.send({t:'reject',reason:'This game already started.'});return}
-   side=links.findIndex(x=>!x);
+   side=Number.isInteger(c.side)&&c.side>=0&&c.side<=1&&!links[c.side]?c.side:links.findIndex(x=>!x);
    if(side<0){c.send({t:'reject',reason:'Room is full.'});return}
    const name=String(m.name||'').trim().slice(0,20);
    if(name.length<2){c.send({t:'reject',reason:'Enter a player name.'});return}
