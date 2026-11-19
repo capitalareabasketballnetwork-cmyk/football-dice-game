@@ -69,7 +69,7 @@ function receive(m){
  if(!m||typeof m!=='object')return;
  if(m.t==='reject'){tell(m.reason||'Room unavailable.','joinError');connection?.close();return}
  if(m.t==='assigned'){
-  seat=m.side;names=m.names;room=m.room;E('waitingCode').textContent=room;
+  seat=m.side;clientRollSeen=0;names=m.names;room=m.room;E('waitingCode').textContent=room;
   E('waitingInfo').textContent='Joined as '+nameOf(seat)+' · '+(seat===0?'HOME':'AWAY')+'. Waiting for the host.';
   E('controllerRoom').textContent='ROOM '+room;showScreen('waitingScreen');return;
  }
