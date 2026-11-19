@@ -428,7 +428,7 @@ function freshCards(){
  g.driveStartScore=g.score[g.off];
  g.goal=limit(g.pos+(g.off===0?10:-10),0,100);
 }
-function reset(){localReady=[false,false];localEyes=[false,false];localDice=[null,null];pendingFumble=null;clearInterval(kickTimer);clearInterval(diceCycleTimer);clearTimeout(announcementTimer);clearTimeout(fumbleTimer);clearTimeout(phaseTimer);pendingFumble=null;E('fumbleRollBtn').style.display='none';E('kickFlightBall').style.display='none';E('announcementSub').classList.remove('final-score-sub');E('flippedAnnouncementSub').classList.remove('final-score-sub');animationSeq++;rolling=false;E("fieldAnnouncement").className="field-announcement";E("fieldbox").classList.remove("red-glow","green-glow","gold-glow");g={score:[0,0],off:0,pos:35,goal:45,down:1,passes:2,quarter:1,drives:[0,0],deck:makeDeck(),hands:[[],[]],state:'play',logs:[],msg:'Choose a play and roll the dice.',od:[1,1,1],dd:[1,1],net:null,called:0,conversion:false,lastMove:null,cardUsed:[false,false],driveHistory:[[],[]],driveStartScore:0,lastDriveAnnounced:[false,false],triple:false,passDouble:false};selection=[];choice='run';freshCards();render()}
+function reset(){localReady=[false,false];localEyes=[false,false];localDice=[null,null];pendingFumble=null;clearInterval(kickTimer);clearInterval(diceCycleTimer);clearTimeout(announcementTimer);clearTimeout(fumbleTimer);clearTimeout(phaseTimer);pendingFumble=null;E('fumbleRollBtn').style.display='none';E('kickFlightBall').style.display='none';E('announcementSub').classList.remove('final-score-sub');E('flippedAnnouncementSub').classList.remove('final-score-sub');animationSeq++;rolling=false;E("fieldAnnouncement").className="field-announcement";E("fieldbox").classList.remove("red-glow","green-glow","gold-glow");g={score:[0,0],off:0,pos:35,goal:45,down:1,passes:2,quarter:1,drives:[0,0],deck:makeDeck(),hands:[[],[]],state:'play',logs:[],msg:'Choose a play and roll the dice.',od:[1,1,1],dd:[1,1],net:null,called:0,conversion:false,lastMove:null,cardUsed:[false,false],driveHistory:[[],[]],driveStartScore:0,lastDriveAnnounced:[false,false],triple:false,passDouble:false,localXpReady:[false,false],localXpStart:false};selection=[];choice='run';freshCards();render()}
 function say(s){g.msg=s;g.logs.unshift(s);g.logs=g.logs.slice(0,25)}
 function own(){let p=g.off===0?g.pos:100-g.pos;return p<=50?'Own '+p:'Opp '+(100-p)}
 
@@ -770,7 +770,7 @@ function commitConversionCards(skip=false){
 }
 function finishConversionCards(){
  const delta=sum(g.conversionChoices[g.off])-sum(g.conversionChoices[1-g.off]);
- g.kickBonus=delta;
+ g.kickBonus=delta;g.localXpReady=[false,false];g.localXpStart=false;
  if(g.conversionType===2){
   g.pos=limit(g.pos+(g.off===0?1:-1)*delta,1,99);
   choice='run';
@@ -975,21 +975,25 @@ function drawLocalPlayer(side){
  const pane=E(side===0?'localTop':'localBottom');
  const offensive=g.off===side,values=offensive?g.od:g.dd;
  const rolled=localDice[side]||values;
- const ready=localReady[side],title=teamNames[side]||'Player '+(side+1);const canAction=(g.state==='play'||g.state==='two-ready'||(offensive&&['conversion','kickoff','xp-ready'].includes(g.state)));
+ const ready=g.state==='xp-ready'&&!g.localXpStart?g.localXpReady[side]:localReady[side],title=teamNames[side]||'Player '+(side+1);const canAction=g.state==='play'||g.state==='two-ready'||g.state==='xp-ready'&&(!g.localXpStart||offensive)||offensive&&['conversion','kickoff'].includes(g.state);
  const yard=own().toUpperCase(),distance=Math.abs(g.goal-g.pos),ord=n=>n===1?'1st':n===2?'2nd':n===3?'3rd':n+'th';
  const down=g.state==='over'?'FINAL':ord(g.down)+' & '+(distance===0?'Goal':distance);
  const scoreStrip='<div class="local-score-strip"><div class="local-score-team"><span>'+teamNames[0].toUpperCase()+'</span><strong>'+g.score[0]+'</strong></div><div class="local-score-team"><span>'+teamNames[1].toUpperCase()+'</span><strong>'+g.score[1]+'</strong></div><div class="local-score-info" aria-label="Field position"><strong>'+yard+'</strong></div><div class="local-score-info down-info" aria-label="Down and distance"><strong>'+down+'</strong></div></div>';
- pane.innerHTML=(side===0?scoreStrip:'')+'<div class="lp-main"><div class="lp-dice"><div class="lp-heading">'+title.toUpperCase()+' <span>'+(offensive?'OFFENSE':'DEFENSE')+'</span></div><div class="lp-rolls">'+rolled.map(v=>die(v)).join('')+'</div><div class="lp-total">= '+sum(rolled)+(offensive&&g.triple?'<span class="die-multiplier" title="Triple die">×2</span>':'')+(offensive&&g.passDouble?'<span class="die-multiplier" title="Successful pass">×2</span>':'')+'</div><button class="lp-ready" '+(ready||rolling||!canAction?'disabled':'')+' onclick="localRollPress('+side+')">'+(ready?'READY ✓':g.state==='two-ready'?'ROLL FOR 2':g.state==='conversion'?'CHOOSE CONVERSION':g.state==='kickoff'?'KICKOFF':g.state==='xp-ready'?'KICK EXTRA POINT':'ROLL DICE')+'</button></div><div class="lp-cards"><div class="lp-heading">PENALTY CARDS <button class="eye-toggle" aria-label="'+(localEyes[side]?'Hide':'Show')+' cards" onclick="toggleLocalEye('+side+')">'+(localEyes[side]?'◉':'◎')+'</button></div><div class="lp-card-row">'+localCardMarkup(side)+'</div><button class="lp-card-play" onclick="openLocalCards('+side+')" '+(g.state!=='play'||g.cardUsed[side]||g.hands[side].length===0?'disabled':'')+'>PLAY CARDS</button></div></div><div class="lp-footer">'+(offensive?'<div class="lp-play-switch"><button onclick="choose(\'run\')" class="'+(choice==='run'?'active':'')+'">RUN</button><button onclick="choose(\'pass\')" class="'+(choice==='pass'?'active':'')+'">PASS ('+g.passes+')</button></div>':'')+(offensive&&g.state==='play'?'<button onclick="kick(\'fg\')">FG</button><button onclick="kick(\'punt\')">PUNT</button>':'')+'</div>'+(side===1?scoreStrip:'');
+ pane.innerHTML=(side===0?scoreStrip:'')+'<div class="lp-main"><div class="lp-dice"><div class="lp-heading">'+title.toUpperCase()+' <span>'+(offensive?'OFFENSE':'DEFENSE')+'</span></div><div class="lp-rolls">'+rolled.map(v=>die(v)).join('')+'</div><div class="lp-total">= '+sum(rolled)+(offensive&&g.triple?'<span class="die-multiplier" title="Triple die">×2</span>':'')+(offensive&&g.passDouble?'<span class="die-multiplier" title="Successful pass">×2</span>':'')+'</div><button class="lp-ready" '+(ready||rolling||!canAction?'disabled':'')+' onclick="localRollPress('+side+')">'+(ready?'READY ✓':g.state==='two-ready'?'ROLL FOR 2':g.state==='conversion'?'CHOOSE CONVERSION':g.state==='kickoff'?'KICKOFF':g.state==='xp-ready'?(g.localXpStart?'KICK EXTRA POINT':'ROLL DICE · XP'):'ROLL DICE')+'</button></div><div class="lp-cards"><div class="lp-heading">PENALTY CARDS <button class="eye-toggle" aria-label="'+(localEyes[side]?'Hide':'Show')+' cards" onclick="toggleLocalEye('+side+')">'+(localEyes[side]?'◉':'◎')+'</button></div><div class="lp-card-row">'+localCardMarkup(side)+'</div><button class="lp-card-play" onclick="openLocalCards('+side+')" '+(g.state!=='play'||g.cardUsed[side]||g.hands[side].length===0?'disabled':'')+'>PLAY CARDS</button></div></div><div class="lp-footer">'+(offensive?'<div class="lp-play-switch"><button onclick="choose(\'run\')" class="'+(choice==='run'?'active':'')+'">RUN</button><button onclick="choose(\'pass\')" class="'+(choice==='pass'?'active':'')+'">PASS ('+g.passes+')</button></div>':'')+(offensive&&g.state==='play'?'<button onclick="kick(\'fg\')">FG</button><button onclick="kick(\'punt\')">PUNT</button>':'')+'</div>'+(side===1?scoreStrip:'');
 }
 function toggleLocalEye(side){localEyes[side]=!localEyes[side];renderLocal()}
 function renderLocal(){const visible=currentMode==='local'&&E('bodymode').classList.contains('phone');if(!visible){E('localTop').style.display='none';E('localBottom').style.display='none';return}drawLocalPlayer(0);drawLocalPlayer(1);E('localTop').style.display='flex';E('localBottom').style.display='flex'}
 function localRollPress(side){
  if(currentMode!=='local'||rolling||localReady[side])return;
- if(['conversion','kickoff','xp-ready'].includes(g.state)){
+ if(g.state==='xp-ready'){
+  if(g.localXpStart){if(side===g.off)kick('xp',true);return}
+  if(!g.localXpReady[side])g.localXpReady[side]=true;
+  if(g.localXpReady.every(Boolean)){g.localXpStart=true;say('Both players ready. Offense can kick the extra point.')}
+  renderLocal();return;
+ }
+ if(['conversion','kickoff'].includes(g.state)){
   if(side!==g.off)return;
-  if(g.state==='conversion')conversionMenu();
-  else if(g.state==='kickoff')kick('kickoff');
-  else kick('xp',true);
+  if(g.state==='conversion')conversionMenu();else kick('kickoff');
   return;
  }
  if(g.state!=='play'&&g.state!=='two-ready')return;
