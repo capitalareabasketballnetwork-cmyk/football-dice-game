@@ -414,7 +414,7 @@ body:has(#bodymode.phone.local-game) #overlay .modal .reveal-net{font-size:24px;
 
 /* Decorative overhead goalpost markers sit at each end zone's back boundary. */
 .field .end:first-child .goalpost{left:max(7px,14%)}
-.field > .end:last-of-type .goalpost{left:calc(100% - max(7px,14%))}
+.field > .end ~ .end .goalpost{left:calc(100% - max(7px,14%))}
 .goalpost:before{top:15%}
 .goalpost:after{top:85%}
 .phone.local-game .goalpost{height:clamp(46px,12vh,74px)}
