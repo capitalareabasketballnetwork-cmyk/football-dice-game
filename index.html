@@ -446,7 +446,7 @@ function announceFirstDown(y,viaCards=false){showFieldAnnouncement('First Down',
 function cycleDice(duration,done){const token=animationSeq;clearInterval(diceCycleTimer);const show=()=>{E('odice').innerHTML=Array.from({length:3},()=>die(rng(6),true)).join('');E('ddice').innerHTML=Array.from({length:2},()=>die(rng(6),true)).join('')};show();diceCycleTimer=setInterval(show,95);setTimeout(()=>{clearInterval(diceCycleTimer);if(token===animationSeq)done()},duration)}
 
 function animateScoringKick(good,side,kind,after){
- const token=++animationSeq;
+ const token=++animationSeq;g.lastMove=null;
  const ball=E('kickFlightBall'),startX=8+.84*g.pos;
  const targetX=side===0?95:5;
  const targetY=good?48:(Math.random()<.5?10:86);
@@ -470,8 +470,24 @@ function animateScoringKick(good,side,kind,after){
  },1800);
 }
 
-function animateBallFlight(from,to,after){const token=animationSeq,ball=E('flightBall');rolling=true;g.state='flight';ball.style.display='block';ball.style.left=from+'%';ball.classList.remove('flying');void ball.offsetWidth;ball.classList.add('flying');requestAnimationFrame(()=>{ball.style.left=to+'%'});render();setTimeout(()=>{if(token!==animationSeq)return;ball.classList.remove('flying');ball.style.display='none';rolling=false;after();render()},1750)}
-
+function animateBallFlight(from,to,after,landingType='normal'){
+ const token=animationSeq,ball=E('flightBall');
+ rolling=true;g.state='flight';g.lastMove=null;
+ ball.style.display='block';ball.style.transition='none';
+ ball.style.left=(8+.84*from)+'%';ball.style.top='53%';
+ ball.classList.remove('flying');render();void ball.offsetWidth;
+ ball.classList.add('flying');
+ ball.style.transition='left 1.7s ease-in-out,top 1.7s cubic-bezier(.4,.25,.8,.9)';
+ requestAnimationFrame(()=>{
+  ball.style.left=(8+.84*to)+'%';
+  ball.style.top=landingType==='out'?(token%2===0?'-12%':'111%'):'53%';
+ });
+ setTimeout(()=>{
+  if(token!==animationSeq)return;
+  ball.classList.remove('flying');ball.style.display='none';rolling=false;
+  after();render();
+ },1750);
+}
 function advanceQuarterIfReady(){
  if(g.drives[0]<2||g.drives[1]<2)return;
  const completed=g.quarter;
@@ -656,7 +672,7 @@ function cpuFourthDown(){
  }
  const from=g.pos,landing=from-(36+rng(24)),touchback=landing<=0;
  say('DieBall Don decides to punt');
- animateBallFlight(from,Math.max(0,landing),()=>{g.pos=touchback?35:limit(landing,1,99);finishDrive(touchback?'Punt touchback':'Don punted');say('DieBall Don punted');showFieldAnnouncement('Don punts','green',1800,touchback?'Touchback':'New possession')});
+ animateBallFlight(from,touchback?-5:Math.max(0,landing),()=>{g.pos=touchback?35:limit(landing,1,99);finishDrive(touchback?'Punt touchback':'Don punted');say('DieBall Don punted');showFieldAnnouncement('Don punts','green',1800,touchback?'Touchback':'New possession')},touchback?'endzone':'normal');
 }
 function cpuFourthRoll(){
  rolling=true;const type=g.passes>0&&Math.random()<.36?'pass':'run';
@@ -767,7 +783,7 @@ function finishConversionCards(){
    // Don has chosen an extra point; the defending user must trigger the kick.
    say('Cards committed. Press ROLL DICE to begin Don’s extra-point kick.');
    render();
-  }else kick('xp',true);
+  }else{say('Cards committed. Press KICK EXTRA POINT to begin.');render();}
  }
 }
 
@@ -823,7 +839,8 @@ const kickoffBands=[
  {portion:40,color:'#d44950',label:'31–OPP 1'}
 ];
 const puntBands=[
- {portion:18,color:'#d44950',label:'10–25 YD'},
+ {portion:7,color:'#d44950',label:'OUT OF BOUNDS'},
+ {portion:11,color:'#d44950',label:'10–25 YD'},
  {portion:18,color:'#f0d45a',label:'26–40 YD'},
  {portion:18,color:'#91d882',label:'41–55 YD'},
  {portion:18,color:'#215c36',label:'56–70 YD'},
@@ -846,6 +863,18 @@ function kickoffYard(marker){
  if(marker<60)return 21+Math.min(9,Math.floor((marker-46)/14*10));
  return 31+Math.min(68,Math.floor((marker-60)/40*69));
 }
+function cancelFieldGoal(){
+ if(g.state!=='kick'||g.kickType!=='fg')return;
+ clearInterval(kickTimer);
+ E('overlay').classList.remove('open');
+ E('modalCancel').onclick=closeModal;E('modalCancel').style.display='';
+ E('modalCancel').textContent='CANCEL';
+ E('modalCommit').onclick=commitModal;
+ g.state=g.kickPreviousState||'play';g.kickType=null;
+ say('Field goal canceled. The down and possession are unchanged.');
+ render();
+}
+
 function cancelPunt(){
  if(g.state!=='kick'||g.kickType!=='punt')return;
  clearInterval(kickTimer);
@@ -868,22 +897,23 @@ function kick(kind,force=false){if(rolling||(!force&&g.off!==0&&currentMode!=='l
  E('modalCommit').onclick=commitModal;E('modalCommit').textContent='STOP PUNT';
  E('modalCancel').onclick=cancelPunt;E('modalCancel').textContent='CANCEL PUNT';E('modalCancel').style.display='';
  kickTimer=setInterval(()=>{kpos+=kdir*3.3;if(kpos>=100||kpos<=0){kdir*=-1;kpos=limit(kpos,0,100)}const marker=E('kickoffMark');if(marker)marker.style.top=kpos+'%'},20);
- }else if(kind==='fg'||kind==='xp'){let w=Math.max(.5,Math.min(55,55*Math.exp(-.045*(dist-20))+(kind==='xp'?(g.kickBonus||0)*.7:0)));E('modalIntro').textContent=dist+'-yard kick. Stop the marker inside the green window.';E('modalInner').innerHTML='<div class="meter"><div class="zone" style="width:'+w+'%"></div><div class="needle" id="needle"></div></div>';kickTimer=setInterval(()=>{kpos+=kdir*2.4;if(kpos>100||kpos<0){kdir*=-1;kpos=limit(kpos,0,100)}if(E('needle'))E('needle').style.left=kpos+'%'},20);E('modalCommit').onclick=commitModal;E('modalCommit').textContent='STOP THE KICK'}else{E('modalIntro').textContent=kind==='punt'?'Choose punt power. Random drift affects landing location.':'Choose kickoff power and aim. No returns.';E('modalInner').innerHTML='<label>POWER <b id="pval">65</b>%</label><input type="range" min="0" max="100" value="65" oninput="g.power=+this.value;E(\'pval\').textContent=this.value">'+(kind==='kickoff'?'<label>AIM <b id="aval">0</b></label><input type="range" min="-100" max="100" value="0" oninput="g.aim=+this.value;E(\'aval\').textContent=this.value">':'');E('modalCommit').onclick=commitModal;E('modalCommit').textContent='KICK BALL'}if(kind!=='punt')E('modalCancel').style.display='none'}
+ }else if(kind==='fg'||kind==='xp'){let w=Math.max(.5,Math.min(55,55*Math.exp(-.045*(dist-20))+(kind==='xp'?(g.kickBonus||0)*.7:0)));E('modalIntro').textContent=dist+'-yard kick. Stop the marker inside the green window.';E('modalInner').innerHTML='<div class="meter"><div class="zone" style="width:'+w+'%"></div><div class="needle" id="needle"></div></div>';kickTimer=setInterval(()=>{kpos+=kdir*2.4;if(kpos>100||kpos<0){kdir*=-1;kpos=limit(kpos,0,100)}if(E('needle'))E('needle').style.left=kpos+'%'},20);E('modalCommit').onclick=commitModal;E('modalCommit').textContent='STOP THE KICK';if(kind==='fg'){E('modalCancel').onclick=cancelFieldGoal;E('modalCancel').textContent='CANCEL FIELD GOAL';E('modalCancel').style.display=''}}else{E('modalIntro').textContent=kind==='punt'?'Choose punt power. Random drift affects landing location.':'Choose kickoff power and aim. No returns.';E('modalInner').innerHTML='<label>POWER <b id="pval">65</b>%</label><input type="range" min="0" max="100" value="65" oninput="g.power=+this.value;E(\'pval\').textContent=this.value">'+(kind==='kickoff'?'<label>AIM <b id="aval">0</b></label><input type="range" min="-100" max="100" value="0" oninput="g.aim=+this.value;E(\'aval\').textContent=this.value">':'');E('modalCommit').onclick=commitModal;E('modalCommit').textContent='KICK BALL'}if(kind!=='punt'&&kind!=='fg')E('modalCancel').style.display='none'}
 function executeKick(){
  clearInterval(kickTimer);
- const kind=g.kickType,side=g.off,start=g.pos;
+ const kind=g.kickType,side=g.off,start=g.pos;g.lastMove=null;
  E('overlay').classList.remove('open');E('modalCancel').style.display='';E('modalCancel').onclick=closeModal;E('modalCancel').textContent='CANCEL';
  if(kind==='kickoff'){
-  let receivingYard,description;
-  receivingYard=kickoffYard(kpos);
-  description=kpos<8?'OUT OF BOUNDS · MIDFIELD':kpos<18?'TOUCHBACK · OWN 35':'BALL LANDED AT OWN '+receivingYard;
+  const receivingYard=kickoffYard(kpos);
+  const outOfBounds=kpos<8,endzone=kpos>=8&&kpos<18;
+  const description=outOfBounds?'OUT OF BOUNDS · MIDFIELD':endzone?'TOUCHBACK · OWN 35':'BALL LANDED AT OWN '+receivingYard;
   const landing=side===0?100-receivingYard:receivingYard;
+  const visualTarget=endzone?(side===0?105:-5):outOfBounds?(side===0?95:5):landing;
   say('Kickoff in the air...');
-  animateBallFlight(start,landing,()=>{
+  animateBallFlight(start,visualTarget,()=>{
    recordDrive(side);g.drives[side]++;g.off=1-side;g.pos=landing;
    newPossessionAfterKick(description);
    if(g.state!=='over'&&!(g.periodNoticeUntil>Date.now()))showFieldAnnouncement('Kickoff',receivingYard<=20?'green':'red',1900,description);
-  });
+  },outOfBounds?'out':endzone?'endzone':'normal');
   return;
  }
  if(kind==='fg'||kind==='xp'){
@@ -900,20 +930,25 @@ function executeKick(){
   return;
  }
  if(kind==='punt'){
-  const length=Math.round(10+kpos*.85),landing=start+(side===0?1:-1)*length;
-  const touchback=landing>=100||landing<=0;
+  const outOfBounds=kpos<7;
+  const length=outOfBounds?48+Math.floor(kpos):Math.round(10+kpos*.85);
+  const landing=start+(side===0?1:-1)*length;
+  const touchback=!outOfBounds&&(landing>=100||landing<=0);
   const finalSpot=touchback?(side===0?65:35):limit(landing,1,99);
+  const visualTarget=touchback?(side===0?105:-5):limit(landing,0,100);
   say('Punt in the air...');
-  animateBallFlight(start,limit(landing,0,100),()=>{
-   g.pos=finalSpot;finishDrive(touchback?'Punt touchback':'Punt landed');
-   if(g.state!=='over')showFieldAnnouncement('Punt',side===0?'green':'red',1600,touchback?'Touchback · own 35':'Ball downed');
-  });
+  animateBallFlight(start,visualTarget,()=>{
+   g.pos=finalSpot;
+   finishDrive(touchback?'Punt touchback':outOfBounds?'Punt out of bounds':'Punt landed');
+   if(g.state!=='over')showFieldAnnouncement(touchback?'Punt Touchback':outOfBounds?'Punt Out of Bounds':'Punt',side===0?'green':'red',1800,touchback?'Receiving team starts at own 35':outOfBounds?'Ball placed where it crossed the sideline':'Ball downed');
+  },outOfBounds?'out':touchback?'endzone':'normal');
   return;
  }
+
  render();
 }
 function newPossessionAfterKick(msg){localReady=[false,false];localEyes=[false,false];advanceQuarterIfReady();if(g.quarter>4){g.state='over';say('FINAL SCORE: '+g.score.join(' – '));announceWinner();return}freshCards();g.state='play';say(msg);announceLastDrive()}
-function cpuKick(){if(g.off!==1||g.state!=='kickoff'||rolling)return;const from=g.pos,to=limit(80-(45+rng(20)),1,99);say('DieBall Don kicks off...');animateBallFlight(from,to,()=>{recordDrive(1);g.drives[1]++;g.off=0;g.pos=to;newPossessionAfterKick(E('cpuName').textContent+' kicked off');if(g.state!=='over'&&!(g.periodNoticeUntil>Date.now()))showFieldAnnouncement('Kickoff','green',1800,'Ball lands at own '+to)})}
+function cpuKick(){if(g.off!==1||(g.state!=='kickoff'&&g.state!=='safety')||rolling)return;const from=g.pos,to=limit(80-(45+rng(20)),1,99);say('DieBall Don kicks off...');animateBallFlight(from,to,()=>{recordDrive(1);g.drives[1]++;g.off=0;g.pos=to;newPossessionAfterKick(E('cpuName').textContent+' kicked off');if(g.state!=='over'&&!(g.periodNoticeUntil>Date.now()))showFieldAnnouncement('Kickoff','green',1800,'Ball lands at own '+to)})}
 function setMode(v){E('bodymode').className=(currentMode==='local'?'local-game ':'')+(v==='phone'?'phone':'');E('desktop').classList.toggle('on',v==='desktop');E('phone').classList.toggle('on',v==='phone');renderLocal();queueMirrorPopup()}
 function render(){E('playerOneLabel').textContent=currentMode==='local'?teamNames[0].toUpperCase():'YOU';E('s0').textContent=g.score[0];E('s1').textContent=g.score[1];E('cpuLabel').textContent=currentMode==='local'?teamNames[1].toUpperCase():E('cpuName').textContent.toUpperCase();E('period').textContent=g.quarter>4?'FINAL':'Q'+g.quarter+' · DRIVE '+(Math.max(...g.drives)+1);E('driveRibbon').innerHTML=[0,1].map(side=>'<div class="drive-line"><span>'+(currentMode==='local'?teamNames[side].slice(0,5).toUpperCase():side===0?'YOU':'DON')+'</span>'+Array.from({length:8},(_,i)=>{const v=g.driveHistory[side][i],cl=v===undefined?'empty':v>=6?'td':v===3?'fg':'no-score';return '<i class="drive-tile '+cl+'" title="'+(v===undefined?'Drive '+(i+1):v+' points')+'">'+(v===undefined?'':v>0?v:'×')+'</i>'}).join('')+'</div>').join('');const ordinal=n=>n===1?'1st':n===2?'2nd':n===3?'3rd':n+'th';let dist=Math.abs(g.goal-g.pos);let downText=g.state==='over'?'Final':ordinal(g.down)+' & '+(dist===0?'Goal':dist);E('down').textContent=downText;E('bottomSpot').textContent=own().toUpperCase();E('bottomDown').textContent=downText;E('fieldDown').textContent=downText;let statusDown=E('downCard');statusDown.className='situation-card down-card '+(g.state==='play'?'down-'+Math.min(4,Math.max(1,g.down)):'down-neutral');E('poss').textContent=(currentMode==='local'?teamNames[g.off]:g.off===0?'YOUR':'CPU')+' BALL';E('los').style.left=g.pos+'%';E('ball').style.left=g.pos+'%';E('first').style.left=g.goal+'%';E('spot').textContent='BALL · '+own().toUpperCase();let lm=g.lastMove,layer=E('lastMove');if(lm){layer.style.display='block';E('priorLine').style.left=lm.from+'%';let arrow=E('moveArrow'),left=Math.min(lm.from,lm.to),width=Math.abs(lm.to-lm.from);arrow.style.left=left+'%';arrow.style.width=width+'%';arrow.className='move-arrow '+(lm.forward?'forward':'backward')+' '+(lm.to>=lm.from?'rightward':'leftward');E('movementLabel').textContent=(lm.forward?'+':'-')+lm.delta+' yd';arrow.classList.toggle('backward',lm.off===0? !lm.forward:lm.forward);arrow.classList.toggle('forward',lm.off===0? lm.forward:!lm.forward);}else layer.style.display='none';E('passes').textContent=Math.max(0,g.passes);E('diceFocus').classList.toggle('defending',g.off===1);E('diceStack').classList.toggle('player-defense',g.off===1);E('run').disabled=(g.state!=='play'&&g.state!=='two-ready')||(g.off!==0&&currentMode!=='local');E('pass').disabled=(g.state!=='play'&&g.state!=='two-ready')||(g.off!==0&&currentMode!=='local')||g.passes<=0;E('run').classList.toggle('active',choice==='run');E('pass').classList.toggle('active',choice==='pass');E('odice').innerHTML=g.od.map(n=>die(n)).join('');E('ddice').innerHTML=g.dd.map(n=>die(n)).join('');E('ototal').innerHTML=sum(g.od)+(g.triple?'<span class="die-multiplier" title="Triple die bonus">×2</span>':'')+(g.passDouble?'<span class="die-multiplier" title="Successful pass">×2</span>':'');E('dtotal').textContent=sum(g.dd);let net=E('net');net.className='net compact-net net-across'+(g.net>0?(g.off===0?' pos':' neg'):g.net<0?(g.off===0?' neg':' pos'):'');net.textContent=g.net===null?'—':(g.net>0?'+':'')+g.net;E('roll').disabled=rolling||!['play','two-ready','conversion','kickoff','xp-ready'].includes(g.state);E('roll').textContent=g.state==='conversion'?'CHOOSE CONVERSION':g.state==='kickoff'?(g.off===1&&currentMode==='cpu'?'RECEIVE KICKOFF':'KICKOFF'):g.state==='xp-ready'?(g.off===1&&currentMode==='cpu'?'ROLL DICE · EXTRA POINT':'KICK EXTRA POINT'):g.state==='two-ready'?'ROLL 2-POINT PLAY':g.off===0?'ROLL DICE':currentMode==='local'?'ROLL DICE · PLAYER 2':'ROLL DICE · DON';E('cards').innerHTML=g.hands[currentMode==='local'?g.off:0].map(v=>'<div class="card">'+v+'</div>').join('')||'<span class="muted">NO CARDS REMAINING</span>';E('handInfo').innerHTML='<span class="hidden-card-label">'+(currentMode==='local'?'OPPONENT':E('cpuName').textContent)+':</span> <span class="hidden-card-row">'+Array.from({length:g.hands[currentMode==='local'?1-g.off:1].length},()=>'<span class="mini-card-back">PC</span>').join('')+'</span>';E('deck').textContent=g.deck.length;E('status').textContent=g.msg;E('cardbutton').disabled=g.state!=='play'||rolling||(currentMode==='local'?g.hands[g.off].length===0||g.cardUsed[g.off]:g.hands[0].length===0||g.cardUsed[0]);E('fgbutton').disabled=g.state!=='play'||(g.off!==0&&currentMode!=='local')||rolling;E('puntbutton').disabled=g.state!=='play'||(g.off!==0&&currentMode!=='local')||rolling;E('details').textContent='Ball · '+own()+' | Passes remaining · '+g.passes;E('log').innerHTML=g.logs.map(x=>'<div>'+x+'</div>').join('');E('kickoffbtn').style.display='none';E('convertbtn').style.display='none';E('roll').onclick=roll;if(g.state==='conversion'&&g.off===1&&currentMode==='cpu'){cpuConversion()}if(g.state==='two'){}renderLocal();}
 function commitModal(){if(pending&&pending.side===8){commitConversionCards(false);return}if(pending){let activeSide=currentMode==='local'?pending.actor:0;let my=selection.map(i=>g.hands[activeSide][i]);g.hands[activeSide]=g.hands[activeSide].filter((_,i)=>!selection.includes(i));let n=pending.side===1?Math.min(pending.count,g.hands[1].length):0;if(pending.side!==1&&currentMode==='cpu'&&my.length&&!g.cardUsed[1]&&g.hands[1].length){const declared=my.length;n=Math.min(g.hands[1].length,declared+(g.down===4&&Math.random()<.55?1:0));g.hands[1].sort((a,b)=>b-a)}else if(pending.side!==1&&currentMode==='local')n=Math.min(g.hands[1-activeSide].length,Math.random()<.5?0:rng(2));let cpu=g.hands[1-activeSide].splice(0,n);if(cpu.length)g.cardUsed[1-activeSide]=true;let value=currentMode==='local'?(activeSide===g.off?sum(my)-sum(cpu):sum(cpu)-sum(my)):g.off===0?sum(my)-sum(cpu):sum(cpu)-sum(my);g.cardUsed[activeSide]=true;if(currentMode==='cpu'&&pending.side===1)g.cardUsed[1]=true;pending=null;selection=[];say('CARDS REVEALED · YOU ['+(my.join(', ')||'none')+'] vs DIEBALL DON ['+(cpu.join(', ')||'none')+']');move(value,true);render();E('modalTitle').textContent='Penalty cards revealed';E('modalIntro').textContent='Both sets of cards are now visible. Here is the movement result.';E('modalInner').innerHTML='<div class="card-reveal"><div><b>YOU</b><div class="cards">'+(my.length?my.map(v=>'<div class="card">'+v+'</div>').join(''):'<span class="muted">No cards</span>')+'</div><span>Total: '+sum(my)+'</span></div><div><b>DIEBALL DON</b><div class="cards">'+(cpu.length?cpu.map(v=>'<div class="card">'+v+'</div>').join(''):'<span class="muted">No cards</span>')+'</div><span>Total: '+sum(cpu)+'</span></div></div><div class="reveal-net '+((g.off===0?value:-value)>=0?'gain':'loss')+'">'+(value>=0?'+':'')+value+' yards <small>'+(value>0?'Offense forward':value<0?'Offense backward':'No movement')+'</small></div>';E('modalCancel').style.display='none';E('modalCommit').textContent='CONTINUE';E('modalCommit').onclick=()=>{E('overlay').classList.remove('open');E('modalCommit').onclick=commitModal;E('modalCancel').style.display='';E('modalCommit').textContent='COMMIT';if(g.replayFirstDownAfterCards){g.replayFirstDownAfterCards=false;showFieldAnnouncement('First Down',g.off===0?'green':'red',2200,sideName(g.off)+' · Penalty cards')}};return}if(g.state==='kick')executeKick()}
