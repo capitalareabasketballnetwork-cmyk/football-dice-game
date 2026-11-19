@@ -8,6 +8,8 @@ let selected=new Set(),counterSelected=new Set(),activeCounterRound=-1,submitted
 let hostRollSeen=[0,0],hostSpinUntil=[0,0],clientRollSeen=-1,clientSpinUntil=0,seenFlight=0,seenGoalKick=0;
 let signalTimer=null,connectionTimer=null,joinAttempt=0,hostRegistered=false;
 let hostRecoverySpinTimer=null,phoneRecoverySpinTimer=null,recoveryRequestSent=false;
+const REACTION_EMOJIS=new Set(['😡','🤣','😢','😱','💩']);
+let lastHostReaction=[0,0],lastPhoneReaction=0,reactionFeedbackTimer=null;
 
 const TV_DICE_REVIEW_MS=3400,TV_DICE_PREVIEW_MS=1100,TV_RECOVERY_SPIN_MS=1600,TV_RECOVERY_HOLD_MS=2400;
 function previewDiceTotals(){
@@ -192,7 +194,7 @@ function startHostedMatch(){
  convKind:0,convPicks:[null,null],convCommitted:[false,false],convNet:0,
  results:[[],[]],startScore:0,lastDrive:[false,false],flight:null,flightId:0,
  serial:0,annId:0,announcement:null,recovery:null,quarterBreaks:[false,false,false],goalKick:null,goalKickId:0,message:'HOME takes possession. Both players roll.'};
- deal();E('gameCode').textContent=room;showScreen('hostScreen');broadcast();announce('Game On!','gold','Both teams ready',2100);
+ deal();lastHostReaction=[0,0];E('hostEmojiRain').replaceChildren();E('gameCode').textContent=room;showScreen('hostScreen');broadcast();announce('Game On!','gold','Both teams ready',2100);
 }
 function sharePublic(){
  const {hands,deck,cardPicks,convPicks,...publicState}=G;
@@ -425,9 +427,53 @@ function cards(side,indices,conversion=false){
   resolveCardBattle();
  }
 }
+
+function sendReaction(emoji){
+ if(!REACTION_EMOJIS.has(emoji)||role!=='player'||seat<0||!V)return;
+ const feedback=E('reactionFeedback'),now=Date.now();
+ if(!connection?.open){feedback.textContent='Reconnect to react';return}
+ if(now-lastPhoneReaction<950){feedback.textContent='One reaction at a time';return}
+ lastPhoneReaction=now;
+ sendAction({kind:'reaction',emoji});
+ feedback.textContent='Sending '+emoji+' to the TV';
+ if(reactionFeedbackTimer)clearTimeout(reactionFeedbackTimer);
+ reactionFeedbackTimer=setTimeout(()=>{feedback.textContent='Tap an emoji';reactionFeedbackTimer=null},1500);
+}
+function rainReactionOnHost(emoji){
+ if(!REACTION_EMOJIS.has(emoji)||role!=='host'||!G)return;
+ const layer=E('hostEmojiRain');
+ if(!layer||!document.createElement)return;
+ const fieldHeight=Math.max(160,E('hostField').clientHeight||300);
+ // Allow overlapping cheers, but cap total nodes to keep the TV smooth.
+ while(layer.children.length>75)layer.firstElementChild?.remove();
+ for(let i=0;i<19;i++){
+  const glyph=document.createElement('span');
+  glyph.className='tv-raining-emoji';
+  glyph.textContent=emoji;
+  glyph.style.left=(4+Math.random()*91)+'%';
+  glyph.style.fontSize=(24+Math.random()*25)+'px';
+  glyph.style.setProperty('--fall-duration',(2.2+Math.random()*.85).toFixed(2)+'s');
+  glyph.style.setProperty('--fall-delay',(Math.random()*.65).toFixed(2)+'s');
+  glyph.style.setProperty('--fall-drift',((Math.random()-.5)*110).toFixed(0)+'px');
+  glyph.style.setProperty('--fall-rotation',((Math.random()-.5)*900).toFixed(0)+'deg');
+  glyph.style.setProperty('--field-height',fieldHeight+'px');
+  layer.appendChild(glyph);
+  setTimeout(()=>glyph.remove(),4100);
+ }
+}
+
 function action(side,a){
- if(!G||!links[side]?.open||!links.every(c=>c?.open)||!a||G.stage==='flight'||G.stage==='finished')return;
+ if(!G||!links[side]?.open||!links.every(c=>c?.open)||!a)return;
  const kind=String(a.kind||'');
+ if(kind==='reaction'){
+  if(!REACTION_EMOJIS.has(a.emoji))return;
+  const now=Date.now();
+  if(now-lastHostReaction[side]<900)return;
+  lastHostReaction[side]=now;
+  rainReactionOnHost(a.emoji);
+  return;
+ }
+ if(G.stage==='flight'||G.stage==='finished')return;
  if(kind==='play'&&(G.stage==='play'||G.stage==='two-ready')&&side===G.off&&!G.ready.some(Boolean)){
   if(a.play==='pass'&&G.passes<=0){announce('No more Pass plays left','bad','Choose Run instead',1300);return}
   G.play=a.play==='pass'?'pass':'run';
