@@ -301,33 +301,37 @@ function resolveRoll(){
   setTimeout(finish,1400);
  }else finish();
 }
-function ballFlight(from,to,done,text){
+function ballFlight(from,to,done,text,landingType='normal'){
  const id=++G.flightId,serial=G.serial;
- G.flight={id,from,to};G.stage='flight';G.message=text||'Ball flying through the air';broadcast();
+ G.flight={id,from,to,landingType};G.stage='flight';G.move=null;
+ G.message=text||'Ball flying through the air';broadcast();
  setTimeout(()=>{if(!G||G.flight?.id!==id||G.serial!==serial)return;G.flight=null;done();broadcast()},1800);
 }
 function doKickoff(p){
  const side=G.off,from=G.pos,k=clamp(Number(p)||0,0,100);
  let y,description;
- if(k<8){y=50;description='Kickoff out of bounds · midfield'}
- else if(k<18){y=35;description='Kickoff touchback · own 35'}
+ const out=k<8,endzone=k>=8&&k<18;
+ if(out){y=50;description='Kickoff out of bounds · midfield'}
+ else if(endzone){y=35;description='Kickoff touchback · own 35'}
  else if(k<32){y=1+Math.min(9,Math.floor((k-18)/14*10));description='Kickoff · own '+y}
  else if(k<46){y=11+Math.min(9,Math.floor((k-32)/14*10));description='Kickoff · own '+y}
  else if(k<60){y=21+Math.min(9,Math.floor((k-46)/14*10));description='Kickoff · own '+y}
  else{y=31+Math.min(68,Math.floor((k-60)/40*69));description='Kickoff · own '+y}
- const to=side===0?100-y:y;
- ballFlight(from,to,()=>endDrive(to,description),'Kickoff in the air...');
+ const next=side===0?100-y:y;
+ const visual=endzone?(side===0?105:-5):out?(side===0?92:8):next;
+ ballFlight(from,visual,()=>endDrive(next,description),'Kickoff in the air...',out?'out':endzone?'endzone':'normal');
 }
 function doPunt(marker){
- const start=G.pos,dir=G.off===0?1:-1;
- const distance=Math.round(10+clamp(Number(marker)||0,0,100)*.85);
- const to=start+dir*distance;
- const touchback=to<=0||to>=100,location=touchback?(G.off===0?65:35):clamp(to,1,99);
- ballFlight(start,clamp(to,0,100),()=>endDrive(location,touchback?'Punt touchback':'Punt landed · '+distance+' yards'),'Punt in the air · '+distance+' yards...');
+ const start=G.pos,dir=G.off===0?1:-1,k=clamp(Number(marker)||0,0,100);
+ const out=k<7,distance=out?48+Math.floor(k):Math.round(10+k*.85);
+ const landing=start+dir*distance,touchback=!out&&(landing<=0||landing>=100);
+ const location=touchback?(G.off===0?65:35):clamp(landing,1,99);
+ const visual=touchback?(G.off===0?105:-5):clamp(landing,0,100);
+ ballFlight(start,visual,()=>endDrive(location,touchback?'Punt touchback':out?'Punt out of bounds':'Punt landed · '+distance+' yards'),'Punt in the air · '+distance+' yards...',out?'out':touchback?'endzone':'normal');
 }
 function animateGoalKick(success,kind,done){
  const side=G.off,id=++G.goalKickId,serial=G.serial;
- G.goalKick={id,success,side,from:G.pos,to:side===0?95:5};
+ G.goalKick={id,success,side,from:G.pos,to:side===0?95:5};G.move=null;
  G.stage='flight';G.message=kind==='xp'?'Extra point kick flying…':'Field goal kick flying…';
  broadcast();
  setTimeout(()=>{
@@ -470,11 +474,17 @@ function renderHost(){
  }else move.hidden=true;
  const ball=E('hostBall');
  if(g.flight&&seenFlight!==g.flight.id){
-  seenFlight=g.flight.id;ball.classList.remove('flying');ball.style.transition='none';ball.style.left=g.flight.from+'%';
-  void ball.offsetWidth;ball.style.transition='left 1.6s ease-in-out';ball.classList.add('flying');
-  requestAnimationFrame(()=>{ball.style.left=g.flight.to+'%'});
+  seenFlight=g.flight.id;
+  ball.classList.remove('flying');ball.style.transition='none';
+  ball.style.left=g.flight.from+'%';ball.style.top='49%';void ball.offsetWidth;
+  ball.style.transition='left 1.6s ease-in-out,top 1.6s cubic-bezier(.4,.25,.8,.9)';
+  ball.classList.add('flying');
+  requestAnimationFrame(()=>{
+   ball.style.left=g.flight.to+'%';
+   ball.style.top=g.flight.landingType==='out'?(g.flight.id%2===0?'-25%':'120%'):'49%';
+  });
  }else if(!g.flight){
-  ball.classList.remove('flying');ball.style.transition='left .65s ease';ball.style.left=g.pos+'%';
+  ball.classList.remove('flying');ball.style.transition='left .65s ease';ball.style.top='49%';ball.style.left=g.pos+'%';
  }
  const flightKick=E('hostKickBall');
  const post=E('hostField').querySelectorAll('.tv-goalpost');
@@ -617,7 +627,7 @@ const verticalBands={
   [14,'#9bdc87','11–20 YD'],[14,'#f0d45a','21–30 YD'],[40,'#d44950','31–OPP 1']
  ],
  punt:[
-  [18,'#d44950','10–25 YD'],[18,'#f0d45a','26–40 YD'],[18,'#91d882','41–55 YD'],
+  [7,'#d44950','OUT OF BOUNDS'],[11,'#d44950','10–25 YD'],[18,'#f0d45a','26–40 YD'],[18,'#91d882','41–55 YD'],
   [18,'#215c36','56–70 YD'],[17,'#eeca57','71–85 YD'],[11,'#d44950','86–95 YD']
  ]
 };
@@ -630,9 +640,9 @@ function verticalMeter(kind){
 }
 function cancelKick(){
  if(!kickType)return;
- stopKick();
+ const type=kickType;stopKick();
  E('controllerKickPanel').hidden=true;E('controllerKickPanel').innerHTML='';
- E('controllerError').textContent='Punt canceled. You can choose another play.';
+ E('controllerError').textContent=type==='fg'?'Field goal canceled. Down and possession unchanged.':'Punt canceled. You can choose another play.';
 }
 
 function startKick(type){
@@ -647,7 +657,7 @@ function startKick(type){
  }else{
   const dist=type==='xp'?42:Math.round((V.off===0?100-V.pos:V.pos)+17);
   const width=Math.max(.5,Math.min(55,55*Math.exp(-.045*(dist-20))+(type==='xp'?V.convNet*.7:0)));
-  panel.innerHTML='<div class="controller-heading">'+(type==='xp'?'EXTRA POINT':'FIELD GOAL')+' · '+dist+' YARDS</div><div class="kick-meter"><div class="kick-zone" style="width:'+width+'%"></div><div class="kick-needle" id="kickNeedle"></div></div><button class="primary" onclick="completeKick()">STOP KICK</button>';
+  panel.innerHTML='<div class="controller-heading">'+(type==='xp'?'EXTRA POINT':'FIELD GOAL')+' · '+dist+' YARDS</div><div class="kick-meter"><div class="kick-zone" style="width:'+width+'%"></div><div class="kick-needle" id="kickNeedle"></div></div><button class="primary" onclick="completeKick()">STOP KICK</button>'+(type==='fg'?'<button class="secondary" style="display:block;width:100%;margin-top:9px" onclick="cancelKick()">CANCEL FIELD GOAL</button>':'');
  }
  kickTimer=setInterval(()=>{
   kickValue+=kickDir*((type==='kickoff'||type==='punt')?3.3:2.4);
