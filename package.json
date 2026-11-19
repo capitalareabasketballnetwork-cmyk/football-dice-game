@@ -1,1 +1,1 @@
-{"name":"dieball-app","version":"0.4.0","private":true,"type":"module","dependencies":{"@vercel/functions":"^2.4.0"}}
+{"name":"dieball-app","version":"0.4.0","private":true,"type":"module","dependencies":{"@vercel/functions":"3.11.3"}}
