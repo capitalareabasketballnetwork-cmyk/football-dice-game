@@ -623,11 +623,11 @@ function doPlay(type,offDice,defDice){
  if(triple){
   const token=animationSeq;
   g.state='triple-animation';rolling=true;render();
-  showFieldAnnouncement('Triple die!',g.off===0?'green':'red',1350,'Three matching offensive dice · ×2');
+  showFieldAnnouncement('Triple die!',g.off===0?'green':'red',2000,'Three matching offensive dice · ×2');
   setTimeout(()=>{
    if(token!==animationSeq||g.state!=='triple-animation')return;
    g.state='play';rolling=false;move(y);render();
-  },1400);
+  },2000);
  }else move(y);
 }
 function cpuExtraPointAfterUserRoll(){
@@ -836,7 +836,7 @@ function twoRoll(){
    say(good?'TWO POINTS GOOD!':'Two-point attempt failed.');render();
    showFieldAnnouncement(good?'2 points converted':'2 points not converted',good?(g.off===0?'green':'red'):(g.off===0?'red':'green'),2900,(type==='pass'?'PASS':'RUN')+' · '+(good?'+2 POINTS':'NO POINTS'));
   };
-  if(g.triple){showFieldAnnouncement('Triple die!',g.off===0?'green':'red',1200,'Three matching dice · ×2');setTimeout(finish,1300)}
+  if(g.triple){showFieldAnnouncement('Triple die!',g.off===0?'green':'red',2000,'Three matching dice · ×2');setTimeout(finish,2000)}
   else finish();
  });
 }
