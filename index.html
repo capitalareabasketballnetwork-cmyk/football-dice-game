@@ -438,7 +438,7 @@ function startFumble(){
  pendingFumble={token,result:null,off:g.off};
  g.state='fumble';rolling=true;
  say('Fumble! Roll one die to determine possession.');
- showFieldAnnouncement('Fumble!','red',600000,'Roll one recovery die. 1–4 = ball retained; 5–6 = ball lost.');
+ showFieldAnnouncement('Fumble!','red',600000,(g.net===-5?'Failed pass · −5 yards first. ':'')+'Roll recovery: 1–4 retained, 5–6 lost.');
  E('fumbleRollBtn').style.display='block';
  render();
 }
@@ -468,7 +468,23 @@ function rollRecovery(){
 
 function scoreTouchdown(){const scoringSide=g.off;showFieldAnnouncement('Touchdown',scoringSide===0?'gold':currentMode==='cpu'?'red':'gold',3100,(currentMode==='local'?teamNames[scoringSide]:scoringSide===0?'YOU':'DIEBALL DON')+' SCORED! +6');g.score[g.off]+=6;g.state='conversion';g.pos=g.off===0?100:0;say((g.off===0?'YOU':'CPU')+' TOUCHDOWN! +6 points.')}
 function move(y,card=false){let dir=g.off===0?1:-1,from=g.pos,to=from+dir*y;if(card){g.pos=limit(to,1,99);rememberMovement(from,g.pos,g.off);if((g.off===0&&g.pos>=g.goal)||(g.off===1&&g.pos<=g.goal)){g.down=1;g.goal=limit(g.pos+dir*10,0,100);say('FIRST DOWN from penalty cards! '+(y>=0?'+':'')+y+' yards.');g.replayFirstDownAfterCards=true;announceFirstDown(y,true)}else say('Penalty card net '+(y>=0?'+':'')+y+' yards.');return}if(to>=100||to<=0){rememberMovement(from,limit(to,0,100),g.off);if(y>0)scoreTouchdown();else{let conceding=g.off;g.score[1-conceding]+=2;g.state='safety';g.pos=conceding===0?20:80;say('SAFETY! Defense gains 2 points.')}return}g.pos=to;rememberMovement(from,g.pos,g.off);g.down++;if((g.off===0&&g.pos>=g.goal)||(g.off===1&&g.pos<=g.goal)){g.down=1;g.goal=limit(g.pos+dir*10,0,100);say('FIRST DOWN! '+(y>=0?'+':'')+y+' yards.');announceFirstDown(y)}else if(g.down>4){finishDrive('Turnover on downs')}else say((y>=0?'+':'')+y+' yards gained.')}
-function doPlay(type,offDice,defDice){g.cardUsed=[false,false];g.od=offDice;g.dd=defDice;let a=sum(offDice),b=sum(defDice),triple=offDice.every(n=>n===offDice[0]);if(type==='pass'){if(g.passes<=0){say('No more Pass plays left');choice='run';showFieldAnnouncement('No more Pass plays left','red',1600);return}g.passes=Math.max(0,g.passes-1);choice='run';}if(a===b){g.net=0;g.lastMove=null;startFumble();return}let advantage=(triple?2*a:a)-b,y=type==='pass'?(advantage>=4?advantage*2:-5):advantage;g.net=y;if(type==='pass'&&advantage>=4){let toBack=g.off===0?110-g.pos:g.pos+10;if(y>=toBack){g.lastMove=null;g.down++;say('INCOMPLETE! Pass sailed past the end zone.');if(g.down>4)finishDrive('Turnover on downs');return}}say((type==='pass'?'PASS':'RUN')+(triple?' · TRIPLES!':'')+' · net '+(y>=0?'+':'')+y);move(y)}
+function doPlay(type,offDice,defDice){g.cardUsed=[false,false];g.od=offDice;g.dd=defDice;let a=sum(offDice),b=sum(defDice),triple=offDice.every(n=>n===offDice[0]);if(type==='pass'){if(g.passes<=0){say('No more Pass plays left');choice='run';showFieldAnnouncement('No more Pass plays left','red',1600);return}g.passes=Math.max(0,g.passes-1);choice='run';}if(a===b){
+  if(type==='pass'){
+   const from=g.pos,to=from+(g.off===0?-5:5);
+   g.net=-5;
+   rememberMovement(from,limit(to,0,100),g.off);
+   if(to<=0||to>=100){
+    const conceding=g.off;g.score[1-conceding]+=2;g.state='safety';g.pos=conceding===0?20:80;
+    say('SAFETY! Failed pass loses 5 yards into own end zone. Defense gets 2 points.');
+    render();
+    showFieldAnnouncement('Safety',conceding===0?'red':'green',2600,'Failed pass −5 yards · Defense +2');
+    return;
+   }
+   g.pos=to;
+   say('Failed pass: −5 yards, then a fumble! Roll for recovery.');
+  }else{g.net=0;g.lastMove=null}
+  startFumble();return;
+ }let advantage=(triple?2*a:a)-b,y=type==='pass'?(advantage>=4?advantage*2:-5):advantage;g.net=y;if(type==='pass'&&advantage>=4){let toBack=g.off===0?110-g.pos:g.pos+10;if(y>=toBack){g.lastMove=null;g.down++;say('INCOMPLETE! Pass sailed past the end zone.');if(g.down>4)finishDrive('Turnover on downs');return}}say((type==='pass'?'PASS':'RUN')+(triple?' · TRIPLES!':'')+' · net '+(y>=0?'+':'')+y);move(y)}
 function choose(p){if(g.state!=='play'||(g.off!==0&&currentMode!=='local')||rolling)return;if(p==='pass'&&g.passes<=0){choice='run';say('No more Pass plays left');showFieldAnnouncement('No more Pass plays left','red',1500);render();return}choice=p;E('fieldbox').classList.remove('glow');void E('fieldbox').offsetWidth;E('fieldbox').classList.add('glow');setTimeout(()=>E('fieldbox').classList.remove('glow'),900);render()}
 function roll(){if(rolling)return;if(g.state==='two-ready'){twoRoll();return}if(g.state!=='play')return;if(g.off===1&&currentMode!=='local'){cpuPlay();return}if(choice==='pass'&&g.passes<=0){choice='run';say('No more Pass plays left');showFieldAnnouncement('No more Pass plays left','red',1600);render();return}rolling=true;const selectedPlay=choice;E('roll').disabled=true;E('status').textContent='Dice rolling…';cycleDice(1400,()=>{if(g.state!=='play')return;doPlay(selectedPlay,[rng(6),rng(6),rng(6)],[rng(6),rng(6)]);if(g.state!=='fumble')rolling=false;render()})}
 
