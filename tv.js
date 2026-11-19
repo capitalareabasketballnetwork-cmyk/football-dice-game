@@ -245,7 +245,7 @@ function resolveRoll(){
    if(to<=0||to>=100){G.scores[1-G.off]+=2;G.stage='kickoff';G.pos=G.off===0?20:80;G.message='Safety on failed pass (−5 yards)';announce('Safety!','bad','Failed pass −5 yards · Defense +2',2600);return}
    G.pos=to;
   }else G.net=0;
-  G.stage='fumble';G.message=pass?'FAILED PASS −5 YARDS · FUMBLE! Roll recovery die.':'FUMBLE! Roll recovery die.';
+  G.play='run';G.stage='fumble';G.message=pass?'FAILED PASS −5 YARDS · FUMBLE! Roll recovery die.':'FUMBLE! Roll recovery die.';
   announce('Fumble!','bad',pass?'Failed pass −5 yards first · 1–4 retained, 5–6 lost':'1–4 retained · 5–6 lost',2200);return
  }
  const y=pass?(adv>=4?adv*2:-5):adv;
