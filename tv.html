@@ -28,6 +28,25 @@
 .tv-kick-ball{display:none;position:absolute;left:50%;top:65%;transform:translate(-50%,-50%);z-index:13;font-size:clamp(23px,3vw,40px);text-shadow:0 0 10px #ffffc8;pointer-events:none;will-change:top,left}
 .tv-kick-ball.in-flight{animation:tv-kick-rotate 1.8s linear forwards}
 @keyframes tv-kick-rotate{0%{transform:translate(-50%,-50%) rotate(-20deg) scale(1)}100%{transform:translate(-50%,-50%) rotate(900deg) scale(.45)}}
+
+/* The two uprights are top-down gold dots, not a side-on goalpost illustration. */
+.tv-goalpost{height:76px;max-height:70%;width:100%;opacity:1;filter:none}
+.tv-goalpost:before,.tv-goalpost:after{
+ content:'';position:absolute;left:50%;width:clamp(7px,1.2vw,11px);height:clamp(7px,1.2vw,11px);
+ border:0!important;border-radius:50%;background:#ffda51;
+ transform:translate(-50%,-50%);box-shadow:0 0 5px #ffdb518c;bottom:auto
+}
+.tv-goalpost:before{top:20%}.tv-goalpost:after{top:80%}
+.tv-goalpost.active{filter:drop-shadow(0 0 7px #ffe96d)}
+.field-ball.flying{animation:none!important;transition:left 1.6s ease-in-out,top 1.6s ease-in-out}
+.tv-multiplier{display:inline-block;vertical-align:middle;margin-left:5px;padding:3px 5px;
+ border-radius:5px;border:1px solid #82e5a3;background:#193a24;
+ font-size:clamp(11px,1.3vw,15px);line-height:1.1;color:#a7ffb6;font-weight:1000;
+ box-shadow:0 0 9px #3cda7162}
+.tv-announcement span{white-space:pre-line;line-height:1.7;font-size:clamp(14px,2vw,23px);font-weight:900}
+.controller-banner.game-over{white-space:pre-line;background:#113d25;border:2px solid #a5e889;
+ box-shadow:inset 0 0 25px #a0e87932,0 0 20px #83df7544;
+ padding:22px 14px;line-height:2;font-size:clamp(17px,4.7vw,25px);font-weight:1000}
 </style><script defer src="/tv-transport.js"></script><script defer src="/tv.js"></script></head><body>
 <main id="chooseScreen" class="shell"><header class="top"><a href="/" class="brand">Die<span>Ball.</span></a><a class="back" href="/">← MAIN MENU</a></header><div class="page"><div class="eyebrow">DIEBALL TV / MULTIPLAYER BETA</div><h1>FOOTBALL.<br><em>TOGETHER.</em></h1><p>Put the football field on your TV, then have two players join with their own phones. The TV is the scoreboard; the phones are the controllers.</p><div class="dual-choices"><button class="choice" onclick="hostGame()"><span class="bigicon">📺</span><strong>HOST A GAME</strong><small>Create a room and display the football board. Host devices do not control a team.</small><span class="arrow">CREATE ROOM →</span></button><button class="choice" onclick="showJoinForm()"><span class="bigicon">📱</span><strong>JOIN A GAME</strong><small>Join the home or away team using your player name and a room code.</small><span class="arrow">JOIN ROOM →</span></button></div><div class="note">BETA: DieBall TV now uses its own room relay, not the public PeerJS signaling service. All three devices need internet access. Rooms are temporary and expire after two hours; match history is not yet saved. Rejoin or host a fresh room if a connection is lost.</div></div></main>
 <main id="lobbyScreen" class="shell" hidden><header class="top"><span class="brand">Die<span>Ball.</span> TV</span><button class="back" onclick="exitGame()">EXIT GAME</button></header><div class="page panel"><div class="eyebrow">ROOM CREATED · HOST SCREEN</div><h2>Invite two players</h2><p class="subtitle">Have them open DieBall TV on their own phones, press Join a Game, and enter this code. The host cannot join a team from this screen.</p><div class="code" id="lobbyCode">CONNECTING</div><div class="room-hint">JOIN AT <strong id="joinAddress">football-dice-game-gamma.vercel.app/tv</strong></div><div class="room-slots"><div class="slot home"><div class="slot-label">🔵 HOME TEAM</div><div class="slot-name empty" id="homeSlot">Waiting for player...</div></div><div class="slot away"><div class="slot-label">🔴 AWAY TEAM</div><div class="slot-name empty" id="awaySlot">Waiting for player...</div></div></div><button class="primary" id="startHostGame" disabled onclick="startHostedMatch()">START GAME</button><div class="connection-status" id="lobbyStatus" role="status" aria-live="polite">Connecting room...</div></div></main>
