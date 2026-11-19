@@ -145,11 +145,19 @@ function receive(m){
 }
 function sendAction(payload){if(connection?.open)connection.send({t:'action',action:payload})}
 function shuffledDeck(){let d=[];for(let n=2;n<=9;n++)for(let i=0;i<4;i++)d.push(n);for(let i=0;i<16;i++)d.push(10);for(let i=0;i<4;i++)d.push(11);for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}return d}
-function deal(){if(G.deck.length<6)G.deck=shuffledDeck();G.hands=[G.deck.splice(0,3),G.deck.splice(0,3)]}
+function deal(){
+ if(G.deck.length<6)G.deck=shuffledDeck();
+ const home=G.deck.splice(0,3),away=[];
+ // The two teams have separate private hands, never the same face values in one drive.
+ for(let i=G.deck.length-1;i>=0&&away.length<3;i--)if(!home.includes(G.deck[i]))away.push(G.deck.splice(i,1)[0]);
+ while(away.length<3&&G.deck.length)away.push(G.deck.shift());
+ if(away.length<3)away.push(...shuffledDeck().slice(0,3-away.length));
+ G.hands=[home,away];
+}
 function startHostedMatch(){
  if(!links.every(c=>c?.open))return;
  G={stage:'play',scores:[0,0],off:0,pos:35,goal:45,down:1,passes:2,play:'run',
- ready:[false,false],dice:[null,null],rollSeq:[0,0],net:null,move:null,
+ ready:[false,false],dice:[null,null],rollSeq:[0,0],net:null,move:null,triple:false,passDouble:false,xpReady:[false,false],
  deck:shuffledDeck(),hands:[[],[]],usedCards:[false,false],cardPicks:[null,null],starter:-1,
  convKind:0,convPicks:[null,null],convCommitted:[false,false],convNet:0,
  results:[[],[]],startScore:0,lastDrive:[false,false],flight:null,flightId:0,
@@ -184,12 +192,13 @@ function endDrive(location,description){
  recordDrive();
  if(G.results[0].length>=8&&G.results[1].length>=8){
   G.stage='finished';G.ready=[false,false];G.dice=[null,null];
-  const winner=G.scores[0]===G.scores[1]?'Game Tied':nameOf(G.scores[0]>G.scores[1]?0:1)+' Wins!';
-  G.message='FINAL '+G.scores.join(' – ');announce(winner,'gold',G.message,0);return;
+  G.winner=G.scores[0]===G.scores[1]?-1:G.scores[0]>G.scores[1]?0:1;
+  const verdict=G.winner<0?'GAME TIED':nameOf(G.winner)+' WINS!';
+  G.message='FINAL '+G.scores.join(' – ');announce('GAME OVER',G.winner===0?'good':G.winner===1?'bad':'gold',verdict+'\n'+nameOf(0)+' '+G.scores[0]+' — '+G.scores[1]+' '+nameOf(1),0);return;
  }
  G.off=1-G.off;G.pos=clamp(location,1,99);G.goal=clamp(G.pos+(G.off===0?10:-10),0,100);
  G.down=1;G.passes=2;G.play='run';G.ready=[false,false];G.dice=[null,null];G.net=null;G.move=null;
- G.usedCards=[false,false];G.cardPicks=[null,null];G.starter=-1;G.convKind=0;G.convPicks=[null,null];G.convNet=0;
+ G.usedCards=[false,false];G.cardPicks=[null,null];G.starter=-1;G.convKind=0;G.convPicks=[null,null];G.convNet=0;G.triple=false;G.passDouble=false;G.xpReady=[false,false];
  G.stage='play';G.flight=null;G.message=description+' · '+nameOf(G.off)+' takes over.';
  deal();G.startScore=G.scores[G.off];broadcast();
  for(const period of [1,2,3]){
@@ -213,13 +222,17 @@ function advance(y,card=false){
  const earned=G.off===0?G.pos>=G.goal:G.pos<=G.goal;
  if(card){if(earned)firstDown(y,true);else{G.message='Penalty cards '+(y>=0?'+':'')+y+' yards';broadcast()}return}
  if(y>0&&(to<=0||to>=100)){
-  G.scores[G.off]+=6;G.stage='conversion-choice';G.pos=G.off===0?100:0;G.message=nameOf(G.off)+' touchdown! Choose conversion.';
-  announce('Touchdown',G.off===0?'good':'bad',nameOf(G.off)+' +6',3300);return;
+  G.scores[G.off]+=6;G.stage='touchdown';G.pos=G.off===0?100:0;
+  G.message=nameOf(G.off)+' scored a touchdown! Conversion choices follow the announcement.';
+  const token=G.serial;
+  announce('Touchdown',G.off===0?'good':'bad',nameOf(G.off)+' +6',3350);
+  setTimeout(()=>{if(!G||G.serial!==token||G.stage!=='touchdown')return;G.stage='conversion-choice';G.message=nameOf(G.off)+' selects the conversion.';broadcast()},3500);
+  return;
  }
  if(y<0&&(to<=0||to>=100)){
-  G.scores[1-G.off]+=2;G.stage='kickoff';G.pos=G.off===0?20:80;
+  G.scores[1-G.off]+=2;G.stage='kickoff';G.pos=G.off===0?20:80;G.move=null;
   G.message='Safety! '+nameOf(1-G.off)+' +2. Conceding team kicks off.';
-  announce('Safety!','bad',nameOf(1-G.off)+' +2',3000);return;
+  announce('Safety!',G.off===0?'bad':'good',nameOf(1-G.off)+' +2',3000);return;
  }
  if(earned){firstDown(y);return}
  G.down++;
@@ -243,7 +256,7 @@ function resolveRoll(){
   if(pass){
    const from=G.pos,to=from+(G.off===0?-5:5);
    G.net=-5;G.move={from,to:clamp(to,0,100),forward:false};
-   if(to<=0||to>=100){G.scores[1-G.off]+=2;G.stage='kickoff';G.pos=G.off===0?20:80;G.message='Safety on failed pass (−5 yards)';announce('Safety!','bad','Failed pass −5 yards · Defense +2',2600);return}
+   if(to<=0||to>=100){G.scores[1-G.off]+=2;G.stage='kickoff';G.pos=G.off===0?20:80;G.move=null;G.message='Safety on failed pass (−5 yards)';announce('Safety!',G.off===0?'bad':'good','Failed pass −5 yards · Defense +2',2600);return}
    G.pos=to;
   }else G.net=0;
   G.play='run';G.stage='fumble';G.message=pass?'FAILED PASS −5 YARDS · FUMBLE! Roll recovery die.':'FUMBLE! Roll recovery die.';
@@ -331,7 +344,7 @@ function cards(side,indices,conversion=false){
    const off=removePicks(G.off,G.convPicks[G.off]),def=removePicks(1-G.off,G.convPicks[1-G.off]);
    G.convNet=sum(off)-sum(def);G.convPicks=[null,null];
    if(G.convKind===2){G.pos=clamp(G.pos+(G.off===0?1:-1)*G.convNet,1,99);G.stage='two-ready'}
-   else G.stage='xp-ready';
+   else{G.stage='xp-ready';G.xpReady=[false,false]};
    G.ready=[false,false];G.dice=[null,null];
    G.message='Conversion cards committed · '+(G.convNet>=0?'+':'')+G.convNet;
    announce('Cards Committed','gold',G.convKind===2?'Both teams roll next':'Extra point kick next',1600);
@@ -359,7 +372,7 @@ function action(side,a){
  if(kind==='cards'){cards(side,a.indices,false);return}
  if(kind==='conversionCards'){cards(side,a.indices,true);return}
  if(kind==='convert'&&G.stage==='conversion-choice'&&side===G.off){
-  G.convKind=a.value===2?2:1;G.play='run';G.convPicks=[null,null];G.convCommitted=[false,false];G.convNet=0;
+  G.convKind=a.value===2?2:1;G.play='run';G.convPicks=[null,null];G.convCommitted=[false,false];G.convNet=0;G.xpReady=[false,false];
   if(G.convKind===2)G.pos=G.off===0?95:5;
   G.stage='conversion-cards';G.message='Both teams can play cards for the conversion.';broadcast();return;
  }
