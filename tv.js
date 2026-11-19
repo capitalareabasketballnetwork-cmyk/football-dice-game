@@ -76,7 +76,7 @@ function receive(m){
  if(m.t==='state'){
   const before=V;V={...m.public,hand:m.cards};names=V.names;
   if(before?.stage!==V.stage||before?.hand?.length!==V.hand.length)selected.clear();
-  showScreen('controllerScreen');renderController();
+  if(E('controllerScreen').hidden)showScreen('controllerScreen');renderController();
  }
 }
 function sendAction(payload){if(connection?.open)connection.send({t:'action',action:payload})}
@@ -240,7 +240,7 @@ function cards(side,indices,conversion=false){
  }
 }
 function action(side,a){
- if(!G||!links[side]?.open||!a||G.stage==='flight'||G.stage==='finished')return;
+ if(!G||!links[side]?.open||!links.every(c=>c?.open)||!a||G.stage==='flight'||G.stage==='finished')return;
  const kind=String(a.kind||'');
  if(kind==='play'&&G.stage==='play'&&side===G.off&&!G.ready.some(Boolean)){
   if(a.play==='pass'&&G.passes<=0){announce('No more Pass plays left','bad','Choose Run instead',1300);return}
@@ -262,8 +262,8 @@ function action(side,a){
   return;
  }
  if(kind==='recover'&&G.stage==='fumble'&&side===G.off){
-  const v=rand(6),seq=++G.serial;G.stage='fumble-rolling';announce('Recovery Roll','gold','Rolling one die...',1300);
-  setTimeout(()=>{if(!G||G.serial!==seq)return;
+  const v=rand(6),seq=++G.serial;G.stage='fumble-rolling';announce('Recovery Roll','gold','Rolling one die...',1300);const recoverySpin=setInterval(()=>{if(!G||G.serial!==seq){clearInterval(recoverySpin);return}G.message='Recovery die rolling: '+rand(6);broadcast()},100);
+  setTimeout(()=>{clearInterval(recoverySpin);if(!G||G.serial!==seq)return;G.message='Recovery die landed on '+v;broadcast();
    if(v>=5){endDrive(G.pos,'Fumble turnover');announce('Ball Lost','bad','Recovery die '+v,2400)}
    else{G.down++;if(G.down>4)endDrive(G.pos,'Turnover on downs');else{G.stage='play';G.message='Ball Retained · down lost';broadcast()}announce('Ball Retained','good','Recovery die '+v,2400)}
   },1550);return;
