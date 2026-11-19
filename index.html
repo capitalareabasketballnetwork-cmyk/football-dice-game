@@ -572,7 +572,7 @@ function awardSafety(conceding,reason){
  g.lastMove=null;
  say('SAFETY! '+sideName(1-conceding)+' gets 2 points. '+sideName(conceding)+' must kick off.');
  render();
- showFieldAnnouncement('Safety!',currentMode==='cpu'?(conceding===0?'red':'green'):'gold',2900,reason+' · '+sideName(1-conceding)+' +2');
+ showFieldAnnouncement('Safety!',conceding===0?'red':'green',2900,reason+' · '+sideName(1-conceding)+' +2');
 }
 
 function move(y,card=false){let dir=g.off===0?1:-1,from=g.pos,to=from+dir*y;if(card){g.pos=limit(to,1,99);rememberMovement(from,g.pos,g.off);if((g.off===0&&g.pos>=g.goal)||(g.off===1&&g.pos<=g.goal)){g.down=1;g.goal=limit(g.pos+dir*10,0,100);say('FIRST DOWN from penalty cards! '+(y>=0?'+':'')+y+' yards.');g.replayFirstDownAfterCards=true;announceFirstDown(y,true)}else say('Penalty card net '+(y>=0?'+':'')+y+' yards.');return}if(to>=100||to<=0){rememberMovement(from,limit(to,0,100),g.off);if(y>0)scoreTouchdown();else awardSafety(g.off,'Ball crossed the offense’s own goal line');return}g.pos=to;rememberMovement(from,g.pos,g.off);g.down++;if((g.off===0&&g.pos>=g.goal)||(g.off===1&&g.pos<=g.goal)){g.down=1;g.goal=limit(g.pos+dir*10,0,100);say('FIRST DOWN! '+(y>=0?'+':'')+y+' yards.');announceFirstDown(y)}else if(g.down>4){finishDrive('Turnover on downs')}else say((y>=0?'+':'')+y+' yards gained.')}
