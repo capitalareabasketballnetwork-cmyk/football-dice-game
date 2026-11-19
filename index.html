@@ -377,6 +377,19 @@ body:has(#bodymode.phone.local-game) #overlay .modal .reveal-net{font-size:24px;
 
 .drive-ribbon{display:flex;flex-direction:column;gap:4px;justify-content:center;min-width:210px}.drive-line{display:flex;align-items:center;gap:3px;justify-content:center}.drive-line>span{width:31px;text-align:right;font-weight:900;font-size:8px;color:#cde3cb;margin-right:3px}.drive-tile{width:20px;height:18px;background:#122b1b;border:1px solid #668369;border-radius:4px;display:grid;place-items:center;color:#fff;font-size:10px;font-style:normal;font-weight:1000}.drive-tile.empty{background:#0a1d12;border-color:#45654b}.drive-tile.td{background:#217f3b;border-color:#8ef7a2}.drive-tile.fg{background:#d7b136;border-color:#ffdb61;color:#2e2408}.drive-tile.no-score{background:#922c32;border-color:#f47e83}
 .flight-ball{display:none;position:absolute;z-index:30;top:50%;left:20%;transform:translate(-50%,-50%);font-size:24px;pointer-events:none;text-shadow:0 0 10px #fff9;transition:left 1.7s ease-in-out}.flight-ball.flying span{display:inline-block;animation:ball-arc 1.7s ease-in-out both}@keyframes ball-arc{0%{transform:translateY(0) rotate(0)}50%{transform:translateY(-48px) rotate(720deg)}100%{transform:translateY(0) rotate(1300deg)}}@media(max-width:650px){.drive-ribbon{min-width:163px}.drive-tile{width:14px;height:15px;font-size:8px}.drive-line>span{font-size:7px;width:26px}}
+
+/* Precisely aligned kickoff/punt color segments and centered labels */
+.vertical-kick-scale{width:min(325px,100%);height:300px;display:flex;align-items:stretch;gap:13px;margin:10px auto;position:relative}
+.vertical-kick-track{width:73px;flex:0 0 73px;min-height:0;height:100%;position:relative;border:3px solid #ebffe4;border-radius:10px;overflow:visible;box-shadow:0 0 20px #0009}
+.vertical-kick-bands{position:absolute;inset:0;border-radius:7px;overflow:hidden;display:flex;flex-direction:column}
+.vertical-kick-band{width:100%;flex:none}
+.vertical-kick-labels{height:100%;flex:1;display:flex;flex-direction:column;min-width:0}
+.vertical-kick-label{flex:none;display:flex;align-items:center;justify-content:center;text-align:center;font-size:clamp(9px,1.9vw,12px);font-weight:1000;line-height:1.05;letter-spacing:.3px;color:#eafbe6;padding:0 4px}
+.vertical-kick-track .kickoff-mark{left:-3px;right:-3px;position:absolute;height:5px;width:calc(100% + 6px);background:white;box-shadow:0 0 10px white,0 0 5px #222;z-index:4}
+.vertical-kick-hint{text-align:center;font-size:11px;color:#c4d9c0;line-height:1.4;margin:8px 0}
+.phone.local-game .modal .vertical-kick-scale{height:clamp(112px,20vh,185px);width:min(260px,100%);gap:7px}
+.phone.local-game .modal .vertical-kick-track{width:52px;flex-basis:52px}
+.phone.local-game .modal .vertical-kick-label{font-size:9px}
 </style></head><body><main id="homeScreen" class="home-screen"><div class="home-top"><div class="home-logo">Die<span>Ball.</span></div><a class="home-account-btn" href="/account">ACCOUNT <span>↗</span></a></div><div class="home-body"><div class="home-hero"><div class="eyebrow">THE DICE DECIDE. YOU CALL THE PLAY.</div><h1>FOOTBALL.<br><em>SIMPLIFIED.</em></h1><a class="how-link" href="/how-to-play">? &nbsp; HOW TO PLAY</a></div><section class="mode-select"><h2>CHOOSE YOUR GAME</h2><div class="mode-grid"><button class="mode-tile active" onclick="launchGame('cpu')"><span class="mode-icon">⚡</span><strong>YOU vs. CPU</strong><small>Challenge DieBall Don</small><span class="mode-arrow">PLAY →</span></button><button class="mode-tile active" onclick="launchGame('local')"><span class="mode-icon">🎮</span><strong>1v1 LOCAL</strong><small>Two players · one device</small><span class="mode-arrow">PLAY →</span></button><button class="mode-tile unavailable" onclick="showComingSoon('1v1 Online','Online matches need matchmaking, accounts, and a synchronized game server.')"><span class="mode-icon">🌐</span><strong>1v1 ONLINE</strong><small>Play someone anywhere</small><span class="mode-pill">COMING SOON</span></button><button class="mode-tile active" onclick="window.location.href='/tv'"><span class="mode-icon">📺</span><strong>DIEBALL TV</strong><small>Host a game · Phones as controllers</small><span class="mode-arrow">HOST OR JOIN →</span></button><button class="mode-tile unavailable" onclick="showComingSoon('Season','Season standings, teams, and progression will arrive in a future update.')"><span class="mode-icon">🏆</span><strong>SEASON</strong><small>Build your legacy</small><span class="mode-pill">COMING SOON</span></button></div></section></div><div class="home-foot"><span>DieBall / EARLY ACCESS</span><span>Playable offline · Local matches in beta</span></div></main><div class="local-setup-screen" id="localSetup" style="display:none"><form onsubmit="event.preventDefault();startLocalMatch()" class="local-setup-box"><button type="button" class="account-close" onclick="closeLocalSetup()">✕</button><div class="home-logo">Die<span>Ball.</span></div><h2>LOCAL 1v1</h2><p>Both players use this device. Enter your teams before kickoff.</p><label>HOME TEAM NAME<input required id="homeTeamName" maxlength="20" placeholder="Enter home team name"></label><label>AWAY TEAM NAME<input required id="awayTeamName" maxlength="20" placeholder="Enter away team name"></label><button class="mainbtn" type="submit">START GAME</button></form></div><div id="bodymode" style="display:none"><div class="app"><header class="header"><div><div class="logo">Die<span>Ball.</span></div><div class="tag">DICE • STRATEGY • FOOTBALL</div></div><div class="header-right"><button class="smallbtn back-home" onclick="goHome()">← MENU</button><a class="help-question" title="How to play" href="/how-to-play" aria-label="How to play">?</a><div class="mode"><button class="on" id="desktop" onclick="setMode('desktop')">▣ Desktop</button><button id="phone" onclick="setMode('phone')">▯ Phone</button></div><button class="smallbtn" onclick="reset()">↻ New</button></div></header><div class="scorebar compact"><div class="mini-team"><span id="playerOneLabel">YOU</span><strong id="s0">0</strong></div><div class="center"><div id="driveRibbon" class="drive-ribbon"></div><b id="period" hidden>Q1 · DRIVE 1</b><small id="poss">YOUR BALL</small></div><div class="mini-team opponent"><span id="cpuLabel">DIEBALL DON</span><strong id="s1">0</strong></div><span id="down" hidden></span></div><div id="localTop" class="local-player-panel" style="display:none"></div><section class="fieldbox" id="fieldbox"><div id="fieldAnnouncement" class="field-announcement" aria-live="assertive"><div class="announcement-face announce-flipped" aria-hidden="true"><div class="announcement-title" id="flippedAnnouncementTitle"></div><div class="recovery-slot" id="flippedRecoverySlot"></div><button id="flippedFumbleBtn" class="field-roll-btn" style="display:none" onclick="rollRecovery()" aria-label="Roll fumble recovery die">ROLL DIE</button><div class="announcement-sub" id="flippedAnnouncementSub"></div></div><div class="announcement-face announce-normal"><div class="announcement-title" id="announcementTitle"></div><div class="recovery-slot" id="recoverySlot"></div><button id="fumbleRollBtn" class="field-roll-btn" style="display:none" onclick="rollRecovery()">ROLL DIE</button><div class="announcement-sub" id="announcementSub"></div></div></div><div class="field"><div class="end">HOME</div><div class="turf"><div class="numbers"><span>10</span><span>20</span><span>30</span><span>40</span><span>50</span><span>40</span><span>30</span><span>20</span><span>10</span></div><div class="numbers bottomnums"><span>10</span><span>20</span><span>30</span><span>40</span><span>50</span><span>40</span><span>30</span><span>20</span><span>10</span></div><div class="marker first" id="first"></div><div id="lastMove" class="last-move" style="display:none"><div id="priorLine" class="prior-line"></div><div id="moveArrow" class="move-arrow"><span id="movementLabel"></span></div></div><div class="marker los" id="los"></div><div class="football" id="ball"></div><div id="flightBall" class="flight-ball" aria-hidden="true"><span>🏈</span></div></div><div class="end">AWAY</div></div><div class="fieldlabels"><span>🟦 LINE OF PLAY</span><span id="spot">BALL · OWN 35</span><span id="fieldDown">1st & 10</span></div></section><div id="localBottom" class="local-player-panel" style="display:none"></div><div class="work"><section class="panel play-panel"><div class="play-head"><h3>DICE</h3><div class="switch tiny-switch"><button id="run" class="active" onclick="choose('run')">RUN</button><button id="pass" onclick="choose('pass')">PASS <span class="bubble" id="passes">2</span></button></div></div><div class="dice-stack" id="diceStack"><div class="dice-focus" id="diceFocus"></div><div class="dicearea compact-dice offense-dice-row"><span class="dice-caption">OFFENSE</span><div class="dicegroup" id="odice"></div><span class="equals">=</span><strong class="dice-total" id="ototal">—</strong></div><div class="dicearea compact-dice defense-dice-row"><span class="dice-caption">DEFENSE</span><div class="dicegroup" id="ddice"></div><span class="equals">=</span><strong class="dice-total" id="dtotal">—</strong></div><div class="net compact-net net-across" id="net">—</div></div><button class="mainbtn" id="roll" onclick="roll()">ROLL DICE</button><div class="actions kick-actions"><button id="fgbutton" onclick="kick('fg')">FIELD GOAL</button><button id="puntbutton" onclick="kick('punt')">PUNT</button></div></section><section class="panel"><h3>PENALTY CARDS</h3><div class="cards" id="cards"></div><div class="extra"><span class="muted" id="handInfo">CPU: 3 hidden</span><span class="muted">DECK: <b id="deck">46</b></span></div><button class="mainbtn" id="cardbutton" onclick="openCards()">PLAY PENALTY CARDS</button><div class="status" id="status">Choose a play to begin.</div></section><section class="situation-stack" aria-label="Field position and down"><div class="situation-card field-position-card"><span>FIELD POSITION</span><strong id="bottomSpot">OWN 35</strong></div><div id="downCard" class="situation-card down-card down-1"><span>DOWN & DISTANCE</span><strong id="bottomDown">1st & 10</strong></div><div class="situational-actions"><button id="kickoffbtn" onclick="kick('kickoff')" style="display:none">KICKOFF</button><button id="convertbtn" onclick="conversionMenu()" style="display:none">CONVERSION</button></div><span id="cpuName" hidden>DieBall Don</span><div id="details" hidden></div><div id="log" hidden></div></section></div><div class="account-overlay" id="accountOverlay" style="display:none"><div class="account-dialog"><button class="account-close" onclick="closeAccount()">✕</button><div class="home-logo">Die<span>Ball.</span></div><h2 id="accountHeading">Your DieBall account</h2><p>Online accounts and cloud saves will need a secure sign-in service. For now, you can create a profile saved on this device.</p><label for="profileName">YOUR DISPLAY NAME</label><input id="profileName" maxlength="22" autocomplete="nickname" placeholder="Enter your name"><button class="mainbtn" onclick="saveLocalProfile()">SAVE LOCAL PROFILE</button><div id="accountStatus" role="status" class="account-status"></div><div class="account-disclaimer">This is a local profile, not an online account. It is not password-protected and won't sync across devices.</div></div></div><div id="walkthrough" class="walkthrough-overlay" style="display:none"><div class="walkthrough-box"><div class="walkthrough-step" id="walkStep"></div><h2 id="walkHeading"></h2><p id="walkText"></p><div class="buttons"><button onclick="skipWalkthrough()">SKIP</button><button class="strong" onclick="nextWalkthrough()" id="walkNext">NEXT →</button></div></div></div><div class="overlay" id="overlay"><div id="modalMirror" class="modal modal-mirror" aria-label="Opposite player view" style="display:none"></div><div class="modal modal-primary"><h2 id="modalTitle">Penalty cards</h2><p id="modalIntro"></p><div id="modalInner"></div><div class="buttons"><button id="modalCancel" onclick="closeModal()">CANCEL</button><button class="strong" id="modalCommit" onclick="commitModal()">COMMIT</button></div></div></div><script>
 const E=id=>document.getElementById(id);const rng=n=>1+Math.floor(Math.random()*n),sum=a=>a.reduce((x,y)=>x+y,0),limit=(x,a,b)=>Math.max(a,Math.min(b,x));let announcementTimer=null,fumbleTimer=null,phaseTimer=null,diceCycleTimer=null,animationSeq=0;let g,choice='run',selection=[],pending=null,rolling=false,kickTimer=null,kpos=0,kdir=1;
 const PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
@@ -589,7 +602,7 @@ function finishConversionCards(){
  }
 }
 
-function conversionMenu(){if(g.state!=='conversion'||(g.off!==0&&currentMode!=='local'))return;g.state='convert-menu';E('overlay').classList.add('open');E('modalTitle').textContent='Touchdown! Choose conversion';E('modalIntro').textContent='Kick for 1 from the 25 or go for 2 from the 5.';E('modalInner').innerHTML='<div class="buttons"><button class="strong" onclick="startConversion(1)">KICK FOR 1</button><button class="strong" onclick="startConversion(2)">GO FOR 2</button></div>';E('modalCommit').style.display='none';E('modalCancel').style.display='none'}
+function conversionMenu(){if(g.state!=='conversion'||(g.off!==0&&currentMode!=='local'))return;g.state='convert-menu';E('overlay').classList.add('open');E('modalTitle').textContent='Touchdown! Choose conversion';E('modalIntro').textContent='Kick for 1 from the 25 or go for 2 from the 5.';E('modalInner').innerHTML='<div class="buttons"><button class="strong" onclick="startConversion(1)">KICK FOR 1</button><button class="strong" onclick="startConversion(2)">GO FOR 2</button></div>';E('modalCommit').style.display='none';if(kind!=='punt')E('modalCancel').style.display='none'}
 function startConversion(n){
  if(g.state!=='convert-menu'&&g.state!=='conversion')return;
  E('overlay').classList.remove('open');
@@ -619,24 +632,70 @@ function cpuConversion(){
  if(g.conversionType===2)g.pos=5;
  openConversionCards(0);
 }
-function kick(kind,force=false){if(rolling||(!force&&g.off!==0&&currentMode!=='local'))return;if(!force&&g.state!=='play'&&g.state!=='kickoff'&&g.state!=='safety')return;clearInterval(kickTimer);g.kickType=kind;g.state='kick';kpos=0;kdir=1;g.power=65;g.aim=0;E('overlay').classList.add('open');E('modalTitle').textContent=kind==='fg'?'Field goal':kind==='xp'?'Extra point':kind==='punt'?'Punt':'Kickoff';let dist=kind==='xp'?42:Math.round((g.off===0?100-g.pos:g.pos)+17);g.kickDist=dist;if(kind==='kickoff'){
- E('modalIntro').textContent='Stop the moving marker near the receiving team’s 1-yard line. The meter moves quickly!';
- E('modalInner').innerHTML='<div class="kickoff-meter-wrap"><div class="kickoff-meter" id="kickoffMeter"><div class="kickoff-mark" id="kickoffMark"></div></div><div class="kickoff-ticks"><span>OUT OF BOUNDS</span><span>END ZONE</span><span>1–10 YD</span><span>11–20 YD</span><span>21–30 YD</span><span>31–OPP 1</span></div></div><div class="muted">Red at the very top = out of bounds · Yellow = end zone · Green = best placement</div>';
+
+const kickoffBands=[
+ {portion:8,color:'#df4749',label:'OUT OF BOUNDS'},
+ {portion:10,color:'#f4d767',label:'END ZONE'},
+ {portion:14,color:'#215c36',label:'1–10 YD'},
+ {portion:14,color:'#9bdc87',label:'11–20 YD'},
+ {portion:14,color:'#f0d45a',label:'21–30 YD'},
+ {portion:40,color:'#d44950',label:'31–OPP 1'}
+];
+const puntBands=[
+ {portion:18,color:'#d44950',label:'10–25 YD'},
+ {portion:18,color:'#f0d45a',label:'26–40 YD'},
+ {portion:18,color:'#91d882',label:'41–55 YD'},
+ {portion:18,color:'#215c36',label:'56–70 YD'},
+ {portion:17,color:'#eeca57',label:'71–85 YD'},
+ {portion:11,color:'#d44950',label:'86–95 YD'}
+];
+function verticalKickScale(kind){
+ const bands=kind==='punt'?puntBands:kickoffBands;
+ return '<div class="vertical-kick-scale"><div class="vertical-kick-track"><div class="vertical-kick-bands">'+
+ bands.map(b=>'<div class="vertical-kick-band" style="height:'+b.portion+'%;background:'+b.color+'"></div>').join('')+
+ '</div><div class="kickoff-mark" id="kickoffMark"></div></div><div class="vertical-kick-labels">'+
+ bands.map(b=>'<div class="vertical-kick-label" style="height:'+b.portion+'%">'+b.label+'</div>').join('')+
+ '</div></div><p class="vertical-kick-hint">'+(kind==='punt'?'Stop to set punt distance. Longer punts can become touchbacks.':'Aim near the receiving team’s own 1-yard line.')+'</p>';
+}
+function kickoffYard(marker){
+ if(marker<8)return 50;
+ if(marker<18)return 35;
+ if(marker<32)return 1+Math.min(9,Math.floor((marker-18)/14*10));
+ if(marker<46)return 11+Math.min(9,Math.floor((marker-32)/14*10));
+ if(marker<60)return 21+Math.min(9,Math.floor((marker-46)/14*10));
+ return 31+Math.min(68,Math.floor((marker-60)/40*69));
+}
+function cancelPunt(){
+ if(g.state!=='kick'||g.kickType!=='punt')return;
+ clearInterval(kickTimer);
+ E('overlay').classList.remove('open');
+ E('modalCancel').onclick=closeModal;E('modalCancel').style.display='';
+ E('modalCancel').textContent='CANCEL';
+ E('modalCommit').onclick=commitModal;
+ g.state=g.kickPreviousState||'play';g.kickType=null;
+ say('Punt canceled. Choose your next play.');render();
+}
+
+function kick(kind,force=false){if(rolling||(!force&&g.off!==0&&currentMode!=='local'))return;if(!force&&g.state!=='play'&&g.state!=='kickoff'&&g.state!=='safety')return;clearInterval(kickTimer);g.kickPreviousState=g.state;g.kickType=kind;g.state='kick';kpos=0;kdir=1;g.power=65;g.aim=0;E('overlay').classList.add('open');E('modalTitle').textContent=kind==='fg'?'Field goal':kind==='xp'?'Extra point':kind==='punt'?'Punt':'Kickoff';let dist=kind==='xp'?42:Math.round((g.off===0?100-g.pos:g.pos)+17);g.kickDist=dist;if(kind==='kickoff'){
+ E('modalIntro').textContent='Stop the fast-moving marker to set the landing spot.';
+ E('modalInner').innerHTML=verticalKickScale('kickoff');
  E('modalCommit').onclick=commitModal;E('modalCommit').textContent='STOP KICKOFF';
  kickTimer=setInterval(()=>{kpos+=kdir*3.3;if(kpos>=100||kpos<=0){kdir*=-1;kpos=limit(kpos,0,100)}if(E('kickoffMark'))E('kickoffMark').style.top=kpos+'%'},20);
-}else if(kind==='fg'||kind==='xp'){let w=Math.max(.5,Math.min(55,55*Math.exp(-.045*(dist-20))+(kind==='xp'?(g.kickBonus||0)*.7:0)));E('modalIntro').textContent=dist+'-yard kick. Stop the marker inside the green window.';E('modalInner').innerHTML='<div class="meter"><div class="zone" style="width:'+w+'%"></div><div class="needle" id="needle"></div></div>';kickTimer=setInterval(()=>{kpos+=kdir*2.4;if(kpos>100||kpos<0){kdir*=-1;kpos=limit(kpos,0,100)}if(E('needle'))E('needle').style.left=kpos+'%'},20);E('modalCommit').onclick=commitModal;E('modalCommit').textContent='STOP THE KICK'}else{E('modalIntro').textContent=kind==='punt'?'Choose punt power. Random drift affects landing location.':'Choose kickoff power and aim. No returns.';E('modalInner').innerHTML='<label>POWER <b id="pval">65</b>%</label><input type="range" min="0" max="100" value="65" oninput="g.power=+this.value;E(\'pval\').textContent=this.value">'+(kind==='kickoff'?'<label>AIM <b id="aval">0</b></label><input type="range" min="-100" max="100" value="0" oninput="g.aim=+this.value;E(\'aval\').textContent=this.value">':'');E('modalCommit').onclick=commitModal;E('modalCommit').textContent='KICK BALL'}E('modalCancel').style.display='none'}
+ }else if(kind==='punt'){
+ E('modalIntro').textContent='Stop the fast-moving marker to choose punt distance. You may cancel before punting.';
+ E('modalInner').innerHTML=verticalKickScale('punt');
+ E('modalCommit').onclick=commitModal;E('modalCommit').textContent='STOP PUNT';
+ E('modalCancel').onclick=cancelPunt;E('modalCancel').textContent='CANCEL PUNT';E('modalCancel').style.display='';
+ kickTimer=setInterval(()=>{kpos+=kdir*3.3;if(kpos>=100||kpos<=0){kdir*=-1;kpos=limit(kpos,0,100)}const marker=E('kickoffMark');if(marker)marker.style.top=kpos+'%'},20);
+ }else if(kind==='fg'||kind==='xp'){let w=Math.max(.5,Math.min(55,55*Math.exp(-.045*(dist-20))+(kind==='xp'?(g.kickBonus||0)*.7:0)));E('modalIntro').textContent=dist+'-yard kick. Stop the marker inside the green window.';E('modalInner').innerHTML='<div class="meter"><div class="zone" style="width:'+w+'%"></div><div class="needle" id="needle"></div></div>';kickTimer=setInterval(()=>{kpos+=kdir*2.4;if(kpos>100||kpos<0){kdir*=-1;kpos=limit(kpos,0,100)}if(E('needle'))E('needle').style.left=kpos+'%'},20);E('modalCommit').onclick=commitModal;E('modalCommit').textContent='STOP THE KICK'}else{E('modalIntro').textContent=kind==='punt'?'Choose punt power. Random drift affects landing location.':'Choose kickoff power and aim. No returns.';E('modalInner').innerHTML='<label>POWER <b id="pval">65</b>%</label><input type="range" min="0" max="100" value="65" oninput="g.power=+this.value;E(\'pval\').textContent=this.value">'+(kind==='kickoff'?'<label>AIM <b id="aval">0</b></label><input type="range" min="-100" max="100" value="0" oninput="g.aim=+this.value;E(\'aval\').textContent=this.value">':'');E('modalCommit').onclick=commitModal;E('modalCommit').textContent='KICK BALL'}E('modalCancel').style.display='none'}
 function executeKick(){
  clearInterval(kickTimer);
  const kind=g.kickType,side=g.off,start=g.pos;
- E('overlay').classList.remove('open');E('modalCancel').style.display='';
+ E('overlay').classList.remove('open');E('modalCancel').style.display='';E('modalCancel').onclick=closeModal;E('modalCancel').textContent='CANCEL';
  if(kind==='kickoff'){
   let receivingYard,description;
-  if(kpos<4){receivingYard=50;description='OUT OF BOUNDS · MIDFIELD'}
-  else if(kpos<13){receivingYard=35;description='TOUCHBACK · OWN 35'}
-  else if(kpos<23){receivingYard=1+Math.min(9,Math.floor((kpos-13)));description='BALL LANDED AT OWN '+receivingYard}
-  else if(kpos<33){receivingYard=11+Math.min(9,Math.floor(kpos-23));description='BALL LANDED AT OWN '+receivingYard}
-  else if(kpos<43){receivingYard=21+Math.min(9,Math.floor(kpos-33));description='BALL LANDED AT OWN '+receivingYard}
-  else{receivingYard=31+Math.min(68,Math.floor((kpos-43)/57*69));description='BALL LANDED AT OWN '+receivingYard}
+  receivingYard=kickoffYard(kpos);
+  description=kpos<8?'OUT OF BOUNDS · MIDFIELD':kpos<18?'TOUCHBACK · OWN 35':'BALL LANDED AT OWN '+receivingYard;
   const landing=side===0?100-receivingYard:receivingYard;
   say('Kickoff in the air...');
   animateBallFlight(start,landing,()=>{
@@ -657,7 +716,7 @@ function executeKick(){
   render();return;
  }
  if(kind==='punt'){
-  const drift=Math.round((Math.random()-.5)*20),length=Math.round(5+g.power*.65+drift),landing=start+(side===0?1:-1)*length;
+  const length=Math.round(10+kpos*.85),landing=start+(side===0?1:-1)*length;
   const touchback=landing>=100||landing<=0;
   const finalSpot=touchback?(side===0?65:35):limit(landing,1,99);
   say('Punt in the air...');
