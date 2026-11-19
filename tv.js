@@ -159,7 +159,7 @@ function startHostedMatch(){
  deck:shuffledDeck(),hands:[[],[]],usedCards:[false,false],cardPicks:[null,null],starter:-1,
  convKind:0,convPicks:[null,null],convCommitted:[false,false],convNet:0,
  results:[[],[]],startScore:0,lastDrive:[false,false],flight:null,flightId:0,
- serial:0,annId:0,announcement:null,message:'HOME takes possession. Both players roll.'};
+ serial:0,annId:0,announcement:null,quarterBreaks:[false,false,false],goalKick:null,goalKickId:0,message:'HOME takes possession. Both players roll.'};
  deal();E('gameCode').textContent=room;showScreen('hostScreen');broadcast();announce('Game On!','gold','Both teams ready',2100);
 }
 function sharePublic(){
@@ -198,6 +198,13 @@ function endDrive(location,description){
  G.usedCards=[false,false];G.cardPicks=[null,null];G.starter=-1;G.convKind=0;G.convPicks=[null,null];G.convNet=0;
  G.stage='play';G.flight=null;G.message=description+' · '+nameOf(G.off)+' takes over.';
  deal();G.startScore=G.scores[G.off];broadcast();
+ for(const period of [1,2,3]){
+  const count=period*2;
+  if(G.results[0].length>=count&&G.results[1].length>=count&&!G.quarterBreaks[period-1]){
+   G.quarterBreaks[period-1]=true;
+   announce(period===1?'End of First Quarter':period===2?'Halftime':'End of Third Quarter','gold','HOME '+G.scores[0]+' – '+G.scores[1]+' AWAY',3200);
+  }
+ }
  if(G.results[G.off].length===7&&!G.lastDrive[G.off]){G.lastDrive[G.off]=true;announce(nameOf(G.off)+"'s last drive",'gold','Final possession',2700)}
 }
 function firstDown(y,card=false){
@@ -231,7 +238,7 @@ function resolveRoll(){
  G.ready=[false,false];G.usedCards=[false,false];
  const adv=(a.every(v=>v===a[0])?2*raw:raw)-def;G.net=adv;
  if(G.stage==='two-ready'){
-  const needed=G.off===0?100-G.pos:G.pos,good=raw!==def&&adv>=needed;
+  const type=G.play==='pass'&&G.passes>0?'pass':'run';if(type==='pass')G.passes=Math.max(0,G.passes-1);const yards=type==='pass'?(adv>=4?adv*2:-5):adv;G.net=yards;G.play='run';const needed=G.off===0?100-G.pos:G.pos,good=raw!==def&&yards>=needed;
   if(good)G.scores[G.off]+=2;
   G.stage='kickoff';G.pos=G.off===0?20:80;
   G.message=good?'Two-point conversion made.':'Two-point conversion failed.';
@@ -329,7 +336,7 @@ function cards(side,indices,conversion=false){
 function action(side,a){
  if(!G||!links[side]?.open||!links.every(c=>c?.open)||!a||G.stage==='flight'||G.stage==='finished')return;
  const kind=String(a.kind||'');
- if(kind==='play'&&G.stage==='play'&&side===G.off&&!G.ready.some(Boolean)){
+ if(kind==='play'&&(G.stage==='play'||G.stage==='two-ready')&&side===G.off&&!G.ready.some(Boolean)){
   if(a.play==='pass'&&G.passes<=0){announce('No more Pass plays left','bad','Choose Run instead',1300);return}
   G.play=a.play==='pass'?'pass':'run';
   if(G.play==='pass')announce(nameOf(side)+' calls a Pass','gold','Pass play selected',1400);else broadcast();return;
@@ -337,7 +344,7 @@ function action(side,a){
  if(kind==='cards'){cards(side,a.indices,false);return}
  if(kind==='conversionCards'){cards(side,a.indices,true);return}
  if(kind==='convert'&&G.stage==='conversion-choice'&&side===G.off){
-  G.convKind=a.value===2?2:1;G.convPicks=[null,null];G.convCommitted=[false,false];G.convNet=0;
+  G.convKind=a.value===2?2:1;G.play='run';G.convPicks=[null,null];G.convCommitted=[false,false];G.convNet=0;
   if(G.convKind===2)G.pos=G.off===0?95:5;
   G.stage='conversion-cards';G.message='Both teams can play cards for the conversion.';broadcast();return;
  }
@@ -454,7 +461,7 @@ function renderController(){
  commit.disabled=!available||(v.stage==='play'&&selected.size===0);
  commit.textContent=v.stage==='conversion-cards'?'COMMIT ('+selected.size+')':v.stage==='cards'?'COUNTER ('+selected.size+')':'PLAY CARDS ('+selected.size+')';
  E('cardHint').textContent=v.stage==='play'?'One penalty-card play per dice play.':v.stage==='cards'?'Counter or commit zero.':v.stage==='conversion-cards'?'Both teams may commit remaining cards.':'Keep your cards private.';
- E('controllerPlayCalls').hidden=!(v.stage==='play'&&offense&&!v.ready.some(Boolean));
+ E('controllerPlayCalls').hidden=!((v.stage==='play'||v.stage==='two-ready')&&offense&&!v.ready.some(Boolean));
  E('callRun').classList.toggle('active',v.play==='run');
  E('callPass').classList.toggle('active',v.play==='pass');
  E('callPass').textContent='PASS ('+v.passes+' left)';
