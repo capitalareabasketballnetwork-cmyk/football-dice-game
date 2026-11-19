@@ -320,7 +320,7 @@ function showFieldAnnouncement(title,tone,duration=1600,subtitle='',dieValue=nul
 }
 function startFumble(){
  const token=++animationSeq;
- pendingFumble={token,result:rng(6),off:g.off};
+ pendingFumble={token,result:null,off:g.off};
  g.state='fumble';rolling=true;
  say('Fumble! Roll one die to determine possession.');
  showFieldAnnouncement('Fumble!','red',600000,'Roll one recovery die. 1–4 = ball retained; 5–6 = ball lost.');
@@ -329,7 +329,7 @@ function startFumble(){
 }
 function rollRecovery(){
  if(!pendingFumble||g.state!=='fumble'||pendingFumble.started)return;
- const f=pendingFumble;f.started=true;E('fumbleRollBtn').style.display='none';
+ const f=pendingFumble;f.started=true;f.result=rng(6);E('fumbleRollBtn').style.display='none';
  E('announcementTitle').textContent='Recovery Roll';
  E('announcementSub').textContent='Rolling one die...';
  E('recoverySlot').innerHTML=die(f.result,true);
