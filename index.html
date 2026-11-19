@@ -434,8 +434,10 @@ function rollRecovery(){
  const f=pendingFumble;f.started=true;f.result=rng(6);E('fumbleRollBtn').style.display='none';
  E('announcementTitle').textContent='Recovery Roll';
  E('announcementSub').textContent='Rolling one die...';
- E('recoverySlot').innerHTML=die(f.result,true);
+ E('recoverySlot').innerHTML=die(rng(6),true);
+ const fumbleCycle=setInterval(()=>{if(f.token!==animationSeq){clearInterval(fumbleCycle);return}E('recoverySlot').innerHTML=die(rng(6),true)},85);
  phaseTimer=setTimeout(()=>{
+  clearInterval(fumbleCycle);
   if(!pendingFumble||f.token!==animationSeq)return;
   E('recoverySlot').innerHTML=die(f.result,false);
   E('announcementTitle').textContent='Rolled '+f.result;
@@ -455,35 +457,48 @@ function scoreTouchdown(){const scoringSide=g.off;showFieldAnnouncement('Touchdo
 function move(y,card=false){let dir=g.off===0?1:-1,from=g.pos,to=from+dir*y;if(card){g.pos=limit(to,1,99);rememberMovement(from,g.pos,g.off);if((g.off===0&&g.pos>=g.goal)||(g.off===1&&g.pos<=g.goal)){g.down=1;g.goal=limit(g.pos+dir*10,0,100);say('FIRST DOWN from penalty cards! '+(y>=0?'+':'')+y+' yards.');announceFirstDown(y,true)}else say('Penalty card net '+(y>=0?'+':'')+y+' yards.');return}if(to>=100||to<=0){rememberMovement(from,limit(to,0,100),g.off);if(y>0)scoreTouchdown();else{let conceding=g.off;g.score[1-conceding]+=2;g.state='safety';g.pos=conceding===0?20:80;say('SAFETY! Defense gains 2 points.')}return}g.pos=to;rememberMovement(from,g.pos,g.off);g.down++;if((g.off===0&&g.pos>=g.goal)||(g.off===1&&g.pos<=g.goal)){g.down=1;g.goal=limit(g.pos+dir*10,0,100);say('FIRST DOWN! '+(y>=0?'+':'')+y+' yards.');announceFirstDown(y)}else if(g.down>4){finishDrive('Turnover on downs')}else say((y>=0?'+':'')+y+' yards gained.')}
 function doPlay(type,offDice,defDice){g.cardUsed=[false,false];g.od=offDice;g.dd=defDice;let a=sum(offDice),b=sum(defDice),triple=offDice.every(n=>n===offDice[0]);if(type==='pass'){if(g.passes<=0){say('No more Pass plays left');choice='run';showFieldAnnouncement('No more Pass plays left','red',1600);return}g.passes=Math.max(0,g.passes-1);choice='run';}if(a===b){g.net=0;g.lastMove=null;startFumble();return}let advantage=(triple?2*a:a)-b,y=type==='pass'?(advantage>=4?advantage*2:-5):advantage;g.net=y;if(type==='pass'&&advantage>=4){let toBack=g.off===0?110-g.pos:g.pos+10;if(y>=toBack){g.lastMove=null;g.down++;say('INCOMPLETE! Pass sailed past the end zone.');if(g.down>4)finishDrive('Turnover on downs');return}}say((type==='pass'?'PASS':'RUN')+(triple?' · TRIPLES!':'')+' · net '+(y>=0?'+':'')+y);move(y)}
 function choose(p){if(g.state!=='play'||(g.off!==0&&currentMode!=='local')||rolling)return;if(p==='pass'&&g.passes<=0){choice='run';say('No more Pass plays left');showFieldAnnouncement('No more Pass plays left','red',1500);render();return}choice=p;E('fieldbox').classList.remove('glow');void E('fieldbox').offsetWidth;E('fieldbox').classList.add('glow');setTimeout(()=>E('fieldbox').classList.remove('glow'),900);render()}
-function roll(){if(rolling||g.state!=='play')return;if(g.off===1&&currentMode!=='local'){cpuPlay();return}if(choice==='pass'&&g.passes<=0){choice='run';say('No more Pass plays left');showFieldAnnouncement('No more Pass plays left','red',1600);render();return}rolling=true;const selectedPlay=choice;E('odice').innerHTML=[1,2,3].map(()=>die(rng(6),true)).join('');E('ddice').innerHTML=[1,2].map(()=>die(rng(6),true)).join('');E('roll').disabled=true;E('status').textContent='Dice rolling…';setTimeout(()=>{if(g.state!=='play')return;doPlay(selectedPlay,[rng(6),rng(6),rng(6)],[rng(6),rng(6)]);if(g.state!=='fumble')rolling=false;render()},1350)}
+function roll(){if(rolling||g.state!=='play')return;if(g.off===1&&currentMode!=='local'){cpuPlay();return}if(choice==='pass'&&g.passes<=0){choice='run';say('No more Pass plays left');showFieldAnnouncement('No more Pass plays left','red',1600);render();return}rolling=true;const selectedPlay=choice;E('roll').disabled=true;E('status').textContent='Dice rolling…';cycleDice(1400,()=>{if(g.state!=='play')return;doPlay(selectedPlay,[rng(6),rng(6),rng(6)],[rng(6),rng(6)]);if(g.state!=='fumble')rolling=false;render()})}
 
 function cpuFourthDown(){
- const dist=Math.round(g.pos+17),toGo=Math.abs(g.goal-g.pos);
- const canKick=dist<=61;
- const goForIt=toGo<=2&&Math.random()<.26;
- if(goForIt){say('DieBall Don decides to go for it on fourth down!');return cpuFourthRoll()}
- if(canKick&&(g.pos<44||Math.random()<.72)){
-  const chance=limit(.93-(dist-25)*.017,.06,.95),good=Math.random()<chance;
-  if(good){g.score[1]+=3;g.state='kickoff';g.pos=80;say('Don attempted a '+dist+' yard field goal · GOOD!');showFieldAnnouncement('Field Goal Good','red',2300,'DIEBALL DON +3')}
-  else{say('Don missed a '+dist+' yard field goal.');finishDrive('Missed field goal');showFieldAnnouncement('Missed Field Goal','green',2300,'YOUR BALL')}
- }else{
-  const landing=g.pos-(36+rng(24));
-  const touchback=landing<=0;
-  g.pos=touchback?35:limit(landing,1,99);
-  finishDrive(touchback?'Don punted a touchback':'Don punted');
-  say('DieBall Don chose to punt.');
-  showFieldAnnouncement('DieBall Don punts','green',1900,touchback?'Touchback · Your own 35':'Change of possession');
+ const toGo=Math.abs(g.goal-g.pos),dist=Math.round(g.pos+17);
+ const trailing=g.score[1]<g.score[0],late=g.quarter>=3,veryLate=g.quarter===4;
+ const nearGoal=g.pos<=35;
+ const push=toGo<=1?.77:toGo<=2?.62:toGo<=3?.45:toGo<=5?.22:.04;
+ const urgency=trailing&&late?(veryLate?.30:.14):0;
+ const goChance=Math.min(.95,push+urgency+(nearGoal&&toGo<=4?.12:0));
+ const kickChance=dist<=58?Math.max(.08,.94-(dist-23)*.018):0;
+ if(Math.random()<goChance){say('DieBall Don decides to go for it on fourth down!');showFieldAnnouncement('Don goes for it','red',1100,toGo+' yards to gain');cpuFourthRoll();return}
+ if(dist<=58&&kickChance>.41&&(!veryLate||!trailing||g.score[0]-g.score[1]<=3)&&Math.random()<.84){
+   const good=Math.random()<kickChance;
+   if(good){g.score[1]+=3;g.state='kickoff';g.pos=80;say('Don made a '+dist+' yard field goal');showFieldAnnouncement('Field Goal Good','red',2400,'DIEBALL DON +3')}
+   else{finishDrive('Missed field goal');say('Don missed a '+dist+' yard field goal');showFieldAnnouncement('Missed Field Goal','green',2300,'YOUR BALL')}
+   render();return;
  }
- render();
+ const from=g.pos,landing=from-(36+rng(24)),touchback=landing<=0;
+ say('DieBall Don decides to punt');
+ animateBallFlight(from,Math.max(0,landing),()=>{g.pos=touchback?35:limit(landing,1,99);finishDrive(touchback?'Punt touchback':'Don punted');say('DieBall Don punted');showFieldAnnouncement('Don punts','green',1800,touchback?'Touchback':'New possession')});
 }
 function cpuFourthRoll(){
- rolling=true;
- E('odice').innerHTML=[1,2,3].map(()=>die(rng(6),true)).join('');
- E('ddice').innerHTML=[1,2].map(()=>die(rng(6),true)).join('');
- setTimeout(()=>{let type=g.passes>0&&Math.random()<.35?'pass':'run';doPlay(type,[rng(6),rng(6),rng(6)],[rng(6),rng(6)]);if(g.state!=='fumble')rolling=false;if(g.state==='conversion'&&g.off===1)cpuConversion();render()},1300);
+ rolling=true;const type=g.passes>0&&Math.random()<.36?'pass':'run';
+ if(type==='pass')showFieldAnnouncement('Don calls a Pass','red',1250,'DieBall Don attempts a pass');
+ cycleDice(1400,()=>{doPlay(type,[rng(6),rng(6),rng(6)],[rng(6),rng(6)]);if(g.state!=='fumble')rolling=false;if(g.state==='conversion'&&g.off===1)cpuConversion();render()});
 }
-
-function cpuPlay(){if(g.off!==1||g.state!=='play'||rolling)return;if(g.down===4){cpuFourthDown();return}rolling=true;E('odice').innerHTML=[1,2,3].map(()=>die(rng(6),true)).join('');E('ddice').innerHTML=[1,2].map(()=>die(rng(6),true)).join('');setTimeout(()=>{if(g.hands[1].length&&!g.cardUsed[1]&&Math.random()<.22){let n=Math.min(g.hands[1].length,rng(2));pending={side:1,count:n};rolling=false;showCardModal();return}let p=g.passes>0&&Math.random()<.28?'pass':'run';E('fieldbox').classList.add('glow');setTimeout(()=>E('fieldbox').classList.remove('glow'),900);doPlay(p,[rng(6),rng(6),rng(6)],[rng(6),rng(6)]);if(g.state!=='fumble')rolling=false;if(g.state==='conversion'&&g.off===1)cpuConversion();render()},1350)}
+function cpuPlay(){
+ if(g.off!==1||g.state!=='play'||rolling)return;
+ if(g.down===4){cpuFourthDown();return}
+ rolling=true;
+ cycleDice(1370,()=>{
+  if(g.hands[1].length&&!g.cardUsed[1]&&Math.random()<.24){
+   let n=Math.min(g.hands[1].length,rng(2));pending={side:1,count:n};rolling=false;showCardModal();return
+  }
+  const p=g.passes>0&&Math.random()<.28?'pass':'run';
+  if(p==='pass')showFieldAnnouncement('Don calls a Pass','red',1400,'DieBall Don passes');
+  doPlay(p,[rng(6),rng(6),rng(6)],[rng(6),rng(6)]);
+  if(g.state!=='fumble')rolling=false;
+  if(g.state==='conversion'&&g.off===1)cpuConversion();
+  render();
+ });
+}
 function openCards(){const side=currentMode==='local'?localActor:0;if(g.state!=='play'||rolling||g.cardUsed[side]||g.hands[side].length===0)return;pending={side:currentMode==='local'?3:0,actor:side,count:0};selection=[];showCardModal()}
 function showCardModal(){E('modalCommit').onclick=commitModal;E('modalCancel').style.display='';selection=[];E('overlay').classList.add('open');E('modalTitle').textContent=pending.side===1?'Opponent played penalty cards':'Play penalty cards';E('modalIntro').textContent=pending.side===1?'Select cards to counter, or commit zero.':'Select any number of cards. DieBall Don may counter.';let values=g.hands[currentMode==='local'?pending.actor:0];E('modalInner').innerHTML=(pending.side===1?'<div class="cpu-card-count"><span>OPPONENT PLAYED</span><strong>'+pending.count+'</strong><span>'+ (pending.count===1?'CARD':'CARDS') +'</span></div>':'')+'<div class="cards" id="pickcards">'+values.map((v,i)=>'<button class="card" id="pick'+i+'" onclick="selectCard('+i+')">'+v+'</button>').join('')+'</div><div class="muted" id="pickInfo">0 cards selected</div>';E('modalCommit').textContent='COMMIT (0)'}
 function selectCard(i){if(selection.includes(i))selection=selection.filter(x=>x!==i);else selection.push(i);g.hands[currentMode==='local'?pending.actor:0].forEach((_,j)=>E('pick'+j).classList.toggle('chosen',selection.includes(j)));E('pickInfo').textContent=selection.length+' cards selected';E('modalCommit').textContent='COMMIT ('+selection.length+')'}
@@ -632,8 +647,8 @@ function localRollPress(side){
  const turn=g.off,token=++animationSeq,chosen=choice;
  const offDice=[rng(6),rng(6),rng(6)],defDice=[rng(6),rng(6)];
  localDice[turn]=offDice;localDice[1-turn]=defDice;
- for(let side=0;side<2;side++){let d=E(side===0?'localTop':'localBottom').querySelector('.lp-rolls');if(d)d.innerHTML=localDice[side].map(n=>die(n,true)).join('')}
- setTimeout(()=>{if(token!==animationSeq)return;g.cardUsed=[false,false];doPlay(chosen,offDice,defDice);localReady=[false,false];localDice=[null,null];if(g.state!=='fumble')rolling=false;render()},1400);
+ const spin=setInterval(()=>{if(token!==animationSeq){clearInterval(spin);return}for(let side=0;side<2;side++){const d=E(side===0?'localTop':'localBottom').querySelector('.lp-rolls');if(d)d.innerHTML=Array.from({length:side===turn?3:2},()=>die(rng(6),true)).join('')}},95);
+ setTimeout(()=>{clearInterval(spin);if(token!==animationSeq)return;g.cardUsed=[false,false];doPlay(chosen,offDice,defDice);localReady=[false,false];localDice=[null,null];if(g.state!=='fumble')rolling=false;render()},1400);
 }
 function openLocalCards(side){if(currentMode!=='local'||rolling||g.state!=='play'||g.cardUsed[side])return;localActor=side;pending={side:3,actor:side};selection=[];showCardModal()}
 
