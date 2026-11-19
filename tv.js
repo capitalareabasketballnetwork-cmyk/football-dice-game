@@ -406,6 +406,14 @@ function action(side,a){
   if(G.convKind===2)G.pos=G.off===0?95:5;
   G.stage='conversion-cards';G.message='Both teams can play cards for the conversion.';broadcast();return;
  }
+ if(kind==='xpReady'&&G.stage==='xp-ready'&&!G.xpReady[side]){
+  G.xpReady[side]=true;
+  if(G.xpReady.every(Boolean)){
+   G.stage='xp-kick';G.message='Both players ready. Offense kicks the extra point.';
+   announce('Extra Point Ready','gold','Offense: stop the kick meter',1400);
+  }else{G.message=nameOf(side)+' is ready for the extra point. Waiting for '+nameOf(1-side)+'.';broadcast()}
+  return;
+ }
  if(kind==='roll'&&['play','two-ready'].includes(G.stage)&&!G.ready[side]){
   if(G.stage==='play'&&side===G.off&&G.play==='pass'&&G.passes<=0){G.play='run';announce('No more Pass plays left','bad','Choose Run',1200);return}
   G.dice[side]=Array.from({length:side===G.off?3:2},()=>rand(6));G.rollSeq[side]++;G.ready[side]=true;
@@ -424,7 +432,7 @@ function action(side,a){
   if(G.stage==='play'&&!G.ready.some(Boolean)&&a.type==='punt')doPunt(a.position);
   else if(G.stage==='play'&&!G.ready.some(Boolean)&&a.type==='fg')doFieldGoal(a.position);
   else if(G.stage==='kickoff'&&a.type==='kickoff')doKickoff(a.position);
-  else if(G.stage==='xp-ready'&&a.type==='xp')doExtraPoint(a.position);
+  else if(G.stage==='xp-kick'&&a.type==='xp')doExtraPoint(a.position);
  }
 }
 
@@ -518,9 +526,11 @@ function renderController(){
  if(v.stage==='fumble')message=offense?'Fumble! Press Roll Recovery Die.':'Offense is rolling for fumble recovery.';
  if(v.stage==='kickoff')message=offense?'Kickoff — aim near the opponent’s own 1.':'Waiting for kickoff.';
  if(v.stage==='two-ready')message='Two-point attempt: both players roll dice.';
- if(v.stage==='xp-ready')message=offense?'Kick the extra point.':'Opponent is kicking an extra point.';
- if(v.stage==='finished')message=v.announcement?.title||'Final score';
- E('controllerStatus').textContent=message;
+ if(v.stage==='xp-kick')message=offense?'Both players ready. Kick the extra point.':'Both players ready. Waiting for extra-point kick.';
+ if(v.stage==='touchdown')message='TOUCHDOWN! Conversion choices appear after the announcement.';
+ if(v.stage==='xp-ready')message=v.xpReady[seat]?'Ready · waiting for the other player.':'Press ROLL DICE to begin the extra-point play.';
+ if(v.stage==='finished')message='GAME OVER\n'+(v.winner<0?'GAME TIED':v.winner===seat?'YOU WIN!':'YOU LOSE!')+'\n'+nameOf(0)+' '+v.scores[0]+' — '+v.scores[1]+' '+nameOf(1);
+ E('controllerStatus').textContent=message;E('controllerStatus').classList.toggle('game-over',v.stage==='finished');
  E('controllerRole').textContent=(offense?'OFFENSE · 3 DICE':'DEFENSE · 2 DICE')+(v.ready[seat]?' · READY':'');
  const values=v.dice[seat]||Array.from({length:offense?3:2},()=>1);
  if(v.rollSeq[seat]!==clientRollSeen){
@@ -542,27 +552,28 @@ function renderController(){
  E('callPass').classList.toggle('active',v.play==='pass');
  E('callPass').textContent='PASS ('+v.passes+' left)';
  E('callPass').disabled=v.passes<=0;
- E('controllerRoll').disabled=!(['play','two-ready'].includes(v.stage)&&!v.ready[seat]);
- E('controllerRoll').textContent=v.ready[seat]?'WAITING FOR OPPONENT':v.stage==='two-ready'?'ROLL FOR 2 POINTS':'ROLL DICE';
+ const roll=E('controllerRoll');
+ const stage=v.stage;
+ const canRoll=stage==='play'||stage==='two-ready'? !v.ready[seat]:
+  stage==='kickoff'||stage==='conversion-choice'||stage==='fumble'||stage==='xp-kick'?offense:
+  stage==='xp-ready'?!v.xpReady[seat]:false;
+ roll.disabled=!canRoll;
+ roll.textContent=v.ready[seat]?'WAITING FOR OPPONENT':
+  stage==='conversion-choice'?'CHOOSE CONVERSION':stage==='kickoff'?'KICKOFF':
+  stage==='xp-ready'?(v.xpReady[seat]?'READY · WAITING':'ROLL DICE · EXTRA POINT'):
+  stage==='xp-kick'?(offense?'KICK EXTRA POINT':'WAITING FOR KICK'):
+  stage==='fumble'?'ROLL RECOVERY DIE':
+  stage==='two-ready'?'ROLL FOR 2 POINTS':'ROLL DICE';
  const actions=E('controllerActions');
- const enabled=offense&&!v.ready.some(Boolean);
- actions.hidden=!(v.stage==='play'&&enabled||v.stage==='kickoff'&&offense||v.stage==='xp-ready'&&offense||v.stage==='conversion-choice'&&offense||v.stage==='fumble'&&offense);
- const first=E('controllerFg'),second=E('controllerPunt');
- second.hidden=false;
- if(v.stage==='play'){
+ actions.hidden=!(stage==='play'&&offense&&!v.ready.some(Boolean));
+ if(!actions.hidden){
+  const first=E('controllerFg'),second=E('controllerPunt');
+  first.hidden=false;second.hidden=false;
   first.textContent='FIELD GOAL';first.onclick=()=>startKick('fg');
   second.textContent='PUNT';second.onclick=()=>startKick('punt');
- }else if(v.stage==='kickoff'){
-  first.textContent='KICKOFF';first.onclick=()=>startKick('kickoff');second.hidden=true;
- }else if(v.stage==='xp-ready'){
-  first.textContent='KICK EXTRA POINT';first.onclick=()=>startKick('xp');second.hidden=true;
- }else if(v.stage==='conversion-choice'){
-  first.textContent='KICK FOR 1';first.onclick=()=>sendAction({kind:'convert',value:1});
-  second.textContent='GO FOR 2';second.onclick=()=>sendAction({kind:'convert',value:2});
- }else if(v.stage==='fumble'){
-  first.textContent='ROLL RECOVERY DIE';first.onclick=()=>sendAction({kind:'recover'});second.hidden=true;
  }
- if(kickType&&!(v.stage==='play'&&offense||v.stage==='kickoff'&&offense||v.stage==='xp-ready'&&offense)){
+ if(!kickType&&!['conversion-choice'].includes(stage))E('controllerKickPanel').hidden=true;
+ if(kickType&&!(v.stage==='play'&&offense||v.stage==='kickoff'&&offense||(v.stage==='xp-ready'||v.stage==='xp-kick')&&offense)){
   stopKick();E('controllerKickPanel').hidden=true;
  }
 }
@@ -583,7 +594,21 @@ function sendCards(){
  sendAction({kind:type,indices:[...selected]});selected.clear();renderController();
 }
 function callPlay(which){sendAction({kind:'play',play:which})}
-function requestRoll(){sendAction({kind:'roll'})}
+function showConversionChoice(){
+ if(!V||V.stage!=='conversion-choice'||seat!==V.off)return;
+ const panel=E('controllerKickPanel');panel.hidden=false;
+ panel.innerHTML='<div class="controller-heading">CHOOSE CONVERSION</div><div class="controller-call"><button class="active" onclick="sendAction({kind:\'convert\',value:1})">KICK FOR 1</button><button onclick="sendAction({kind:\'convert\',value:2})">GO FOR 2</button></div><p class="tiny">Both teams may use their remaining penalty cards after this choice.</p>';
+}
+function requestRoll(){
+ if(!V)return;
+ const stage=V.stage,offense=V.off===seat;
+ if(stage==='conversion-choice'){if(offense)showConversionChoice();return}
+ if(stage==='kickoff'){if(offense)startKick('kickoff');return}
+ if(stage==='xp-ready'){sendAction({kind:'xpReady'});return}
+ if(stage==='xp-kick'){if(offense)startKick('xp');return}
+ if(stage==='fumble'){if(offense)sendAction({kind:'recover'});return}
+ if(stage==='play'||stage==='two-ready')sendAction({kind:'roll'});
+}
 function stopKick(){clearInterval(kickTimer);kickTimer=null;kickType=null}
 
 const verticalBands={
