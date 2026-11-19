@@ -168,7 +168,16 @@ function resolveRoll(){
   announce(good?'2 points converted':'2 points not converted',good?'good':'bad',good?'+2':'NO POINTS',2700);return;
  }
  const pass=G.play==='pass';if(pass)G.passes=Math.max(0,G.passes-1);
- if(raw===def){G.stage='fumble';G.net=0;G.message='FUMBLE! Offense rolls one recovery die.';announce('Fumble!','bad','1–4 retained · 5–6 lost',2200);return}
+ if(raw===def){
+  if(pass){
+   const from=G.pos,to=from+(G.off===0?-5:5);
+   G.net=-5;G.move={from,to:clamp(to,0,100),forward:false};
+   if(to<=0||to>=100){G.scores[1-G.off]+=2;G.stage='kickoff';G.pos=G.off===0?20:80;G.message='Safety on failed pass (−5 yards)';announce('Safety!','bad','Failed pass −5 yards · Defense +2',2600);return}
+   G.pos=to;
+  }else G.net=0;
+  G.stage='fumble';G.message=pass?'FAILED PASS −5 YARDS · FUMBLE! Roll recovery die.':'FUMBLE! Roll recovery die.';
+  announce('Fumble!','bad',pass?'Failed pass −5 yards first · 1–4 retained, 5–6 lost':'1–4 retained · 5–6 lost',2200);return
+ }
  const y=pass?(adv>=4?adv*2:-5):adv;
  // Even a failed pass (-5) can cross the offense's own end zone for a safety.
  if(pass&&adv>=4&&y>=(G.off===0?110-G.pos:G.pos+10)){
@@ -186,19 +195,21 @@ function ballFlight(from,to,done,text){
 function doKickoff(p){
  const side=G.off,from=G.pos,k=clamp(Number(p)||0,0,100);
  let y,description;
- if(k<4){y=50;description='Kickoff out of bounds · midfield'}
- else if(k<13){y=35;description='Kickoff touchback · own 35'}
- else if(k<23){y=1+Math.floor(k-13);description='Kickoff · own '+y}
- else if(k<33){y=11+Math.floor(k-23);description='Kickoff · own '+y}
- else if(k<43){y=21+Math.floor(k-33);description='Kickoff · own '+y}
- else{y=31+Math.min(68,Math.floor((k-43)/57*69));description='Kickoff · own '+y}
+ if(k<8){y=50;description='Kickoff out of bounds · midfield'}
+ else if(k<18){y=35;description='Kickoff touchback · own 35'}
+ else if(k<32){y=1+Math.min(9,Math.floor((k-18)/14*10));description='Kickoff · own '+y}
+ else if(k<46){y=11+Math.min(9,Math.floor((k-32)/14*10));description='Kickoff · own '+y}
+ else if(k<60){y=21+Math.min(9,Math.floor((k-46)/14*10));description='Kickoff · own '+y}
+ else{y=31+Math.min(68,Math.floor((k-60)/40*69));description='Kickoff · own '+y}
  const to=side===0?100-y:y;
  ballFlight(from,to,()=>endDrive(to,description),'Kickoff in the air...');
 }
-function doPunt(power){
- const start=G.pos,dir=G.off===0?1:-1,to=start+dir*(16+clamp(Number(power)||65,0,100)*.63+rand(21)-11);
+function doPunt(marker){
+ const start=G.pos,dir=G.off===0?1:-1;
+ const distance=Math.round(10+clamp(Number(marker)||0,0,100)*.85);
+ const to=start+dir*distance;
  const touchback=to<=0||to>=100,location=touchback?(G.off===0?65:35):clamp(to,1,99);
- ballFlight(start,clamp(to,0,100),()=>endDrive(location,touchback?'Punt touchback':'Punt landed'),'Punt in the air...');
+ ballFlight(start,clamp(to,0,100),()=>endDrive(location,touchback?'Punt touchback':'Punt landed · '+distance+' yards'),'Punt in the air · '+distance+' yards...');
 }
 function doFieldGoal(value){
  const distance=(G.off===0?100-G.pos:G.pos)+17,width=Math.max(.5,Math.min(55,55*Math.exp(-.045*(distance-20))));
@@ -275,7 +286,7 @@ function action(side,a){
   },1550);return;
  }
  if(kind==='kick'&&side===G.off){
-  if(G.stage==='play'&&!G.ready.some(Boolean)&&a.type==='punt')doPunt(a.power);
+  if(G.stage==='play'&&!G.ready.some(Boolean)&&a.type==='punt')doPunt(a.position);
   else if(G.stage==='play'&&!G.ready.some(Boolean)&&a.type==='fg')doFieldGoal(a.position);
   else if(G.stage==='kickoff'&&a.type==='kickoff')doKickoff(a.position);
   else if(G.stage==='xp-ready'&&a.type==='xp')doExtraPoint(a.position);
@@ -421,30 +432,53 @@ function sendCards(){
 function callPlay(which){sendAction({kind:'play',play:which})}
 function requestRoll(){sendAction({kind:'roll'})}
 function stopKick(){clearInterval(kickTimer);kickTimer=null;kickType=null}
+
+const verticalBands={
+ kickoff:[
+  [8,'#d84d53','OUT OF BOUNDS'],[10,'#f4d767','END ZONE'],[14,'#215c36','1–10 YD'],
+  [14,'#9bdc87','11–20 YD'],[14,'#f0d45a','21–30 YD'],[40,'#d44950','31–OPP 1']
+ ],
+ punt:[
+  [18,'#d44950','10–25 YD'],[18,'#f0d45a','26–40 YD'],[18,'#91d882','41–55 YD'],
+  [18,'#215c36','56–70 YD'],[17,'#eeca57','71–85 YD'],[11,'#d44950','86–95 YD']
+ ]
+};
+function verticalMeter(kind){
+ return '<div class="tv-vertical-scale"><div class="tv-vertical-track">'+
+ verticalBands[kind].map(([h,col])=>'<div class="tv-zone" style="height:'+h+'%;background:'+col+'"></div>').join('')+
+ '<div class="tv-vertical-needle" id="kickNeedle"></div></div><div class="tv-vertical-labels">'+
+ verticalBands[kind].map(([h,col,label])=>'<div class="tv-zone-label" style="height:'+h+'%">'+label+'</div>').join('')+
+ '</div></div>';
+}
+function cancelKick(){
+ if(!kickType)return;
+ stopKick();
+ E('controllerKickPanel').hidden=true;E('controllerKickPanel').innerHTML='';
+ E('controllerError').textContent='Punt canceled. You can choose another play.';
+}
+
 function startKick(type){
- if(!V||seat!==V.off)return;
+ if(!V||seat!==V.off||V.ready.some(Boolean))return;
  stopKick();kickType=type;kickValue=0;kickDir=1;
  const panel=E('controllerKickPanel');panel.hidden=false;
- if(type==='punt'){
-  panel.innerHTML='<div class="controller-heading">PUNT POWER</div><label class="tiny" for="puntPower">POWER <b id="puntPowerValue">65</b>%</label><input type="range" id="puntPower" min="0" max="100" value="65" style="width:100%;margin:18px 0"><button class="primary" onclick="completeKick()">PUNT BALL</button>';
-  E('puntPower').addEventListener('input',ev=>{E('puntPowerValue').textContent=ev.target.value});
-  return;
- }
- if(type==='kickoff'){
-  panel.innerHTML='<div class="controller-heading">KICKOFF · AIM FOR OWN 1</div><div class="kick-vertical"><div class="kick-needle" id="kickNeedle"></div></div><button class="primary" onclick="completeKick()">STOP KICKOFF</button>';
+ if(type==='punt'||type==='kickoff'){
+  panel.innerHTML='<div class="controller-heading">'+(type==='punt'?'PUNT · STOP THE DISTANCE METER':'KICKOFF · AIM FOR OWN 1')+'</div>'+
+    verticalMeter(type)+
+    '<button class="primary" onclick="completeKick()">'+(type==='punt'?'STOP PUNT':'STOP KICKOFF')+'</button>'+
+    (type==='punt'?'<button class="secondary" style="display:block;width:100%;margin-top:9px" onclick="cancelKick()">CANCEL PUNT</button>':'');
  }else{
   const dist=type==='xp'?42:Math.round((V.off===0?100-V.pos:V.pos)+17);
   const width=Math.max(.5,Math.min(55,55*Math.exp(-.045*(dist-20))+(type==='xp'?V.convNet*.7:0)));
   panel.innerHTML='<div class="controller-heading">'+(type==='xp'?'EXTRA POINT':'FIELD GOAL')+' · '+dist+' YARDS</div><div class="kick-meter"><div class="kick-zone" style="width:'+width+'%"></div><div class="kick-needle" id="kickNeedle"></div></div><button class="primary" onclick="completeKick()">STOP KICK</button>';
  }
  kickTimer=setInterval(()=>{
-  kickValue+=kickDir*(type==='kickoff'?3.3:2.4);
+  kickValue+=kickDir*((type==='kickoff'||type==='punt')?3.3:2.4);
   if(kickValue>=100||kickValue<=0){kickDir*=-1;kickValue=clamp(kickValue,0,100)}
-  const mark=E('kickNeedle');if(mark)mark.style[type==='kickoff'?'top':'left']=kickValue+'%';
+  const mark=E('kickNeedle');if(mark)mark.style[(type==='kickoff'||type==='punt')?'top':'left']=kickValue+'%';
  },20);
 }
 function completeKick(){
- if(!kickType)return;const type=kickType,value=type==='punt'?Number(E('puntPower').value):kickValue;
+ if(!kickType)return;const type=kickType,value=kickValue;
  stopKick();E('controllerKickPanel').hidden=true;
  sendAction({kind:'kick',type,position:value,power:value});
 }
