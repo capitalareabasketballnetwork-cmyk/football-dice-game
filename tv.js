@@ -572,6 +572,23 @@ function renderHost(){
    });
   }
  }else {flightKick.classList.remove('in-flight');flightKick.style.display='none'}
+ const recoveryHost=E('hostRecoveryOverlay');
+ const recoveryVisible=['fumble-rolling','fumble-landed'].includes(g.stage)&&!!g.recovery;
+ recoveryHost.hidden=!recoveryVisible;
+ if(recoveryVisible){
+  const landed=g.recovery.phase==='landed';
+  const die=E('hostRecoveryDie');
+  die.className='tv-recovery-die'+(landed?'':' rolling');
+  if(landed){
+   stopHostRecoverySpin();
+   die.textContent=g.recovery.face;
+   E('hostRecoveryOutcome').textContent=g.recovery.face>=5?'BALL LOST · TURNOVER':'BALL RETAINED · OFFENSE KEEPS POSSESSION';
+  }else{
+   E('hostRecoveryOutcome').textContent='Rolling the single recovery die...';
+   startHostRecoverySpin();
+  }
+ }else stopHostRecoverySpin();
+
  const announ=E('hostAnnouncement');announ.hidden=!g.announcement;
  if(g.announcement){
   announ.className='tv-announcement '+g.announcement.tone;
@@ -630,6 +647,43 @@ function respondToCardDeclaration(useSelected){
  counterSelected.clear();
  sendAction({kind:'cards',indices});
  renderController();
+}
+
+
+function renderFumbleRecoveryPopup(){
+ const modal=E('recoveryRollModal');
+ const active=!!V&&seat>=0&&seat===V.off&&['fumble','fumble-rolling','fumble-landed'].includes(V.stage);
+ modal.hidden=!active;
+ document.body.classList.toggle('tv-recovery-visible',active);
+ if(!active){
+  stopPhoneRecoverySpin();recoveryRequestSent=false;return;
+ }
+ const stage=V.stage,spinning=stage==='fumble-rolling',landed=stage==='fumble-landed';
+ const die=E('playerRecoveryDie'),button=E('playerRecoveryBtn');
+ die.className='tv-player-recovery-die'+(spinning?' rolling':'');
+ button.disabled=stage!=='fumble'||recoveryRequestSent;
+ button.textContent=spinning?'ROLLING...':landed?'RESULT SHOWN':'ROLL RECOVERY DIE';
+ if(stage==='fumble'){
+  stopPhoneRecoverySpin();die.textContent='?';
+  E('recoveryRollTitle').textContent='Fumble! Roll to recover';
+  E('playerRecoveryStatus').textContent='1–4 retains possession. 5–6 loses the ball. The host screen also shows your roll.';
+ }else if(spinning){
+  E('recoveryRollTitle').textContent='Recovery die rolling...';
+  E('playerRecoveryStatus').textContent='Watch the single die roll on the host screen.';
+  startPhoneRecoverySpin();
+ }else{
+  stopPhoneRecoverySpin();
+  die.textContent=V.recovery?.face??'?';
+  const lost=V.recovery?.face>=5;
+  E('recoveryRollTitle').textContent=lost?'BALL LOST':'BALL RETAINED';
+  E('playerRecoveryStatus').textContent='Recovery die: '+V.recovery?.face+'. '+(lost?'Possession switches after the result is shown.':'Your offense keeps the ball but loses the down.');
+ }
+}
+function rollFumbleRecovery(){
+ if(!V||V.stage!=='fumble'||seat!==V.off||recoveryRequestSent)return;
+ recoveryRequestSent=true;
+ sendAction({kind:'recover'});
+ renderFumbleRecoveryPopup();
 }
 
 function renderController(){
@@ -695,6 +749,7 @@ function renderController(){
   stopKick();E('controllerKickPanel').hidden=true;
  }
  renderCounterCardPopup();
+ renderFumbleRecoveryPopup();
 }
 function startClientSpin(){
  if(clientSpinTimer)return;
