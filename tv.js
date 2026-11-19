@@ -241,35 +241,65 @@ function advance(y,card=false){
 }
 function resolveRoll(){
  if(!G||!['play','two-ready'].includes(G.stage)||!G.ready.every(Boolean))return;
- const a=G.dice[G.off],b=G.dice[1-G.off],raw=sum(a),def=sum(b);
+ const conversion=G.stage==='two-ready',offense=G.dice[G.off],defense=G.dice[1-G.off];
+ const raw=sum(offense),def=sum(defense),triple=offense.every(v=>v===offense[0]);
  G.ready=[false,false];G.usedCards=[false,false];
- const adv=(a.every(v=>v===a[0])?2*raw:raw)-def;G.net=adv;
- if(G.stage==='two-ready'){
-  const type=G.play==='pass'&&G.passes>0?'pass':'run';if(type==='pass')G.passes=Math.max(0,G.passes-1);const yards=type==='pass'?(adv>=4?adv*2:-5):adv;G.net=yards;G.play='run';const needed=G.off===0?100-G.pos:G.pos,good=raw!==def&&yards>=needed;
-  if(good)G.scores[G.off]+=2;
-  G.stage='kickoff';G.pos=G.off===0?20:80;
-  G.message=good?'Two-point conversion made.':'Two-point conversion failed.';
-  announce(good?'2 points converted':'2 points not converted',good?'good':'bad',good?'+2':'NO POINTS',2700);return;
+ G.triple=triple&&raw!==def;G.passDouble=false;
+ const advantage=(triple?2*raw:raw)-def;
+ const pass=G.play==='pass'&&G.passes>0;
+ const yards=pass?(advantage>=4?advantage*2:-5):advantage;
+ G.passDouble=pass&&advantage>=4&&raw!==def;
+ G.net=yards;
+ const serial=G.serial;
+ if(conversion){
+  if(pass)G.passes=Math.max(0,G.passes-1);
+  G.play='run';
+  const needed=G.off===0?100-G.pos:G.pos,good=raw!==def&&yards>=needed;
+  const finish=()=>{
+   if(!G||G.serial!==serial||!['two-ready','triple'].includes(G.stage))return;
+   if(good)G.scores[G.off]+=2;
+   G.stage='kickoff';G.pos=G.off===0?20:80;G.move=null;
+   G.message=good?'Two-point conversion made.':'Two-point conversion failed.';
+   announce(good?'2 points converted':'2 points not converted',good?'good':'bad',(pass?'PASS':'RUN')+' · '+(good?'+2':'NO POINTS'),2700);
+  };
+  if(G.triple){
+   G.stage='triple';announce('Triple die!',G.off===0?'good':'bad','Three matching dice · ×2',1300);
+   setTimeout(finish,1400);
+  }else finish();
+  return;
  }
- const pass=G.play==='pass';if(pass)G.passes=Math.max(0,G.passes-1);
+ if(pass)G.passes=Math.max(0,G.passes-1);
  if(raw===def){
+  G.triple=false;G.passDouble=false;
   if(pass){
    const from=G.pos,to=from+(G.off===0?-5:5);
    G.net=-5;G.move={from,to:clamp(to,0,100),forward:false};
-   if(to<=0||to>=100){G.scores[1-G.off]+=2;G.stage='kickoff';G.pos=G.off===0?20:80;G.move=null;G.message='Safety on failed pass (−5 yards)';announce('Safety!',G.off===0?'bad':'good','Failed pass −5 yards · Defense +2',2600);return}
+   if(to<=0||to>=100){
+    G.scores[1-G.off]+=2;G.stage='kickoff';G.pos=G.off===0?20:80;G.move=null;
+    G.message='Safety on failed pass (−5 yards)';
+    announce('Safety!',G.off===0?'bad':'good','Failed pass −5 yards · Defense +2',2700);return;
+   }
    G.pos=to;
   }else G.net=0;
-  G.play='run';G.stage='fumble';G.message=pass?'FAILED PASS −5 YARDS · FUMBLE! Roll recovery die.':'FUMBLE! Roll recovery die.';
-  announce('Fumble!','bad',pass?'Failed pass −5 yards first · 1–4 retained, 5–6 lost':'1–4 retained · 5–6 lost',2200);return
+  G.play='run';G.stage='fumble';
+  G.message=pass?'FAILED PASS −5 YARDS · FUMBLE! Roll recovery die.':'FUMBLE! Roll recovery die.';
+  announce('Fumble!','bad',pass?'Failed pass −5 yards first · 1–4 retained, 5–6 lost':'1–4 retained · 5–6 lost',2200);
+  return;
  }
- const y=pass?(adv>=4?adv*2:-5):adv;
- // Even a failed pass (-5) can cross the offense's own end zone for a safety.
- if(pass&&adv>=4&&y>=(G.off===0?110-G.pos:G.pos+10)){
-  G.play='run';G.down++;
+ // Passes beyond the back of the far endzone are incomplete even with a positive net.
+ if(pass&&advantage>=4&&yards>=(G.off===0?110-G.pos:G.pos+10)){
+  G.triple=false;G.passDouble=false;G.play='run';G.down++;
   if(G.down>4)endDrive(G.pos,'Turnover on downs');
-  else announce('Incomplete pass','bad','Beyond back of end zone',1900);return;
+  else announce('Incomplete pass','bad','Beyond back of end zone',1900);
+  return;
  }
- G.play='run';advance(y);
+ G.play='run';
+ const finish=()=>{if(!G||G.serial!==serial||!['play','triple'].includes(G.stage))return;G.stage='play';advance(yards)};
+ if(G.triple){
+  G.stage='triple';G.message='TRIPLE DIE! Offense gets ×2';
+  announce('Triple die!',G.off===0?'good':'bad','Three matching dice · ×2',1300);
+  setTimeout(finish,1400);
+ }else finish();
 }
 function ballFlight(from,to,done,text){
  const id=++G.flightId,serial=G.serial;
@@ -417,7 +447,7 @@ function renderHost(){
   const values=g.dice[side]||Array.from({length:side===g.off?3:2},()=>1);
   const anim=Date.now()<hostSpinUntil[side];
   box.innerHTML=values.map(n=>'<div class="die '+(anim?'spinning':'')+'">'+(anim?rand(6):n)+'</div>').join('');
-  total.textContent=anim?'= ...':g.dice[side]?'= '+sum(g.dice[side]):'= —';
+  total.innerHTML=(anim?'= ...':g.dice[side]?'= '+sum(g.dice[side]):'= —')+(!anim&&side===g.off&&g.dice[side]?(g.triple?'<span class="tv-multiplier">×2</span>':'')+(g.passDouble?'<span class="tv-multiplier">×2</span>':''):'');
   cards.innerHTML='<span class="tiny">CARDS LEFT</span>'+Array.from({length:g.hands[side].length},()=>'<span class="card-back">PC</span>').join('');
  }
  const net=E('hostNet');net.textContent=g.net===null?'—':(g.net>0?'+':'')+g.net;
@@ -498,7 +528,7 @@ function renderController(){
  }
  const spinning=Date.now()<clientSpinUntil;
  E('controllerDice').innerHTML=values.map(n=>'<div class="die '+(spinning?'spinning':'')+'">'+(spinning?rand(6):n)+'</div>').join('');
- E('controllerTotal').textContent=v.dice[seat]&&!spinning?'TOTAL '+sum(v.dice[seat]):'TOTAL —';
+ E('controllerTotal').innerHTML=(v.dice[seat]&&!spinning?'TOTAL '+sum(v.dice[seat]):'TOTAL —')+(!spinning&&seat===v.off?(v.triple?'<span class="tv-multiplier">×2</span>':'')+(v.passDouble?'<span class="tv-multiplier">×2</span>':''):'');
  if(!available)selected.clear();
  E('cardEye').textContent=cardsShown?'◉':'◎';
  E('cardEye').setAttribute('aria-label',cardsShown?'Hide cards':'Reveal cards');
