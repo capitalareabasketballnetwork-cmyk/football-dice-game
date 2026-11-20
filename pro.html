@@ -55,6 +55,9 @@ footer{margin-top:28px;font-size:10px;color:#779980;letter-spacing:.5px;line-hei
 @media(max-width:950px){.draft-content,.game-grid{grid-template-columns:1fr}.draft-aside{order:-1}.scoreboard{grid-template-columns:1fr 1fr}.center-stats{grid-column:1/-1;grid-row:2;padding:13px}.scoreteam{grid-row:1}.game-side{display:grid;grid-template-columns:1fr 1fr}.log-card{grid-column:1/-1}}
 @media(max-width:620px){.wrap{padding:12px 10px 30px}header{margin-bottom:16px}.brand-note{font-size:8px;margin-left:4px}.top-actions{gap:5px}.back,.outline{padding:9px;font-size:10px}h1{letter-spacing:-1.8px}.draft-main,.draft-aside{padding:12px}.player-grid{grid-template-columns:1fr}.player-card{min-height:130px;padding:13px}.draft-steps{gap:4px}.draft-step{padding:8px 3px}.draft-step span{font-size:10px}.draft-step small{font-size:8px}.round-indicator{padding:11px;min-width:auto}.scoreboard{gap:6px}.scoreteam{padding:10px}.scoreteam .score{font-size:32px}.scoreteam .name{font-size:10px}.field-panel{padding:10px}.field{height:185px}.field-footer span{font-size:9px}.dice-panel{padding:9px;gap:6px}.dice-side{padding:9px}.face{width:35px;height:40px;font-size:17px}.play-board{padding:11px}.play-option{padding:10px;min-height:102px}.play-option strong{font-size:12px}.play-option small{font-size:10px}.game-side{grid-template-columns:1fr}.log-card{grid-column:auto}.controls-bottom .btn-primary{min-width:100%}.drive-cell{height:32px}.penalty-card{height:52px;min-width:45px}.final-area{padding:15px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;animation:none!important}}
+.opponent-roster-label{margin-top:19px!important;padding-top:16px;border-top:1px solid #385b40}
+.compact-player em{font-style:normal;color:#a3c4a6;font-size:9px;font-weight:900;margin-left:5px}
+.play-option .die-skill{line-height:1.35;white-space:normal}
 </style><script defer src="/pro.js"></script></head>
 <body><div class="wrap">
 <header><a class="logo" href="/">Die<span>Ball.</span><span class="brand-note">PRO / BETA</span></a><div class="top-actions"><a class="back" href="/">← CLASSIC</a><button class="outline" id="restartBtn" onclick="restartPro()">NEW DRAFT</button></div></header>
@@ -86,7 +89,7 @@ footer{margin-top:28px;font-size:10px;color:#779980;letter-spacing:.5px;line-hei
 <div class="card-bar" id="cardSection"><div class="card-title"><span>YOUR PENALTY CARDS</span><span id="cpuCardCount">DON HAS 3 CARDS</span></div><div id="penaltyHand" class="penalty-hand"></div><p class="tiny">Select up to one card per play. Don can respond to the number of cards you declare, not their hidden values.</p></div>
 <div id="gameStatus" class="status-line" role="status" aria-live="polite">Pick a play, then roll.</div></section>
 </div>
-<aside class="game-side"><section class="panel side-roster"><h3>YOUR DRAFTED LINEUP</h3><div id="gameRoster"></div></section>
+<aside class="game-side"><section class="panel side-roster"><h3>YOUR DRAFTED LINEUP</h3><div id="gameRoster"></div><h3 class="opponent-roster-label">DIEBALL DON’S LINEUP</h3><div id="cpuRoster"></div></section>
 <section class="panel drive-card"><h3>THE 16-DRIVE SCORECARD</h3><div class="drive-subhead">YOUR EIGHT DRIVES</div><div id="homeDrives" class="drive-grid"></div><div class="drive-subhead">DON'S EIGHT DRIVES</div><div id="awayDrives" class="drive-grid"></div><div class="tiny" style="margin-top:11px">Red = no score · Yellow = FG · Green = TD + conversion</div></section>
 <section class="panel log-card"><h3>PLAY-BY-PLAY</h3><ul id="playLog" class="log-list"></ul></section></aside></div>
 </main>
