@@ -502,6 +502,30 @@ function updateField(){
  E('netYards').textContent=s.net===null?'NET YARDS —':'NET YARDS '+(s.net>0?'+':'')+s.net;
  E('fieldMessage').textContent=s.phase==='play'?'Choose your play.':s.msg;
 }
+
+function previewPlayDice(id,side){
+ const r=drafts[side],die=(role,key)=>'D'+skillDie(r[role].skills[key]);
+ switch(id){
+  case 'inside':return 'RB POWER '+die('RB','power')+' · VISION '+die('RB','vision')+' · TEAM D6';
+  case 'outside':return 'RB SPEED '+die('RB','speed')+' · VISION '+die('RB','vision')+' · TEAM D6';
+  case 'scramble':return 'QB MOBILITY '+die('QB','mob')+' · RB SPEED '+die('RB','speed')+' · TEAM D6';
+  case 'quick':return 'QB ACC '+die('QB','acc')+' · WR ROUTES '+die('WR','route')+' · TEAM D6';
+  case 'deep':return 'QB ARM '+die('QB','arm')+' · WR DEEP '+die('WR','deep')+' · TEAM D6';
+  case 'blitz':return 'EDGE RUSH '+die('EDGE','rush')+' · PRESSURE D8';
+  case 'runstop':return 'EDGE STOP '+die('EDGE','stop')+' · TEAM D6';
+  case 'coverage':return 'DB COVER '+die('DB','cover')+' · TEAM D6';
+  case 'base':return 'DB TACKLE '+die('DB','hit')+' · TEAM D6';
+  default:return '';
+ }
+}
+function rosterHtml(side){
+ return ROLES.map(role=>{
+  const player=roster(side,role.id);
+  const best=Math.max(...Object.values(player.skills));
+  return '<div class="compact-player"><small>'+role.id+'</small><span>'+esc(player.name)+' <em>D'+skillDie(best)+'</em></span></div>';
+ }).join('');
+}
+
 function renderGame(){
  if(!state)return;
  const s=state,off=s.off,playMode=s.phase==='play'||s.phase==='two';
@@ -517,7 +541,8 @@ function renderGame(){
  E('offenseDiceTitle').textContent=(off===0?'YOUR':'DON’S')+' OFFENSE · 3 DICE';
  E('defenseDiceTitle').textContent=(off===1?'YOUR':'DON’S')+' DEFENSE · 2 DICE';
  if(!['rolling','recovery'].includes(s.phase))showDice(s.lastRoll,false);
- E('gameRoster').innerHTML=ROLES.map(r=>'<div class="compact-player"><small>'+r.id+'</small><span>'+esc(roster(0,r.id).name)+'</span></div>').join('');
+ E('gameRoster').innerHTML=rosterHtml(0);
+ E('cpuRoster').innerHTML=rosterHtml(1);
  function driveRow(side){
   return Array.from({length:DRIVES_PER_TEAM},(_,i)=>{
    const d=s.drives[side][i],css=d?pointsStatus(d.points):'';
@@ -542,7 +567,7 @@ function renderGame(){
   heading.textContent=s.phase==='two'?'TWO-POINT ATTEMPT · '+(userOff?'OFFENSE':'DEFENSE'):userOff?'CALL YOUR OFFENSE':'CALL YOUR DEFENSE';
   playGrid.innerHTML=options.map(p=>{
    const disabled=userOff&&p.kind==='pass'&&s.passLeft[0]<=0;
-   return '<button class="play-option '+(selected===p.id?'active':'')+'" '+(disabled?'disabled':'')+' onclick="choosePlay(\''+p.id+'\')"><strong>'+p.name+'</strong><small>'+p.desc+'</small><span class="die-skill">'+p.skill+'</span></button>';
+   return '<button class="play-option '+(selected===p.id?'active':'')+'" '+(disabled?'disabled':'')+' onclick="choosePlay(\''+p.id+'\')"><strong>'+p.name+'</strong><small>'+p.desc+'</small><span class="die-skill">'+previewPlayDice(p.id,0)+'</span></button>';
   }).join('');
   action.disabled=!playEligible(selected);
   action.textContent=s.phase==='two'?'ROLL FOR 2 POINTS':userOff?'ROLL THE DICE':'DEFEND & ROLL';
