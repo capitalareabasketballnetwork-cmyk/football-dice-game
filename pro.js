@@ -87,6 +87,7 @@ function recordLog(message){
  if(logMessages.length>12)logMessages.length=12;
 }
 function notify(title,description='',tone='green',duration=1800){
+ if(state?.phase==='finished')return;
  const n=++noticeSerial;
  clearTimeout(noticeTimer);
  E('noticeHeading').textContent=title;
