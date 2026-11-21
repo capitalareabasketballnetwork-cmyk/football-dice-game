@@ -566,26 +566,66 @@ function updateField(){
  E('fieldMessage').textContent=s.phase==='play'?'Choose your play.':s.msg;
 }
 
+
+function eligibleForPlay(id,side=0){
+ const entry=(side===state.off?PLAYS:DEFENSES).find(x=>x.id===id);
+ return (entry?.actors||[]).map(role=>drafts[side][role]).filter(Boolean);
+}
+function playSvg(id){
+ const schemes={
+ inside:['M35 34 L73 34','M47 24 L73 34'],outside:['M34 34 L61 34 L80 12','M45 44 L85 14'],
+ power:['M35 34 L73 34 L88 32','M45 25 L71 29'],draw:['M35 34 L18 34 L70 34','M43 34 L78 34'],
+ scramble:['M33 34 L26 19 L56 10 L92 14'],quick:['M36 34 L65 19','M65 35 L85 33'],
+ slant:['M34 15 L56 14 L80 33'],screen:['M35 34 L20 34 L25 54 L72 52'],
+ deep:['M35 14 L103 13','M35 52 L103 53'],playaction:['M34 34 L56 34 L43 34 L96 12'],
+ seam:['M47 34 L47 12 L106 12'],hailmary:['M35 14 L113 12','M35 54 L113 52'],
+ base:['M43 22 L50 31','M43 47 L50 37'],blitz:['M43 11 L79 34','M43 55 L79 34'],
+ runstop:['M43 22 L80 26','M43 45 L80 40'],coverage:['M55 17 L91 13','M55 51 L91 54'],
+ zone:['M45 26 L67 17','M47 42 L68 52'],man:['M48 17 L80 17','M48 54 L80 54'],
+ spy:['M45 34 L75 34'],prevent:['M58 15 L92 12','M58 53 L92 55']
+ };
+ const lines=schemes[id]||schemes.base;
+ const defense=['base','blitz','runstop','coverage','zone','man','spy','prevent'].includes(id);
+ const arrowColor=defense?'#ffa184':'#b5ff94';
+ const markerId='play-head-'+id;
+ return '<svg class="play-diagram" viewBox="0 0 120 68" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="'+esc(id)+' tactical play diagram">'+
+ '<defs><marker id="'+markerId+'" markerWidth="5" markerHeight="5" refX="3.5" refY="2.5" orient="auto"><path d="M0 0 L5 2.5 L0 5Z" fill="'+arrowColor+'"/></marker></defs>'+
+ '<g stroke="#c8f4c2" opacity=".2" stroke-width=".7"><path d="M20 0 V68 M40 0 V68 M60 0 V68 M80 0 V68 M100 0 V68 M0 17 H120 M0 51 H120"/></g>'+
+ '<g fill="#e7fff0" stroke="#28523a" stroke-width="1">'+
+ [10,29,48].map(y=>'<circle cx="31" cy="'+y+'" r="4"/>').join('')+
+ '<circle cx="31" cy="58" r="4"/></g>'+
+ '<g fill="#ffb4a7">'+[17,34,51].map(y=>'<rect x="85" y="'+(y-4)+'" width="8" height="8" rx="1"/>').join('')+'</g>'+
+ lines.map(path=>'<path d="'+path+'" stroke="'+arrowColor+'" stroke-width="2.8" fill="none" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#'+markerId+')"/>').join('')+
+ '</svg>';
+}
+function chooseActor(id){
+ if(!state||!['play','two'].includes(state.phase))return;
+ if(!eligibleForPlay(selected,0).some(p=>p.id===id))return;
+ selectedActorId=id;
+ renderPersonnel();
+}
+function renderPersonnel(){
+ const panel=E('playPersonnel');
+ if(!state||!['play','two'].includes(state.phase)){panel.hidden=true;return}
+ panel.hidden=false;
+ const available=eligibleForPlay(selected,0);
+ if(!available.some(p=>p.id===selectedActorId))selectedActorId=available[0]?.id||null;
+ E('eligiblePlayers').innerHTML=available.map(p=>'<button type="button" class="eligible-player '+(selectedActorId===p.id?'active':'')+'" onclick="chooseActor(\''+p.id+'\')" aria-pressed="'+(selectedActorId===p.id)+'">'+
+ '<img alt="" src="'+portrait(p)+'"><span><strong>'+esc(p.name)+' · '+p.role+'</strong><small>ROLL '+p.min+'–'+p.max+'</small></span></button>').join('')+
+ '<div class="eligible-player" role="note"><span><strong>'+(state.off===0?'OL BUFF +'+(drafts[0].OL?.protect||0)+' / +'+(drafts[0].OL?.block||0):'DL BUFF +'+(drafts[0].DL?.rush||0)+' / +'+(drafts[0].DL?.stop||0))+'</strong><small>Passive, no extra die</small></span></div>';
+}
 function previewPlayDice(id,side){
- const r=drafts[side],die=(role,key)=>'D'+skillDie(r[role].skills[key]);
- switch(id){
-  case 'inside':return 'RB POWER '+die('RB','power')+' · VISION '+die('RB','vision')+' · TEAM D6';
-  case 'outside':return 'RB SPEED '+die('RB','speed')+' · VISION '+die('RB','vision')+' · TEAM D6';
-  case 'scramble':return 'QB MOBILITY '+die('QB','mob')+' · RB SPEED '+die('RB','speed')+' · TEAM D6';
-  case 'quick':return 'QB ACC '+die('QB','acc')+' · WR ROUTES '+die('WR','route')+' · TEAM D6';
-  case 'deep':return 'QB ARM '+die('QB','arm')+' · WR DEEP '+die('WR','deep')+' · TEAM D6';
-  case 'blitz':return 'DB TACKLE '+die('DB','hit')+' · TEAM D8 · DL PASS RUSH BUFF';
-  case 'runstop':return 'DB TACKLE '+die('DB','hit')+' · TEAM D6 · DL RUN STOP BUFF';
-  case 'coverage':return 'DB COVER '+die('DB','cover')+' · TEAM D6';
-  case 'base':return 'DB TACKLE '+die('DB','hit')+' · TEAM D6';
-  default:return '';
- }
+ const info=(side===state.off?PLAYS:DEFENSES).find(p=>p.id===id);
+ if(!info)return '';
+ const choices=info.actors.map(role=>drafts[side][role]).filter(Boolean);
+ return choices.map(p=>p.role+' '+p.min+'–'+p.max).join(' · ');
 }
 function rosterHtml(side){
  return ROLES.map(role=>{
-  const player=roster(side,role.id);
-  const best=Math.max(...Object.values(player.skills));
-  return '<div class="compact-player"><small>'+role.id+'</small><span>'+esc(player.name)+' <em>'+(role.id==='OL'||role.id==='DL'?'BUFF +'+lineBuff(best):'D'+skillDie(best))+'</em></span></div>';
+  const p=roster(side,role.id);
+  return '<div class="compact-player"><small>'+role.id+'</small><span class="player-game-roster"><img alt="" src="'+portrait(p)+'"><span>'+esc(p.name)+
+   ' <em>'+(role.id==='OL'?'+ '+p.protect+' PROTECT / + '+p.block+' BLOCK':
+    role.id==='DL'?'+ '+p.rush+' RUSH / + '+p.stop+' STOP':p.min+'–'+p.max)+'</em></span></span></div>';
  }).join('');
 }
 
@@ -618,6 +658,7 @@ function renderGame(){
  E('gameStatus').textContent=s.msg;
  const playGrid=E('playGrid'),action=E('playAction'),punt=E('puntAction'),fg=E('fgAction');
  action.hidden=false;punt.hidden=true;fg.hidden=true;
+ E('playPersonnel').hidden=!playMode;
  E('cardSection').hidden=!playMode;
  const heading=E('playHeading'),playsCounter=E('playsCount');
  playsCounter.textContent='UNLIMITED PASS PLAYS';
@@ -631,7 +672,7 @@ function renderGame(){
   heading.textContent=s.phase==='two'?'TWO-POINT ATTEMPT · '+(userOff?'OFFENSE':'DEFENSE'):userOff?'CALL YOUR OFFENSE':'CALL YOUR DEFENSE';
   playGrid.innerHTML=options.map(p=>{
    const disabled=false;
-   return '<button class="play-option '+(selected===p.id?'active':'')+'" '+(disabled?'disabled':'')+' onclick="choosePlay(\''+p.id+'\')"><strong>'+p.name+'</strong><small>'+p.desc+'</small><span class="die-skill">'+previewPlayDice(p.id,0)+'</span></button>';
+   return '<button class="play-option '+(selected===p.id?'active':'')+'" '+(disabled?'disabled':'')+' onclick="choosePlay(\''+p.id+'\')">'+playSvg(p.id)+'<strong>'+p.name+'</strong><small>'+p.desc+'</small><span class="die-skill">'+previewPlayDice(p.id,0)+'</span></button>';
   }).join('');
   action.disabled=!playEligible(selected);
   action.textContent=s.phase==='two'?'ROLL FOR 2 POINTS':userOff?'ROLL THE DICE':'DEFEND & ROLL';
@@ -639,6 +680,7 @@ function renderGame(){
   fg.hidden=!userOff||s.phase!=='play';
   punt.disabled=false;fg.disabled=false;
   renderCards();
+  renderPersonnel();
  }else if(s.phase==='fumble'){
   heading.textContent='FUMBLE RECOVERY';
   playGrid.innerHTML='<div class="muted">'+(off===0?'Roll one die to decide if you retain the football.':'DieBall Don is about to roll the recovery die.')+'</div>';
@@ -652,6 +694,7 @@ function renderGame(){
   action.disabled=true;action.textContent='PLEASE WAIT';
  }
 }
+window.chooseActor=chooseActor;
 window.selectRosterRole=selectRosterRole;
 window.saveSelectedRoster=saveSelectedRoster;
 window.startRosterGame=startRosterGame;
