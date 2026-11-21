@@ -1,7 +1,7 @@
 'use strict';
 /* Authenticated DIEBOWL online rooms. All state and rolls are from the Supabase RPC. */
 (function(){
- let room=null,user=null,interval=null,busy=false,selectedPlay='inside',selectedActor='RB';
+ let room=null,user=null,interval=null,busy=false,selectedPlay='inside',selectedActor='RB',lastCompletedRoom=null;
  const el=id=>document.getElementById(id);
  const offensive=[
   ['inside','Inside Run',['RB','QB']],['outside','Outside Run',['RB','QB']],['power','Power Run',['RB','TE']],
@@ -33,7 +33,11 @@
    el('onlinePhase').textContent='WAITING FOR SECOND PLAYER';
   }else if(room.status==='finished'){
    el('onlinePhase').textContent=room.winner_id?(room.winner_id===user?.id?'YOU WIN!':'OPPONENT WINS'):'TIE GAME';
-   message('Match finished. Online XP is recorded server-side. Return to Team HQ to see your saved roster.');
+   message('Match finished. Online XP is recorded server-side. Return to Team HQ to train your players.');
+   if(lastCompletedRoom!==room.id){
+    lastCompletedRoom=room.id;
+    window.DieBallAccount.loadRoster().then(saved=>{if(saved&&typeof careerHydrate==='function'){careerHydrate(saved);if(typeof window.renderCareerHub==='function')window.renderCareerHub()}}).catch(()=>{});
+   }
    showXP();stop();
   }else if(room.status==='cancelled'){
    el('onlinePhase').textContent='ROOM CLOSED';message('This room is closed.');stop();
@@ -44,17 +48,26 @@
    if(!myTurn){
     message(phase==='offense'?'Waiting for offense to select its play...':'Waiting for the defense to respond...');
    }else{
-    message('Choose your '+phase+' play. Your 10-second clock is running.');
+    message(phase==='defense'?'Offense called '+String(room.selected_play||'a play').toUpperCase()+'. Choose your defense in 10 seconds.':'Choose your offensive play in 10 seconds.');
     el('onlineActions').hidden=false;
     if(phase==='offense'){
      const entry=offensive.find(p=>p[0]===selectedPlay)||offensive[0];
      if(!entry[2].includes(selectedActor))selectedActor=entry[2][0];
      el('onlinePlays').innerHTML=offensive.map(p=>'<button class="outline '+(selectedPlay===p[0]?'online-selected':'')+'" onclick="onlineChoosePlay(\''+p[0]+'\')">'+p[1]+'</button>').join('');
      el('onlineActors').hidden=false;
-     el('onlineActors').innerHTML=entry[2].map(role=>'<button class="outline '+(selectedActor===role?'online-selected':'')+'" onclick="onlineChooseActor(\''+role+'\')">'+role+'</button>').join('');
+     el('onlineActors').innerHTML=entry[2].map(role=>{
+      const p=drafts[0]?.[role];
+      const name=p?String(p.name).replace(/[&<>"]/g,''):'';
+      const range=p?' · '+p.min+'–'+p.max:'';
+      const face=p?'<img alt="" src="'+portrait(p)+'" class="online-portrait">':'';
+      return '<button class="outline '+(selectedActor===role?'online-selected':'')+'" onclick="onlineChooseActor(\''+role+'\')">'+face+role+' · '+name+range+'</button>';
+     }).join('');
     }else{
      if(!defensive.includes(selectedPlay))selectedPlay='base';
-     el('onlineActors').hidden=true;
+     el('onlineActors').hidden=false;
+     const defendRole=['blitz','runstop','spy'].includes(selectedPlay)?'LB':'DB';
+     const defender=drafts[0]?.[defendRole];
+     el('onlineActors').textContent='ACTIVE DEFENDER: '+defendRole+(defender?' · '+defender.name+' · DICE '+defender.min+'–'+defender.max:'');
      el('onlinePlays').innerHTML=defensive.map(p=>'<button class="outline '+(selectedPlay===p?'online-selected':'')+'" onclick="onlineChoosePlay(\''+p+'\')">'+p.toUpperCase()+'</button>').join('');
     }
    }
