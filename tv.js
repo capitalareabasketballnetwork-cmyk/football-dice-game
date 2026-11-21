@@ -188,7 +188,8 @@ function deal(){
 }
 function startHostedMatch(){
  if(!links.every(c=>c?.open))return;
- G={stage:'play',scores:[0,0],off:0,pos:35,goal:45,down:1,passes:2,play:'run',
+ const selectedLength=Number(document.querySelector('input[name="tvGameLength"]:checked')?.value)===4?4:8;
+ G={drivesPerTeam:selectedLength,stage:'play',scores:[0,0],off:0,pos:35,goal:45,down:1,passes:2,play:'run',
  ready:[false,false],dice:[null,null],rollSeq:[0,0],net:null,move:null,triple:false,passDouble:false,xpReady:[false,false],
  deck:shuffledDeck(),hands:[[],[]],usedCards:[false,false],cardPicks:[null,null],starter:-1,cardRound:0,
  convKind:0,convPicks:[null,null],convCommitted:[false,false],convNet:0,
@@ -219,10 +220,10 @@ function validPicks(side,values){
  return [...u];
 }
 function removePicks(side,picks){const h=G.hands[side],values=picks.map(k=>h[k]);G.hands[side]=h.filter((_,i)=>!picks.includes(i));return values}
-function recordDrive(){const n=Math.max(0,G.scores[G.off]-G.startScore);if(G.results[G.off].length<8)G.results[G.off].push(n)}
+function recordDrive(){const n=Math.max(0,G.scores[G.off]-G.startScore);if(G.results[G.off].length<G.drivesPerTeam)G.results[G.off].push(n)}
 function endDrive(location,description){
  recordDrive();
- if(G.results[0].length>=8&&G.results[1].length>=8){
+ if(G.results[0].length>=G.drivesPerTeam&&G.results[1].length>=G.drivesPerTeam){
   G.stage='finished';G.ready=[false,false];G.dice=[null,null];G.recovery=null;
   G.winner=G.scores[0]===G.scores[1]?-1:G.scores[0]>G.scores[1]?0:1;
   const verdict=G.winner<0?'GAME TIED':nameOf(G.winner)+' WINS!';
@@ -234,13 +235,13 @@ function endDrive(location,description){
  G.stage='play';G.flight=null;G.recovery=null;G.message=description+' · '+nameOf(G.off)+' takes over.';
  deal();G.startScore=G.scores[G.off];broadcast();
  for(const period of [1,2,3]){
-  const count=period*2;
+  const count=period*(G.drivesPerTeam/4);
   if(G.results[0].length>=count&&G.results[1].length>=count&&!G.quarterBreaks[period-1]){
    G.quarterBreaks[period-1]=true;
    announce(period===1?'End of First Quarter':period===2?'Halftime':'End of Third Quarter','gold','HOME '+G.scores[0]+' – '+G.scores[1]+' AWAY',3200);
   }
  }
- if(G.results[G.off].length===7&&!G.lastDrive[G.off]){G.lastDrive[G.off]=true;announce(nameOf(G.off)+"'s last drive",'gold','Final possession',2700)}
+ if(G.results[G.off].length===G.drivesPerTeam-1&&!G.lastDrive[G.off]){G.lastDrive[G.off]=true;announce(nameOf(G.off)+"'s last drive",'gold','Final possession',2700)}
 }
 function firstDown(y,card=false){
  G.down=1;G.goal=clamp(G.pos+(G.off===0?10:-10),0,100);
@@ -573,7 +574,7 @@ function renderHost(){
  }
  const net=E('hostNet');E('hostNetValue').textContent=g.net===null?'—':(g.net>0?'+':'')+g.net;
  net.className='net-big '+(g.net>0?'good':g.net<0?'bad':'');
- E('hostDrives').innerHTML=Array.from({length:8},(_,i)=>[0,1].map(side=>{
+ E('hostDrives').innerHTML=Array.from({length:g.drivesPerTeam},(_,i)=>[0,1].map(side=>{
   const v=g.results[side][i];return '<div class="drive-box '+(v===undefined?'':v>=6?'td':v===3?'fg':'fail')+'" title="'+(side===0?'Home':'Away')+' drive '+(i+1)+'">'+(v===undefined?'':v>0?v:'×')+'</div>'
  }).join('')).join('');
  const previous=E('hostPreviousLos'),arrow=E('hostYardArrow');
