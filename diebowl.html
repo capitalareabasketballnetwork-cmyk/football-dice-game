@@ -1,28 +1,114 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0b2116"><title>DieBowl — Coming Soon</title>
-<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#0c2116"><title>DieBowl — In Testing</title>
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
 <style>
-*{box-sizing:border-box}body{margin:0;min-height:100dvh;background:radial-gradient(ellipse at 50% 10%,#295c37 0%,#0c2116 48%,#07150e 100%);color:#f1f9ee;font-family:Inter,system-ui,-apple-system,sans-serif;display:flex;flex-direction:column}
-header{padding:22px clamp(18px,4vw,50px)}.brand{font-size:27px;font-weight:1000;letter-spacing:-1.4px;text-decoration:none;color:#fff}.brand span{color:#bcfa8c}
-main{flex:1;display:flex;align-items:center;justify-content:center;padding:20px}.panel{max-width:690px;text-align:center;border:1px solid #50855c;border-radius:23px;background:#102b1eea;padding:clamp(26px,6vw,58px);box-shadow:0 24px 80px #0006}
-.ball{font-size:clamp(48px,9vw,77px);margin-bottom:12px}.tag{font-size:11px;color:#c0fa92;font-weight:1000;letter-spacing:3px}h1{font-size:clamp(48px,10vw,90px);line-height:1;letter-spacing:-3px;margin:12px 0 8px}h1 span{color:#b8fa82}h2{color:#e0f8d7;letter-spacing:2px;font-size:clamp(17px,3vw,23px);margin:9px 0 22px}
-p{color:#b6d6b9;font-size:15px;line-height:1.8;max-width:490px;margin:0 auto 26px}.return{display:inline-flex;align-items:center;justify-content:center;background:#b8fa82;color:#17381e;padding:14px 25px;border-radius:10px;font-size:13px;font-weight:1000;text-decoration:none}.return:hover{background:#d6ffad}
-footer{text-align:center;padding:18px;color:#648b6c;font-size:11px}
-.future-length{margin:6px auto 28px;max-width:480px;text-align:left}
-.future-length h3{font-size:11px;color:#b7f992;letter-spacing:1.5px;text-align:center;margin:0 0 11px}
-.future-length-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.future-length-grid label{border:1px solid #62865c;border-radius:10px;background:#1a3b27;padding:12px;cursor:pointer;display:flex;gap:9px;align-items:center}
-.future-length-grid label:has(input:checked){border-color:#b9fd96;background:#2e5932}
-.future-length-grid input{accent-color:#b9fd8d}
-.future-length-grid span{display:flex;flex-direction:column;gap:4px}
-.future-length-grid strong{font-size:11px}
-.future-length-grid small{font-size:10px;color:#bbd9b7}
-.future-note{font-size:11px!important;text-align:center;color:#a4c19f!important;margin:10px auto 0!important}
-@media(max-width:490px){.future-length-grid{grid-template-columns:1fr}}
-</style></head>
-<body><header><a class="brand" href="/">Die<span>Ball.</span></a></header>
-<main><section class="panel"><div class="ball" aria-hidden="true">🏈</div><div class="tag">THE NEXT LEVEL OF DIEBALL</div><h1>DIE<span>BOWL.</span></h1><h2>COMING SOON</h2>
-<p>We're building a more complex football experience with a player draft, unique abilities, deeper play-calling, and more strategy. DieBowl isn't available to play yet.</p>
-<section class="future-length" aria-labelledby="futureLengthTitle"><h3 id="futureLengthTitle">PLANNED GAME LENGTHS</h3><div class="future-length-grid"><label><input type="radio" name="diebowlLength" value="4"><span><strong>SHORT GAME</strong><small>4 drives per team</small></span></label><label><input type="radio" name="diebowlLength" value="8" checked><span><strong>FULL GAME</strong><small>8 drives per team</small></span></label></div><p class="future-note">These are planned DieBowl options. Gameplay is not available yet.</p></section><a class="return" href="/">BACK TO DIEBALL</a></section></main>
-<footer>DIEBOWL / IN DEVELOPMENT</footer></body></html>
+:root{color-scheme:dark;--ink:#edf8ec;--muted:#a4bfa9;--bg:#08170f;--panel:#11271b;--border:#345340;--mint:#b8f782;--amber:#ffdf77;--red:#ff7b79;--blue:#64b6f6}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+button,a{font:inherit}button{cursor:pointer;color:inherit}button:disabled{opacity:.4;cursor:not-allowed}a{text-decoration:none;color:inherit}button:focus-visible,a:focus-visible{outline:3px solid #c8ff9e;outline-offset:3px}
+[hidden]{display:none!important} .wrap{max-width:1370px;margin:auto;padding:20px clamp(12px,2.4vw,32px) 48px}
+header{display:flex;justify-content:space-between;align-items:center;gap:15px;border-bottom:1px solid #33543d;padding-bottom:17px;margin-bottom:24px}
+.logo{font-size:clamp(23px,3vw,32px);font-weight:1000;letter-spacing:-1.9px}.logo span{color:var(--mint)}.brand-note{font-size:10px;letter-spacing:2px;font-weight:950;color:#b4dcb4;margin-left:12px}
+.top-actions{display:flex;flex-wrap:wrap;gap:9px}.back,.outline{border:1px solid #4b7950;background:#193824;border-radius:9px;padding:10px 13px;font-size:11px;font-weight:900;letter-spacing:.6px}
+.back:hover,.outline:hover{background:#23512d}.btn-primary{padding:14px 18px;background:var(--mint);color:#13301b;font-weight:1000;letter-spacing:.5px;border:0;border-radius:10px;box-shadow:0 6px 22px #8cfa7b25}
+.btn-primary:hover:not(:disabled){background:#d1ffae;transform:translateY(-1px)}.smallcaps{color:var(--mint);font-size:11px;letter-spacing:1.9px;font-weight:1000}
+h1{font-size:clamp(36px,6.6vw,79px);line-height:.98;letter-spacing:-3px;margin:12px 0 16px;font-weight:1000}h1 em{color:var(--mint);font-style:normal}
+.muted{color:var(--muted)}.intro{font-size:14px;line-height:1.65;max-width:680px}.tiny{font-size:11px;color:#b6d1b7}.panel{background:var(--panel);border:1px solid var(--border);border-radius:18px}
+.draft-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:23px}.draft-hero p{margin-bottom:0}
+.round-indicator{border:1px solid #5d8c57;background:#1d3e27;border-radius:13px;padding:15px 18px;min-width:168px}.round-indicator strong{display:block;font-size:38px;font-weight:1000}.round-indicator small{font-size:10px;color:#b9d5b5;font-weight:900;letter-spacing:1px}
+.draft-steps{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin:0 0 22px}.draft-step{border:1px solid #3a5b40;border-radius:10px;background:#152d1e;padding:11px 5px;display:flex;flex-direction:column;gap:2px;text-align:center}
+.draft-step span{font-size:11px;font-weight:950;letter-spacing:.7px}.draft-step small{font-size:10px;color:#91b59a}.draft-step.current{background:#32542a;border-color:#b3f58b;box-shadow:0 0 16px #8dea7c22}.draft-step.done{background:#1a4c35;border-color:#6db783}
+.draft-content{display:grid;grid-template-columns:minmax(0,1fr) 315px;gap:18px}
+.draft-main{padding:18px}.section-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.section-heading h2{font-size:clamp(19px,2.6vw,25px);margin:0;letter-spacing:-.5px}.section-heading .hint{font-size:11px;color:var(--muted);text-align:right}
+.player-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.player-card{border-radius:12px;border:1px solid #466b48;background:linear-gradient(145deg,#1a3b27,#10281b);padding:16px;text-align:left;min-height:172px;display:flex;flex-direction:column;gap:10px;transition:background .17s,border-color .17s,transform .17s}
+.player-card:hover{border-color:#b8ff91;background:#254d2c;transform:translateY(-2px)}.player-card .topline{display:flex;align-items:center;justify-content:space-between;gap:9px}.player-card .topline span{font-size:10px;font-weight:900;color:#c4d8bf;letter-spacing:1px}.player-card .grade{border:1px solid #c3ed96;color:#d5ffc0;background:#25492a;font-size:14px;font-weight:1000;border-radius:7px;padding:5px 8px}.player-card strong{font-size:clamp(17px,2vw,22px);letter-spacing:-.6px;line-height:1.08}.player-card .attrs{margin-top:auto;display:flex;flex-wrap:wrap;gap:6px}.attribute{display:inline-flex;align-items:center;gap:3px;background:#122b1c;border:1px solid #3f6445;border-radius:6px;color:#d2ebcb;padding:5px 7px;font-size:10px;font-weight:800}.attribute b{color:var(--mint);font-size:12px}
+.draft-aside{padding:18px}.roster-title{font-size:13px;font-weight:1000;letter-spacing:1.5px;margin:0 0 15px}.roster-row{border-bottom:1px solid #2b4935;display:flex;justify-content:space-between;gap:8px;align-items:center;padding:11px 0}
+.roster-row:last-child{border:0}.roster-row .position{color:#b8ff9a;background:#24452b;border:1px solid #477c4d;padding:4px 7px;border-radius:5px;font-size:10px;font-weight:950;min-width:48px;text-align:center}.roster-row strong{font-size:12px;text-align:right}.roster-row .empty{color:#678975;font-size:11px}
+.cpu-note{border-radius:10px;background:#1e3b27;border:1px dashed #5d8b65;padding:12px;margin-top:15px;color:#bad5b9;font-size:11px;line-height:1.55}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:15px}.chip{font-size:10px;font-weight:950;letter-spacing:.5px;background:#1f3d28;border:1px solid #416f49;border-radius:99px;padding:6px 9px;color:#d0edcb}
+.draft-finish{text-align:center;max-width:650px;margin:50px auto}.draft-finish h2{font-size:clamp(28px,5vw,49px)}.draft-finish p{line-height:1.7}
+.scoreboard{display:grid;grid-template-columns:1fr 1.25fr 1fr;align-items:stretch;gap:9px;margin-bottom:13px}.scoreteam{background:#10291b;border:1px solid #477452;border-radius:12px;padding:15px;display:flex;justify-content:space-between;align-items:center;gap:12px}.scoreteam.away{background:#321f24;border-color:#814b52}.scoreteam .name{font-size:12px;font-weight:950;letter-spacing:1px}.scoreteam small{font-size:10px;color:#b9d0b5}.scoreteam.away small{color:#e0b6ba}.scoreteam .score{font-size:clamp(30px,4vw,49px);font-weight:1000;letter-spacing:-2px}
+.center-stats{background:#193721;border:1px solid #547b54;border-radius:12px;text-align:center;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:3px}.center-stats strong{font-size:clamp(17px,2.5vw,28px);font-weight:1000}.center-stats small{font-size:10px;color:#d1edc4;font-weight:900;letter-spacing:1px}.center-stats.down-2{background:#396f40}.center-stats.down-3{background:#8d6d29;color:#ffe4a1}.center-stats.down-4{background:#80363b;color:#ffe0e0}
+.game-grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(290px,.8fr);gap:16px}.game-main{display:flex;flex-direction:column;gap:14px;min-width:0}.field-panel{padding:18px}.field-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}.field-header b{font-size:13px}.field-header span{font-size:11px;color:#b5d4b2}.field{height:clamp(170px,24vw,300px);display:flex;position:relative;border:2px solid #82ae74;border-radius:13px;overflow:hidden;background:#1a5732}
+.endzone{width:8%;background:#0d2b1c;display:grid;place-items:center;color:#a9dcc0;writing-mode:vertical-rl;letter-spacing:3px;font-weight:900;font-size:clamp(11px,1.5vw,16px)}.endzone.away{background:#53262d;color:#e9b1b5}
+.turf{position:relative;flex:1;background:repeating-linear-gradient(to right,#205c37 0%,#205c37 9.65%,#ffffff55 9.8%,#306a44 10.1%,#306a44 19.65%,#ffffff55 20%,#245c39 20.2%)}.field-numbers{position:absolute;inset:10px 4%;display:flex;justify-content:space-between;gap:6px;color:#e6f7d4b7;font-weight:950;font-size:clamp(9px,1.8vw,19px)}
+.field-numbers.bottom{inset:auto 4% 11px;transform:rotate(180deg)}.los,.first-line,.previous-line{width:3px;position:absolute;top:0;bottom:0;z-index:3}.los{background:#8be6ff;box-shadow:0 0 11px #78d2ff}.first-line{background:var(--amber);box-shadow:0 0 9px #f9da64}.previous-line{border-left:3px dashed #f2ffe7;width:0;opacity:.85}
+.net-arrow{position:absolute;top:50%;height:7px;border-radius:99px;z-index:5;background:#95f6a0;box-shadow:0 0 13px #6aee80}.net-arrow.loss{background:#ff7d85;box-shadow:0 0 13px #ff747b}.net-arrow:after{content:'▶';position:absolute;right:-9px;top:-13px;font-size:25px;color:#97fea5}.net-arrow.loss:after{color:#ff8c8c}.net-arrow.point-left:after{content:'◀';right:auto;left:-10px}
+.football{position:absolute;top:51%;transform:translate(-50%,-50%);font-size:clamp(25px,3vw,35px);z-index:8;filter:drop-shadow(0 2px 4px #04220b)}
+.kick-visual{position:absolute;top:50%;font-size:29px;z-index:12;transition:left 1.2s ease-in-out,top 1.2s ease;pointer-events:none}
+.field-footer{display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap;margin-top:13px;align-items:center}.field-footer strong{font-size:15px}.field-footer span{font-size:11px;color:#bdd8b6}
+.dice-panel{padding:17px;display:grid;grid-template-columns:1fr 1fr;gap:10px}.dice-side{background:#143320;border:1px solid #386b43;border-radius:12px;padding:13px}.dice-side.red{background:#351f23;border-color:#745154}.dice-side small{font-size:10px;letter-spacing:1px;color:#b5d9b5;font-weight:900}.dice-side.red small{color:#e2b8b9}
+.dice-faces{display:flex;flex-wrap:wrap;gap:8px;margin:9px 0;min-height:56px}.face{width:45px;height:48px;border-radius:10px;background:#f7fff2;color:#17452b;border:2px solid #a8d49a;display:flex;align-items:center;justify-content:center;flex-direction:column;font-weight:1000;font-size:21px;line-height:1}.face small{font-size:8px;color:#417e53;letter-spacing:0}.face.blank{background:#23412d;border:2px dashed #567861;color:transparent}.dice-total{font-size:17px;font-weight:1000}.bonus{display:inline-block;border:1px solid #8eeeb1;background:#2e603d;color:#cdffb4;padding:3px 5px;border-radius:5px;margin-left:6px;font-size:10px;vertical-align:middle}
+.play-board{padding:17px}.board-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.board-top h2{font-size:19px;margin:0}.play-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.play-option{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:6px;padding:13px;border:1px solid #4d7853;border-radius:11px;background:#1b3c29;min-height:102px}
+.play-option:hover{background:#285231}.play-option.active{border-color:#c2ff9b;background:#305a35;box-shadow:inset 0 0 0 1px #b2ef8d}.play-option strong{font-size:14px}.play-option small{font-size:11px;color:#b7d1b6;line-height:1.35}.play-option .die-skill{margin-top:auto;font-size:10px;color:#c3ffad;font-weight:900}.play-option:disabled{opacity:.4}
+.controls-bottom{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:14px}.controls-bottom .btn-primary{flex:1;min-width:185px}.controls-bottom .outline{padding:13px;font-size:11px}
+.card-bar{border-top:1px solid #365a3c;padding-top:13px;margin-top:15px}.card-title{display:flex;justify-content:space-between;gap:10px;font-size:11px;letter-spacing:1px;font-weight:900}.penalty-hand{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.penalty-card{min-width:54px;height:60px;border-radius:9px;background:#ffe5a0;color:#483c1c;border:2px solid #e4c76b;font-size:22px;font-weight:1000}.penalty-card.selected{box-shadow:0 0 0 3px #8cf9a2;border-color:#d4ffcb;transform:translateY(-3px)}
+.game-side{display:flex;flex-direction:column;gap:13px}.side-roster,.drive-card,.log-card{padding:16px}.side-roster h3,.drive-card h3,.log-card h3{font-size:12px;letter-spacing:1.1px;margin:0 0 12px}.compact-player{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid #2c5036}.compact-player:last-child{border:0}.compact-player small{color:var(--mint);font-weight:1000;width:43px}.compact-player span{font-size:11px;text-align:right}.drive-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px}.drive-cell{height:37px;border-radius:7px;background:#203626;border:1px solid #44614b;display:grid;place-items:center;font-weight:1000;font-size:12px}.drive-cell.fail{background:#7f3035;border-color:#c66566}.drive-cell.fg{background:#d1a039;color:#302b13;border-color:#fbd481}.drive-cell.td{background:#479655;border-color:#a2ed9c}.drive-subhead{font-size:9px;color:#b6c8b4;letter-spacing:1px;margin:10px 0 6px}
+.log-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}.log-list li{font-size:11px;line-height:1.5;border-left:2px solid #69916d;padding-left:9px;color:#c8dfc4}.status-line{font-size:11px;color:#e1f7db;min-height:38px;margin-top:8px;line-height:1.5}
+.game-notice{position:fixed;left:50%;top:44%;transform:translate(-50%,-50%);z-index:30;text-align:center;background:#071e14ed;border:2px solid var(--mint);box-shadow:0 30px 100px #000a,0 0 70px #97fa7651;border-radius:18px;padding:clamp(20px,4vw,38px);width:min(92vw,640px);pointer-events:none}
+.game-notice h2{font-size:clamp(30px,5vw,65px);letter-spacing:-2px;margin:0 0 10px;line-height:1.05}.game-notice p{margin:0;font-weight:850;line-height:1.65;white-space:pre-line}
+.game-notice.red{border-color:var(--red);box-shadow:0 0 80px #c7344561}.game-notice.gold{border-color:var(--amber)}.game-notice.green{border-color:var(--mint)}
+.final-area{padding:35px;text-align:center;max-width:660px;margin:40px auto}.final-area h2{font-size:clamp(36px,6vw,70px);letter-spacing:-2px;margin:10px 0}.final-score{font-size:clamp(21px,3.6vw,42px);font-weight:1000;margin:20px auto 26px}.final-area p{font-size:13px;line-height:1.75}
+footer{margin-top:28px;font-size:10px;color:#779980;letter-spacing:.5px;line-height:1.5}
+@media(max-width:950px){.draft-content,.game-grid{grid-template-columns:1fr}.draft-aside{order:-1}.scoreboard{grid-template-columns:1fr 1fr}.center-stats{grid-column:1/-1;grid-row:2;padding:13px}.scoreteam{grid-row:1}.game-side{display:grid;grid-template-columns:1fr 1fr}.log-card{grid-column:1/-1}}
+@media(max-width:620px){.wrap{padding:12px 10px 30px}header{margin-bottom:16px}.brand-note{font-size:8px;margin-left:4px}.top-actions{gap:5px}.back,.outline{padding:9px;font-size:10px}h1{letter-spacing:-1.8px}.draft-main,.draft-aside{padding:12px}.player-grid{grid-template-columns:1fr}.player-card{min-height:130px;padding:13px}.draft-steps{gap:4px}.draft-step{padding:8px 3px}.draft-step span{font-size:10px}.draft-step small{font-size:8px}.round-indicator{padding:11px;min-width:auto}.scoreboard{gap:6px}.scoreteam{padding:10px}.scoreteam .score{font-size:32px}.scoreteam .name{font-size:10px}.field-panel{padding:10px}.field{height:185px}.field-footer span{font-size:9px}.dice-panel{padding:9px;gap:6px}.dice-side{padding:9px}.face{width:35px;height:40px;font-size:17px}.play-board{padding:11px}.play-option{padding:10px;min-height:102px}.play-option strong{font-size:12px}.play-option small{font-size:10px}.game-side{grid-template-columns:1fr}.log-card{grid-column:auto}.controls-bottom .btn-primary{min-width:100%}.drive-cell{height:32px}.penalty-card{height:52px;min-width:45px}.final-area{padding:15px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;animation:none!important}}
+.opponent-roster-label{margin-top:19px!important;padding-top:16px;border-top:1px solid #385b40}
+.compact-player em{font-style:normal;color:#a3c4a6;font-size:9px;font-weight:900;margin-left:5px}
+.play-option .die-skill{line-height:1.35;white-space:normal}
+
+.bowl-length{border:0;padding:0;margin:5px 0 22px;display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.bowl-length legend{color:#b9f08b;font-size:11px;font-weight:1000;letter-spacing:1.1px;padding:0 0 9px}
+.bowl-length label{background:#153421;border:1px solid #527e54;border-radius:11px;padding:11px 13px;display:flex;align-items:center;gap:10px;cursor:pointer}
+.bowl-length label:has(input:checked){border-color:#b6fd8d;background:#295138;box-shadow:0 0 17px #85ea6a30}
+.bowl-length input{accent-color:#c5fa96;flex:none;width:18px;height:18px}
+.bowl-length label span{display:flex;flex-direction:column;gap:4px}
+.bowl-length strong{font-size:12px}.bowl-length small{font-size:11px;color:#a9d1ab}
+.testing-pill{font-size:10px;letter-spacing:1px;color:#123518;background:#b8f78b;padding:7px 9px;border-radius:6px;font-weight:1000}
+.player-card .attribute{font-size:10px}
+@media(max-width:520px){.bowl-length{grid-template-columns:1fr}.draft-steps{gap:3px}.draft-step{padding:7px 1px}.draft-step small{font-size:7px}}
+</style><script defer src="/pro.js"></script></head>
+<body><div class="wrap">
+<header><a class="logo" href="/">Die<span>Ball.</span><span class="brand-note">DIEBOWL</span> <span class="testing-pill">IN TESTING</span></a><div class="top-actions"><a class="back" href="/">← CLASSIC</a><button class="outline" id="restartBtn" onclick="restartPro()">NEW DRAFT</button></div></header>
+<main id="draftScreen">
+<div class="draft-hero"><div><div class="smallcaps">THE NEXT LEVEL OF DIEBALL</div><h1>DRAFT. CALL.<br><em>WIN.</em></h1><p class="intro muted">Draft fictional football stars. Call offensive and defensive plays; skill-based dice decide the main action while OL and DL provide protection and pressure buffs.</p></div>
+<div class="round-indicator"><small>DRAFT ROUND</small><strong id="draftRound">01 / 06</strong><small id="draftRoleLabel">QUARTERBACK</small></div></div>
+<fieldset class="bowl-length">
+ <legend>CHOOSE GAME LENGTH</legend>
+ <label><input type="radio" name="diebowlGameLength" value="4"><span><strong>SHORT GAME</strong><small>4 drives per team</small></span></label>
+ <label><input type="radio" name="diebowlGameLength" value="8" checked><span><strong>FULL GAME</strong><small>8 drives per team</small></span></label>
+</fieldset><div id="draftSteps" class="draft-steps"></div>
+<div class="draft-content"><section class="panel draft-main"><div class="section-heading"><h2 id="draftHeading">Choose your Quarterback</h2><span class="hint">You pick first. DieBall Don selects from those remaining.</span></div><div id="playerGrid" class="player-grid"></div></section>
+<aside class="panel draft-aside"><h3 class="roster-title">YOUR TEAM / DRAFT BOARD</h3><div id="draftRoster"></div><div class="cpu-note" id="cpuDraftNote">DieBall Don will build a separate roster from the same draft pool. Every pick is exclusive.</div><div class="chips"><span class="chip">QB + RB + WR</span><span class="chip">OL + DL + DB</span><span class="chip">6 PICKS EACH</span></div></aside></div>
+</main>
+<main id="gameScreen" hidden>
+<div class="scoreboard"><div class="scoreteam"><div><div class="name">YOUR TEAM</div><small id="homeOff">HOME · OFFENSE</small></div><strong class="score" id="homeScore">0</strong></div>
+<div id="downBadge" class="center-stats down-1"><small id="driveLabel">Q1 · DRIVE 1 OF 16</small><strong id="downText">1ST & 10</strong><small id="spotText">BALL ON OWN 35</small></div>
+<div class="scoreteam away"><div><div class="name">DIEBALL DON</div><small id="awayOff">AWAY · DEFENSE</small></div><strong class="score" id="awayScore">0</strong></div></div>
+<div class="game-grid"><div class="game-main">
+<section class="panel field-panel"><div class="field-header"><b>THE FIELD</b><span id="fieldInfo">YOUR BALL · OWN 35</span></div>
+<div class="field" id="gameField"><div class="endzone">HOME</div><div class="turf" id="fieldTurf">
+<div class="field-numbers"><span>10</span><span>20</span><span>30</span><span>40</span><span>50</span><span>40</span><span>30</span><span>20</span><span>10</span></div>
+<div class="field-numbers bottom"><span>10</span><span>20</span><span>30</span><span>40</span><span>50</span><span>40</span><span>30</span><span>20</span><span>10</span></div>
+<div id="lineOfScrimmage" class="los"></div><div id="lineToGain" class="first-line"></div>
+<div id="lastLine" class="previous-line" hidden></div><div id="yardArrow" class="net-arrow" hidden></div><span id="fieldBall" class="football">🏈</span><span id="kickVisual" class="kick-visual" hidden>🏈</span>
+</div><div class="endzone away">AWAY</div></div>
+<div class="field-footer"><strong id="netYards">NET YARDS —</strong><span id="fieldMessage">Choose a play to begin.</span></div></section>
+<section class="panel dice-panel"><div class="dice-side"><small id="offenseDiceTitle">OFFENSE · 3 DICE</small><div class="dice-faces" id="offenseDice"></div><div id="offenseTotal" class="dice-total">TOTAL —</div></div>
+<div class="dice-side red"><small id="defenseDiceTitle">DEFENSE · 2 DICE</small><div class="dice-faces" id="defenseDice"></div><div id="defenseTotal" class="dice-total">TOTAL —</div></div></section>
+<section class="panel play-board"><div class="board-top"><h2 id="playHeading">Call your offensive play</h2><span class="tiny" id="playsCount">2 PASS PLAYS LEFT</span></div>
+<div id="playGrid" class="play-grid"></div>
+<div class="controls-bottom"><button id="playAction" class="btn-primary" onclick="takeTurn()">ROLL THE DICE</button><button id="puntAction" class="outline" onclick="specialTeams('punt')">PUNT</button><button id="fgAction" class="outline" onclick="specialTeams('fg')">FIELD GOAL</button></div>
+<div class="card-bar" id="cardSection"><div class="card-title"><span>YOUR PENALTY CARDS</span><span id="cpuCardCount">DON HAS 3 CARDS</span></div><div id="penaltyHand" class="penalty-hand"></div><p class="tiny">Select up to one card per play. Don can respond to the number of cards you declare, not their hidden values.</p></div>
+<div id="gameStatus" class="status-line" role="status" aria-live="polite">Pick a play, then roll.</div></section>
+</div>
+<aside class="game-side"><section class="panel side-roster"><h3>YOUR DRAFTED LINEUP</h3><div id="gameRoster"></div><h3 class="opponent-roster-label">DIEBALL DON’S LINEUP</h3><div id="cpuRoster"></div></section>
+<section class="panel drive-card"><h3 id="scorecardHeading">THE DRIVE SCORECARD</h3><div class="drive-subhead">YOUR EIGHT DRIVES</div><div id="homeDrives" class="drive-grid"></div><div class="drive-subhead">DON'S EIGHT DRIVES</div><div id="awayDrives" class="drive-grid"></div><div class="tiny" style="margin-top:11px">Red = no score · Yellow = FG · Green = TD + conversion</div></section>
+<section class="panel log-card"><h3>PLAY-BY-PLAY</h3><ul id="playLog" class="log-list"></ul></section></aside></div>
+</main>
+<main id="finalScreen" hidden><section class="panel final-area"><div class="smallcaps">DIEBOWL · FINAL</div><h2 id="winnerHeading">GAME OVER</h2><div id="finalScore" class="final-score"></div><p id="finalSummary" class="muted"></p><button class="btn-primary" onclick="restartPro()">DRAFT ANOTHER TEAM</button></section></main>
+<div class="game-notice" id="gameNotice" hidden><h2 id="noticeHeading"></h2><p id="noticeDetail"></p></div>
+<footer>DieBall Pro is an unofficial experimental game mode. All players are fictional. Skill ratings, roll ranges, and line buffs are provisional game-design values. DieBowl is IN TESTING against DieBall Don. Fictional player abilities, OL/DL buffs and draft balance are being evaluated; online DieBowl competition is not yet available.</footer>
+</div></body></html>
