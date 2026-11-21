@@ -84,7 +84,7 @@ function resetTimers(){
 
 
 function price(p){return Math.max(25,Math.round((p.overall-40)*1.6));}
-function playerCost(p){return p?price(p)+Math.max(0,Number(career.upgrades[p.id]||0))*8:0;}
+function playerCost(p){return p?price(BY_ID[p.id]||p)+Math.max(0,Number(career.upgrades[p.id]||0))*8:0;}
 function budgetUsed(){return ROLES.reduce((n,r)=>n+playerCost(drafts[0][r.id]),0)}
 function totalSelected(){return ROLES.filter(r=>!!drafts[0][r.id]).length}
 function effectivePlayer(p){if(!p)return p;const bonus=career.upgrades[p.id]||0;return {...p,max:Math.min(20,p.max+bonus),overall:Math.min(99,p.overall+bonus*2)}}
@@ -131,6 +131,7 @@ function hydrateRoster(saved){
   if(token!==rosterLoadGeneration||state)return;
   if(cloud){hydrateRoster(cloud);localStorage.setItem('diebowl-roster-v1',JSON.stringify(rosterPayload()))}
   E('rosterStatus').textContent='Signed in as '+(user.user_metadata?.display_name||user.email)+'. Save to sync your lineup.';
+   if(totalSelected()===ROLES.length&&budgetUsed()<=SALARY_CAP)showCareerHub();
  }catch(e){E('rosterStatus').textContent='Cloud roster unavailable: '+e.message+'. You can still test locally.'}
 }
 function restartPro(){
@@ -159,7 +160,7 @@ function draftPlayer(id){
 }async function saveSelectedRoster(){
  const ids=rosterIds(),count=Object.keys(ids).length;
  if(!count){E('rosterStatus').textContent='Choose at least one player first.';return}
- try{localStorage.setItem('diebowl-roster-v1',JSON.stringify(ids))}
+ try{localStorage.setItem('diebowl-roster-v1',JSON.stringify(rosterPayload()))}
  catch(e){E('rosterStatus').textContent='Device storage unavailable: '+e.message;return}
  const status=E('rosterStatus');status.textContent='Saved '+count+' of '+ROLES.length+' starters locally.';
  try{
