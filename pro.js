@@ -6,13 +6,14 @@ const ROLES=[
  {id:'QB',name:'QUARTERBACK',sub:'Throwing and scrambling'},
  {id:'RB',name:'RUNNING BACK',sub:'Power and open-field speed'},
  {id:'WR',name:'WIDE RECEIVER',sub:'Hands and deep-ball ability'},
- {id:'EDGE',name:'PASS RUSHER',sub:'Pressure and run stopping'},
+ {id:'OL',name:'OFFENSIVE LINEMAN',sub:'Protect your quarterback and open run lanes'},
+ {id:'DL',name:'DEFENSIVE LINEMAN',sub:'Apply pass pressure and stop the run'},
  {id:'DB',name:'DEFENSIVE BACK',sub:'Coverage and hard tackles'}
 ];
 const STATS={
  acc:'Accuracy',arm:'Arm',mob:'Mobility',power:'Power',speed:'Speed',
  vision:'Vision',hands:'Hands',deep:'Deep',route:'Routes',
- rush:'Rush',stop:'Run stop',cover:'Coverage',hit:'Tackle'
+ rush:'Rush',stop:'Run stop',cover:'Coverage',hit:'Tackle',protect:'Pass protect',block:'Run block'
 };
 const POOL=[
  ['qb01',"Zane Westborough",'NTH','QB',{"acc":5,"arm":5,"mob":4}],
@@ -33,18 +34,25 @@ const POOL=[
  ['wr04',"Kendrick Ironwood",'HBR','WR',{"hands":5,"deep":5,"route":4}],
  ['wr05',"Drake Crestwick",'VLY','WR',{"hands":4,"deep":4,"route":5}],
  ['wr06',"Jaren Galecrest",'RIV','WR',{"hands":4,"deep":5,"route":4}],
- ['edge01',"Koa Stonehaven",'NTH','EDGE',{"rush":5,"stop":5}],
- ['edge02',"Zion Kingswell",'BLZ','EDGE',{"rush":5,"stop":4}],
- ['edge03',"Maddox Delaney",'WLD','EDGE',{"rush":5,"stop":5}],
- ['edge04',"Drake Fenwick",'HBR','EDGE',{"rush":4,"stop":5}],
- ['edge05',"Forrest Yorkwell",'VLY','EDGE',{"rush":5,"stop":4}],
- ['edge06',"Iker Thornbrook",'RIV','EDGE',{"rush":4,"stop":5}],
+ ['edge01',"Koa Stonehaven",'NTH','DL',{"rush":5,"stop":5}],
+ ['edge02',"Zion Kingswell",'BLZ','DL',{"rush":5,"stop":4}],
+ ['edge03',"Maddox Delaney",'WLD','DL',{"rush":5,"stop":5}],
+ ['edge04',"Drake Fenwick",'HBR','DL',{"rush":4,"stop":5}],
+ ['edge05',"Forrest Yorkwell",'VLY','DL',{"rush":5,"stop":4}],
+ ['edge06',"Iker Thornbrook",'RIV','DL',{"rush":4,"stop":5}],
  ['db01',"Teagan Frostmere",'NTH','DB',{"cover":5,"hit":5}],
  ['db02',"Elias Rockford",'BLZ','DB',{"cover":5,"hit":4}],
  ['db03',"Kieran Darkwell",'WLD','DB',{"cover":5,"hit":4}],
  ['db04',"Zion Halden",'HBR','DB',{"cover":4,"hit":5}],
  ['db05',"Devlin Vesperton",'VLY','DB',{"cover":5,"hit":3}],
  ['db06',"Theo Wycliffe",'RIV','DB',{"cover":4,"hit":5}],
+
+ ['ol01',"Brant Draycott",'NTH','OL',{"protect":5,"block":5}],
+ ['ol02',"Eamon Yorkwell",'BLZ','OL',{"protect":4,"block":5}],
+ ['ol03',"Jaxon Fenwick",'WLD','OL',{"protect":4,"block":5}],
+ ['ol04',"Nash Woodbridge",'HBR','OL',{"protect":5,"block":4}],
+ ['ol05',"Theo Banner",'VLY','OL',{"protect":5,"block":5}],
+ ['ol06',"Denzel Valebrook",'RIV','OL',{"protect":5,"block":4}],
 ].map(([id,name,team,role,skills])=>({id,name,team,role,skills}));
 const BY_ID=Object.fromEntries(POOL.map(p=>[p.id,p]));
 const PLAYS=[
@@ -60,7 +68,8 @@ const DEFENSES=[
  {id:'runstop',name:'RUN STOP',desc:'Stack the box to stop rushes.',skill:'EDGE / TACKLE'},
  {id:'coverage',name:'COVERAGE',desc:'Protect against big pass gains.',skill:'DB COVERAGE'}
 ];
-const TWO_PASSES=2,DRIVES_PER_TEAM=8;
+const TWO_PASSES=2;
+let DRIVES_PER_TEAM=8;
 const rand=n=>1+Math.floor(Math.random()*n);
 const sum=a=>a.reduce((n,x)=>n+x,0);
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
@@ -126,7 +135,7 @@ function draftPlayer(id){
 }
 function renderDraft(){
  const step=ROLES[draftIndex]||ROLES.at(-1);
- E('draftRound').textContent=String(draftIndex+1).padStart(2,'0')+' / 05';
+ E('draftRound').textContent=String(draftIndex+1).padStart(2,'0')+' / '+String(ROLES.length).padStart(2,'0');
  E('draftRoleLabel').textContent=step.name;
  E('draftHeading').textContent='Choose your '+step.name.toLowerCase();
  E('draftSteps').innerHTML=ROLES.map((r,i)=>'<div class="draft-step '+(i<draftIndex?'done':i===draftIndex?'current':'')+'"><span>'+r.id+'</span><small>'+(i<draftIndex?'PICKED':i===draftIndex?'ON THE CLOCK':'UP NEXT')+'</small></div>').join('');
@@ -134,7 +143,7 @@ function renderDraft(){
  E('playerGrid').innerHTML=available.map(p=>'<button class="player-card" onclick="draftPlayer(\''+p.id+'\')">'+
  '<div class="topline"><span>'+p.team+' / '+p.role+'</span><span class="grade">'+grade(p)+' OVR</span></div>'+
  '<strong>'+esc(p.name)+'</strong><div class="attrs">'+
- Object.entries(p.skills).map(([key,val])=>'<span class="attribute">'+STATS[key]+' <b>d'+skillDie(val)+'</b></span>').join('')+'</div></button>').join('');
+ Object.entries(p.skills).map(([key,val])=>'<span class="attribute">'+STATS[key]+' <b>'+(p.role==='OL'||p.role==='DL'?'+'+lineBuff(val):'d'+skillDie(val))+'</b></span>').join('')+'</div></button>').join('');
  E('draftRoster').innerHTML=ROLES.map(r=>'<div class="roster-row"><span class="position">'+r.id+'</span><strong>'+
  (drafts[0][r.id]?esc(drafts[0][r.id].name):'<span class="empty">NOT DRAFTED</span>')+'</strong></div>').join('');
  E('cpuDraftNote').textContent=draftMessages.at(-1)||'You pick first. Don chooses a different player from the same position pool after every pick.';
@@ -153,6 +162,7 @@ function dealCards(){
 }
 function startMatch(){
  resetTimers();
+ DRIVES_PER_TEAM=Number(document.querySelector('input[name="diebowlGameLength"]:checked')?.value)===4?4:8;
  state={phase:'play',off:0,pos:35,goal:45,down:1,
   score:[0,0],drives:[[],[]],passLeft:[TWO_PASSES,TWO_PASSES],cards:[[],[]],
   driveStartScore:0,lastRoll:null,net:null,move:null,pending:null,
@@ -218,10 +228,21 @@ function offensiveRoll(side,play){
 }
 function defensiveRoll(side,play){
  const team=drafts[side];
- if(play==='blitz')return [rollForSkill(team.EDGE,'rush'),rollDie(8)];
- if(play==='runstop')return [rollForSkill(team.EDGE,'stop'),rollDie(6)];
+ // DL does not roll dice: it modifies the offense's result through pass rush or run stop.
+ if(play==='blitz')return [rollForSkill(team.DB,'hit'),rollDie(8)];
+ if(play==='runstop')return [rollForSkill(team.DB,'hit'),rollDie(6)];
  if(play==='coverage')return [rollForSkill(team.DB,'cover'),rollDie(6)];
  return [rollForSkill(team.DB,'hit'),rollDie(6)];
+}
+// Passive linemen: no independent dice. Every matchup compares offensive protection to defensive pressure.
+function lineBuff(skill){return Math.max(0,Math.min(3,Number(skill||0)-2))}
+function calculateLineMatchup(off,pass){
+ const ol=drafts[off].OL,dl=drafts[1-off].DL;
+ const protection=lineBuff(ol.skills[pass?'protect':'block']);
+ const pressure=lineBuff(dl.skills[pass?'rush':'stop']);
+ return {protection,pressure,net:protection-pressure,
+  summary:pass?'OL protection +'+protection+' vs DL pressure +'+pressure:
+   'OL run blocking +'+protection+' vs DL run stop +'+pressure};
 }
 function playModifiers(offense,defense){
  const isPass=offense==='quick'||offense==='deep';
@@ -247,12 +268,13 @@ function prepareRoll(isTwo=false){
  const cpuValue=cpuIndex===null?0:state.cards[1].splice(cpuIndex,1)[0];
  const offenseCard=off===0?userValue:cpuValue,defenseCard=off===0?cpuValue:userValue;
  selectedCard=null;
- const bonus=playModifiers(attack,defense)+(offenseCard-defenseCard);
+ const line=calculateLineMatchup(off,pass);
+ const bonus=playModifiers(attack,defense)+line.net+(offenseCard-defenseCard);
  const advantage=(triple?offRaw*2:offRaw)-defRaw+bonus;
  const success=pass&&(attack==='deep'?advantage>=6:advantage>=4);
  const yards=pass?(success?(advantage*2+(attack==='deep'?3:0)):-5):advantage;
  return {off,attack,defense,offenseDice,defenseDice,offRaw,defRaw,triple:triple&&!sameRaw,pass,success,
-  bonus,advantage,yards,sameRaw,offenseCard,defenseCard,isTwo};
+  bonus,advantage,yards,sameRaw,offenseCard,defenseCard,line,isTwo};
 }
 function showDice(dice=null,spin=false){
  const attack=dice?.offenseDice||[],defend=dice?.defenseDice||[];
@@ -277,7 +299,7 @@ function takeTurn(){
  const two=state.phase==='two',roll=prepareRoll(two);
  if(!roll)return;
  state.phase='rolling';state.lastRoll=null;state.net=null;state.move=null;
- state.msg=(roll.off===0?'Your ':'Don’s ')+(roll.pass?'PASS':'RUN')+' vs '+roll.defense.toUpperCase()+' · Rolling...';
+ state.msg=(roll.off===0?'Your ':'Don’s ')+(roll.pass?'PASS':'RUN')+' vs '+roll.defense.toUpperCase()+' · '+roll.line.summary+' · Rolling...';
  renderGame();
  const token=++turnSerial;
  clearInterval(spinTimer);
@@ -287,7 +309,7 @@ function takeTurn(){
   clearInterval(spinTimer);spinTimer=null;
   state.lastRoll=roll;state.net=roll.sameRaw?(roll.pass?-5:0):roll.yards;
   state.phase='result';
-  state.msg=(roll.pass?'PASS':'RUN')+' / '+roll.attack.toUpperCase()+' · '+(state.net>0?'+':'')+state.net+' yards · Review the dice totals.';
+  state.msg=(roll.pass?'PASS':'RUN')+' / '+roll.attack.toUpperCase()+' · '+roll.line.summary+' · '+(state.net>0?'+':'')+state.net+' yards · Review dice.';
   renderGame();
   const pause=roll.triple?2200:1400;
   if(roll.triple)notify('TRIPLE DIE!','Three matching offensive dice · ×2','green',2000);
@@ -469,8 +491,8 @@ function endDrive(reason,nextPos=null){
  selected=off===0?'inside':'base';selectedCard=null;dealCards();
  state.msg=(off===0?'Your offense':'DieBall Don')+' starts '+spotLabel(state.pos,off)+'.';
  renderGame();
- if([4,8,12].includes(prevTotal)){
-  const title=prevTotal===4?'END OF FIRST QUARTER':prevTotal===8?'HALFTIME':'END OF THIRD QUARTER';
+ if([1,2,3].map(q=>q*(DRIVES_PER_TEAM/2)).includes(prevTotal)){
+  const title=prevTotal===DRIVES_PER_TEAM/2?'END OF FIRST QUARTER':prevTotal===DRIVES_PER_TEAM?'HALFTIME':'END OF THIRD QUARTER';
   notify(title,'YOU '+state.score[0]+' — '+state.score[1]+' DON','gold',1800);
  }
 }
@@ -482,7 +504,7 @@ function finishGame(){
  E('winnerHeading').textContent=verdict;
  E('finalScore').textContent='YOU '+state.score[0]+' — '+state.score[1]+' DON';
  E('finalSummary').textContent='Your drafted '+drafts[0].QB.name+' / '+drafts[0].RB.name+' / '+drafts[0].WR.name+
- ' lineup earned '+state.score[0]+' points over eight drives. Draft again to try a different combination.';
+ ' lineup earned '+state.score[0]+' points over '+DRIVES_PER_TEAM+' drives. Draft again to try a different combination.';
  window.scrollTo(0,0);
 }
 function updateField(){
@@ -511,8 +533,8 @@ function previewPlayDice(id,side){
   case 'scramble':return 'QB MOBILITY '+die('QB','mob')+' · RB SPEED '+die('RB','speed')+' · TEAM D6';
   case 'quick':return 'QB ACC '+die('QB','acc')+' · WR ROUTES '+die('WR','route')+' · TEAM D6';
   case 'deep':return 'QB ARM '+die('QB','arm')+' · WR DEEP '+die('WR','deep')+' · TEAM D6';
-  case 'blitz':return 'EDGE RUSH '+die('EDGE','rush')+' · PRESSURE D8';
-  case 'runstop':return 'EDGE STOP '+die('EDGE','stop')+' · TEAM D6';
+  case 'blitz':return 'DB TACKLE '+die('DB','hit')+' · TEAM D8 · DL PASS RUSH BUFF';
+  case 'runstop':return 'DB TACKLE '+die('DB','hit')+' · TEAM D6 · DL RUN STOP BUFF';
   case 'coverage':return 'DB COVER '+die('DB','cover')+' · TEAM D6';
   case 'base':return 'DB TACKLE '+die('DB','hit')+' · TEAM D6';
   default:return '';
@@ -522,7 +544,7 @@ function rosterHtml(side){
  return ROLES.map(role=>{
   const player=roster(side,role.id);
   const best=Math.max(...Object.values(player.skills));
-  return '<div class="compact-player"><small>'+role.id+'</small><span>'+esc(player.name)+' <em>D'+skillDie(best)+'</em></span></div>';
+  return '<div class="compact-player"><small>'+role.id+'</small><span>'+esc(player.name)+' <em>'+(role.id==='OL'||role.id==='DL'?'BUFF +'+lineBuff(best):'D'+skillDie(best))+'</em></span></div>';
  }).join('');
 }
 
@@ -532,9 +554,9 @@ function renderGame(){
  E('homeScore').textContent=s.score[0];E('awayScore').textContent=s.score[1];
  E('homeOff').textContent=off===0?'HOME · OFFENSE':'HOME · DEFENSE';
  E('awayOff').textContent=off===1?'AWAY · OFFENSE':'AWAY · DEFENSE';
- const down=E('downBadge'),quarter=Math.min(4,Math.floor(countDrives()/4)+1);
+ const down=E('downBadge'),quarter=Math.min(4,Math.floor(countDrives()/(DRIVES_PER_TEAM/2))+1);
  down.className='center-stats down-'+(playMode?s.down:1);
- E('driveLabel').textContent='Q'+quarter+' · DRIVE '+Math.min(16,countDrives()+1)+' OF 16';
+ E('driveLabel').textContent='Q'+quarter+' · DRIVE '+Math.min(DRIVES_PER_TEAM*2,countDrives()+1)+' OF '+(DRIVES_PER_TEAM*2);
  E('downText').textContent=s.phase==='two'?'2-POINT TRY':s.phase==='conversion'?'CONVERSION':s.phase==='touchdown'?'TOUCHDOWN':downLabel()+' & '+toFirst();
  E('spotText').textContent='BALL ON '+spotLabel(s.pos,off);
  updateField();
