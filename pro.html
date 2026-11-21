@@ -9,9 +9,20 @@ main{flex:1;display:flex;align-items:center;justify-content:center;padding:20px}
 .ball{font-size:clamp(48px,9vw,77px);margin-bottom:12px}.tag{font-size:11px;color:#c0fa92;font-weight:1000;letter-spacing:3px}h1{font-size:clamp(48px,10vw,90px);line-height:1;letter-spacing:-3px;margin:12px 0 8px}h1 span{color:#b8fa82}h2{color:#e0f8d7;letter-spacing:2px;font-size:clamp(17px,3vw,23px);margin:9px 0 22px}
 p{color:#b6d6b9;font-size:15px;line-height:1.8;max-width:490px;margin:0 auto 26px}.return{display:inline-flex;align-items:center;justify-content:center;background:#b8fa82;color:#17381e;padding:14px 25px;border-radius:10px;font-size:13px;font-weight:1000;text-decoration:none}.return:hover{background:#d6ffad}
 footer{text-align:center;padding:18px;color:#648b6c;font-size:11px}
+.future-length{margin:6px auto 28px;max-width:480px;text-align:left}
+.future-length h3{font-size:11px;color:#b7f992;letter-spacing:1.5px;text-align:center;margin:0 0 11px}
+.future-length-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.future-length-grid label{border:1px solid #62865c;border-radius:10px;background:#1a3b27;padding:12px;cursor:pointer;display:flex;gap:9px;align-items:center}
+.future-length-grid label:has(input:checked){border-color:#b9fd96;background:#2e5932}
+.future-length-grid input{accent-color:#b9fd8d}
+.future-length-grid span{display:flex;flex-direction:column;gap:4px}
+.future-length-grid strong{font-size:11px}
+.future-length-grid small{font-size:10px;color:#bbd9b7}
+.future-note{font-size:11px!important;text-align:center;color:#a4c19f!important;margin:10px auto 0!important}
+@media(max-width:490px){.future-length-grid{grid-template-columns:1fr}}
 </style></head>
 <body><header><a class="brand" href="/">Die<span>Ball.</span></a></header>
 <main><section class="panel"><div class="ball" aria-hidden="true">🏈</div><div class="tag">THE NEXT LEVEL OF DIEBALL</div><h1>DIE<span>BOWL.</span></h1><h2>COMING SOON</h2>
 <p>We're building a more complex football experience with a player draft, unique abilities, deeper play-calling, and more strategy. DieBowl isn't available to play yet.</p>
-<a class="return" href="/">BACK TO DIEBALL</a></section></main>
+<section class="future-length" aria-labelledby="futureLengthTitle"><h3 id="futureLengthTitle">PLANNED GAME LENGTHS</h3><div class="future-length-grid"><label><input type="radio" name="diebowlLength" value="4"><span><strong>SHORT GAME</strong><small>4 drives per team</small></span></label><label><input type="radio" name="diebowlLength" value="8" checked><span><strong>FULL GAME</strong><small>8 drives per team</small></span></label></div><p class="future-note">These are planned DieBowl options. Gameplay is not available yet.</p></section><a class="return" href="/">BACK TO DIEBALL</a></section></main>
 <footer>DIEBOWL / IN DEVELOPMENT</footer></body></html>
