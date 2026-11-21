@@ -43,7 +43,12 @@ window.DIEBOWL_OPTIONS=[
  ['DBL0282','Hudson Hartwick','P',66,1,8,0,0,0,0,'Pin Inside 10']
 ].map(([id,name,role,overall,min,max,protect,block,rush,stop,ability])=>({
  id,name,role,overall,min,max,protect,block,rush,stop,ability
-}));
+})).map((p,i,all)=>{
+ const ranks={QB:[11,13,15,17],RB:[11,13,15,17],WR:[16,19,23,26],TE:[9,11,13,15],OL:[23,28,33,38],
+ DL:[16,19,23,26],LB:[10,12,14,16],DB:[10,10,12,13],K:[6,7,8,9],P:[4,5,6]};
+ const positionOrder=all.slice(0,i+1).filter(a=>a.role===p.role).length-1;
+ return {...p,rank:ranks[p.role][positionOrder]||null};
+});
 /* Distinct procedurally drawn, pixelated 16x16 character portraits.
    These are fictional pixel illustrations, not photographs of real people. */
 window.dieBowlPortrait=function(player){
