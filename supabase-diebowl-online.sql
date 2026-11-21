@@ -1,3 +1,56 @@
+create table if not exists public.diebowl_online_catalog (
+ id text primary key, role text not null, overall integer not null,
+ min_roll integer not null, max_roll integer not null,
+ price integer generated always as (greatest(25,round((overall-40)*1.6)::integer)) stored,
+ constraint valid_die check ((min_roll=0 and max_roll=0) or (min_roll between 1 and 20 and max_roll between min_roll and 20))
+);
+alter table public.diebowl_online_catalog enable row level security;
+revoke all on public.diebowl_online_catalog from anon,authenticated;
+grant select on public.diebowl_online_catalog to authenticated;
+drop policy if exists "Logged in users view player catalog" on public.diebowl_online_catalog;
+create policy "Logged in users view player catalog" on public.diebowl_online_catalog for select to authenticated using (true);
+insert into public.diebowl_online_catalog(id,role,overall,min_roll,max_roll) values
+('DBL0011','QB',78,1,13),
+('DBL0013','QB',74,1,11),
+('DBL0015','QB',70,1,10),
+('DBL0017','QB',66,1,8),
+('DBL0035','RB',78,1,13),
+('DBL0037','RB',74,1,11),
+('DBL0039','RB',70,1,10),
+('DBL0041','RB',66,1,8),
+('DBL0072','WR',78,1,13),
+('DBL0075','WR',74,1,11),
+('DBL0079','WR',69,1,9),
+('DBL0082','WR',66,1,8),
+('DBL0101','TE',78,1,13),
+('DBL0103','TE',74,1,11),
+('DBL0105','TE',69,1,9),
+('DBL0107','TE',65,1,8),
+('DBL0129','OL',77,0,0),
+('DBL0150','OL',73,0,0),
+('DBL0162','OL',69,0,0),
+('DBL0121','OL',65,0,0),
+('DBL0175','DL',78,0,0),
+('DBL0177','DL',74,0,0),
+('DBL0179','DL',69,0,0),
+('DBL0198','DL',65,0,0),
+('DBL0212','LB',78,1,13),
+('DBL0214','LB',74,1,11),
+('DBL0216','LB',70,1,10),
+('DBL0218','LB',66,1,8),
+('DBL0234','DB',78,1,13),
+('DBL0256','DB',74,1,11),
+('DBL0258','DB',69,1,9),
+('DBL0259','DB',66,1,8),
+('DBL0270','K',77,1,12),
+('DBL0271','K',73,1,11),
+('DBL0272','K',69,1,9),
+('DBL0273','K',65,1,8),
+('DBL0280','P',78,1,13),
+('DBL0281','P',72,1,10),
+('DBL0282','P',66,1,8)
+on conflict(id) do update set role=excluded.role,overall=excluded.overall,min_roll=excluded.min_roll,max_roll=excluded.max_roll;
+
 
 -- DIEBOWL online: server-authoritative match state. SQL actions are the only writer.
 create table if not exists public.diebowl_online_matches (
@@ -82,6 +135,13 @@ declare
  finished boolean := false;
  winner uuid;
  cap_total integer;
+ valid_count integer;
+ min_o integer;
+ max_o integer;
+ min_d integer;
+ max_d integer;
+ defense_role text;
+ defender_roster jsonb;
  max_plays integer := 300;
 begin
  if u is null then raise exception 'Sign in to play online.'; end if;
@@ -92,7 +152,11 @@ begin
    raise exception 'Save your complete DieBowl roster first.';
   end if;
   my_roster := coalesce(roster->'players',roster);
-  if (select count(*) from jsonb_object_keys(my_roster)) < 10 then raise exception 'Your roster must have all ten positions.'; end if;
+  
+  select count(*),coalesce(sum(c.price),0) into valid_count,cap_total
+  from jsonb_each_text(my_roster) as picks(role,player_id)
+  join public.diebowl_online_catalog c on c.id=picks.player_id and c.role=picks.role;
+  if valid_count<>10 or cap_total>540 then raise exception 'Roster is invalid or exceeds the $540 salary cap.';end if;
   -- Return existing live room instead of creating unbounded rooms.
   select * into m from public.diebowl_online_matches
    where (host_id=u or guest_id=u) and status in ('waiting','playing') order by created_at desc limit 1;
@@ -132,7 +196,11 @@ begin
    raise exception 'Save your complete DieBowl roster first.';
   end if;
   my_roster:=coalesce(roster->'players',roster);
-  if (select count(*) from jsonb_object_keys(my_roster))<10 then raise exception 'Your roster must have all ten positions.';end if;
+  
+  select count(*),coalesce(sum(c.price),0) into valid_count,cap_total
+  from jsonb_each_text(my_roster) as picks(role,player_id)
+  join public.diebowl_online_catalog c on c.id=picks.player_id and c.role=picks.role;
+  if valid_count<>10 or cap_total>540 then raise exception 'Roster is invalid or exceeds the $540 salary cap.';end if;
   update public.diebowl_online_matches set guest_id=u,guest_roster=roster,status='playing',
    phase='offense',offense_id=host_id,deadline=clock_timestamp()+interval '10 seconds',updated_at=now()
    where id=m.id returning * into m;
@@ -177,8 +245,17 @@ begin
    my_roster := coalesce(roster->'players',roster);
    if not (my_roster ? m.selected_actor) then raise exception 'Offense is missing an eligible player.';end if;
    -- One authoritative random roll; client requests cannot prescribe values.
-   off_die:=1+floor(random()*20)::integer;
-   def_die:=1+floor(random()*20)::integer;
+   select min_roll,max_roll into min_o,max_o from public.diebowl_online_catalog
+    where id=my_roster->>m.selected_actor and role=m.selected_actor;
+   if min_o is null or min_o=0 then raise exception 'Invalid offensive player selection.';end if;
+   defender_roster:=coalesce((case when is_offense then m.guest_roster else m.host_roster end)->'players',
+    (case when is_offense then m.guest_roster else m.host_roster end));
+   defense_role:=case when p_play in ('blitz','runstop','spy') then 'LB' else 'DB' end;
+   select min_roll,max_roll into min_d,max_d from public.diebowl_online_catalog
+    where id=defender_roster->>defense_role and role=defense_role;
+   if min_d is null or min_d=0 then raise exception 'Invalid defensive player selection.';end if;
+   off_die:=min_o+floor(random()*(max_o-min_o+1))::integer;
+   def_die:=min_d+floor(random()*(max_d-min_d+1))::integer;
    gained:=greatest(-10,least(35,5+off_die-def_die+
     case when m.selected_play in ('deep','hailmary') then 4
          when m.selected_play in ('screen','quick') then -2 else 0 end));
@@ -222,6 +299,13 @@ begin
   end if;
  end if;
  if finished then
+  update public.diebowl_rosters r
+   set roster=jsonb_set(r.roster,'{career,credits}',
+    to_jsonb(coalesce(nullif(r.roster#>>'{career,credits}','')::integer,0)+
+     case when m.winner_id is null then 3 when m.winner_id=r.user_id then 4 else 2 end),true),
+    updated_at=now()
+   where r.user_id in (m.host_id,m.guest_id)
+    and r.roster ? 'career';
   insert into public.diebowl_online_xp(user_id,earned,games)
    values(m.host_id,case when m.winner_id is null then 3 when m.winner_id=m.host_id then 4 else 2 end,1)
    on conflict(user_id) do update set earned=public.diebowl_online_xp.earned+excluded.earned,games=public.diebowl_online_xp.games+1;
