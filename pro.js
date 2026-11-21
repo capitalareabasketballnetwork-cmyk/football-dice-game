@@ -47,6 +47,32 @@ const roster=(side,role)=>drafts[side][role];
 const toneByTeam=side=>side===0?'green':'red';
 let drafts=[{},{}],draftIndex=0,state=null,selected='inside',selectedActorId=null,selectedCard=null,noticeSerial=0,turnSerial=0;
 let rosterLoadGeneration=0;
+let diebowlPlayFilter='run';
+const diebowlPlayCategories={
+ run:['inside','outside','power','draw','scramble'],
+ pass:['quick','slant','screen','deep','seam','hailmary'],
+ playaction:['playaction']
+};
+function setPlayFilter(next){
+ if(!Object.hasOwn(diebowlPlayCategories,next))return;
+ diebowlPlayFilter=next;
+ if(state&&state.off===0){
+  const allowed=diebowlPlayCategories[next];
+  if(!allowed.includes(selected)){selected=allowed[0];selectedActorId=null}
+ }
+ renderGame();
+}
+function syncPlayFilter(){
+ const toolbar=E('playFilter');
+ if(!toolbar)return;
+ const shown=!!state&&state.off===0&&(state.phase==='play'||state.phase==='two');
+ toolbar.hidden=!shown;
+ for(const b of toolbar.querySelectorAll('button')){
+  const active=b.dataset.filter===diebowlPlayFilter;
+  b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));
+ }
+}
+
 let noticeTimer=null,spinTimer=null,playTimer=null,kickTimer=null,session=0,logMessages=[],draftMessages=[];
 function countDrives(){return state?.drives[0].length+state?.drives[1].length||0}
 function spotLabel(pos,side){
@@ -673,7 +699,8 @@ function renderGame(){
  E('playPersonnel').hidden=!playMode;
  E('cardSection').hidden=!playMode;
  const heading=E('playHeading'),playsCounter=E('playsCount');
- playsCounter.textContent='UNLIMITED PASS PLAYS';
+ playsCounter.textContent='';
+ syncPlayFilter();
  if(s.phase==='conversion'){
   heading.textContent='Choose the conversion';
   playGrid.innerHTML=off===0?'<button class="play-option" onclick="chooseConversion(1)"><strong>KICK FOR 1</strong><small>Approx. 87% chance</small></button><button class="play-option" onclick="chooseConversion(2)"><strong>GO FOR 2</strong><small>One play from the 5. Passing is unlimited.</small></button>':'<div class="muted">DieBall Don is choosing its conversion...</div>';
@@ -681,8 +708,8 @@ function renderGame(){
   action.hidden=true;
  }else if(playMode){
   const options=currentPlays(),userOff=off===0;
-  heading.textContent=s.phase==='two'?'TWO-POINT ATTEMPT · '+(userOff?'OFFENSE':'DEFENSE'):userOff?'CALL YOUR OFFENSE':'CALL YOUR DEFENSE';
-  playGrid.innerHTML=options.map(p=>{
+  heading.textContent=s.phase==='two'?'TWO-POINT ATTEMPT · '+(userOff?'OFFENSE':'DEFENSE'):userOff?'Pick your play':'Pick your defense';
+  playGrid.innerHTML=options.filter(p=>!userOff||diebowlPlayCategories[diebowlPlayFilter].includes(p.id)).map(p=>{
    const disabled=false;
    return '<button class="play-option '+(selected===p.id?'active':'')+'" '+(disabled?'disabled':'')+' onclick="choosePlay(\''+p.id+'\')">'+playSvg(p.id)+'<strong>'+p.name+'</strong><small>'+p.desc+'</small><span class="die-skill">'+previewPlayDice(p.id,0)+'</span></button>';
   }).join('');
@@ -713,6 +740,7 @@ window.startRosterGame=startRosterGame;
 window.draftPlayer=draftPlayer;
 window.restartPro=restartPro;
 window.choosePlay=choosePlay;
+window.setPlayFilter=setPlayFilter;
 window.chooseCard=chooseCard;
 window.takeTurn=takeTurn;
 window.specialTeams=specialTeams;
