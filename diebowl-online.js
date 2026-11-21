@@ -53,9 +53,9 @@
      el('onlineActors').hidden=false;
      el('onlineActors').innerHTML=entry[2].map(role=>'<button class="outline '+(selectedActor===role?'online-selected':'')+'" onclick="onlineChooseActor(\''+role+'\')">'+role+'</button>').join('');
     }else{
+     if(!defensive.includes(selectedPlay))selectedPlay='base';
      el('onlineActors').hidden=true;
      el('onlinePlays').innerHTML=defensive.map(p=>'<button class="outline '+(selectedPlay===p?'online-selected':'')+'" onclick="onlineChoosePlay(\''+p+'\')">'+p.toUpperCase()+'</button>').join('');
-     if(!defensive.includes(selectedPlay))selectedPlay='base';
     }
    }
   }
