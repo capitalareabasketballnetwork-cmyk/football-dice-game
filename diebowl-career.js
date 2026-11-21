@@ -7,7 +7,7 @@ const baseRestartPro=restartPro,baseStartMatch=startMatch,baseFinishGame=finishG
 function careerPrice(p){const base=BY_ID[p.id]||p;return Math.max(25,Math.round((base.overall-40)*1.6))+Math.max(0,career.upgrades[p.id]||0)*8}
 function careerTotal(){return ROLES.reduce((n,r)=>n+(drafts[0][r.id]?careerPrice(drafts[0][r.id]):0),0)}
 function careerFilled(){return ROLES.filter(r=>drafts[0][r.id]).length}
-function careerPlayer(p){if(!p)return p;const step=Math.max(0,Math.min(20-(p.max||20),Number(career.upgrades[p.id])||0));return {...p,max:Math.min(20,p.max+step),overall:Math.min(99,p.overall+step*2)}}
+function careerPlayer(p){if(!p)return p;const raw=Math.max(0,Number(career.upgrades[p.id])||0),step=Math.min(p.role==='OL'||p.role==='DL'?10:Math.max(0,20-p.max),raw);return {...p,max:p.role==='OL'||p.role==='DL'?p.max:Math.min(20,p.max+step),overall:Math.min(99,p.overall+step*2),protect:p.protect+Math.floor(step/2),block:p.block+Math.floor(step/2),rush:p.rush+Math.floor(step/2),stop:p.stop+Math.floor(step/2)}}
 function careerIds(){return Object.fromEntries(ROLES.filter(r=>drafts[0][r.id]).map(r=>[r.id,drafts[0][r.id].id]))}
 function careerPayload(){return {players:careerIds(),career}}
 function careerHydrate(data){
@@ -116,7 +116,7 @@ window.renderCareerHub=function(){
  E('hubRecord').textContent=career.season.wins+'–'+career.season.losses+'–'+career.season.ties;
  E('hubWeek').textContent=career.season.played>=8?'SEASON COMPLETE':'GAME '+(career.season.played+1)+' OF 8';
  E('hubRoster').innerHTML=ROLES.map(r=>{const p=drafts[0][r.id];if(!p)return '';
-  const canTrain=career.credits>=2&&p.max<20&&careerTotal()+8<=CAREER_CAP;
+  const canTrain=career.credits>=2&&(p.role==='OL'||p.role==='DL'?(career.upgrades[p.id]||0)<10:p.max<20)&&careerTotal()+8<=CAREER_CAP;
   return '<div class="hub-player"><span class="name-and-face"><span class="position">'+r.id+'</span><strong>'+esc(p.name)+'</strong><img class="small-portrait" alt="" src="'+portrait(p)+'"></span>'+
   '<span class="hub-upgrade"><small>$'+careerPrice(p)+' · '+(p.role==='OL'||p.role==='DL'?'LINE BOOST':'ROLL '+p.min+'–'+p.max)+'</small><button class="outline" '+(!canTrain?'disabled':'')+' onclick="upgradeStarter(\''+p.id+'\')">TRAIN · 2 XP</button></span></div>';
  }).join('');
@@ -128,7 +128,7 @@ window.renderCareerHub=function(){
 window.chooseCareerMode=function(mode){careerMode=mode==='online'?'online':'season';window.renderCareerHub()};
 window.upgradeStarter=async function(id){
  const base=BY_ID[id],selected=base&&drafts[0][base.role];
- if(!selected||selected.id!==id||career.credits<2||selected.max>=20||careerTotal()+8>CAREER_CAP)return;
+ if(!selected||selected.id!==id||career.credits<2||((base.role==='OL'||base.role==='DL')?(career.upgrades[id]||0)>=10:selected.max>=20)||careerTotal()+8>CAREER_CAP)return;
  career.credits-=2;career.upgrades[id]=(career.upgrades[id]||0)+1;
  drafts[0][base.role]=careerPlayer(base);
  await window.saveSelectedRoster();window.renderCareerHub();
