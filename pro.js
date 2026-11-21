@@ -224,7 +224,21 @@ function cpuCardChoice(declaredCount){
  if(!react)return null;
  return hand.indexOf(Math.max(...hand));
 }
-function rollForSkill(player,key){return rollDie(skillDie(player.skills[key]))}
+function rollForPlayer(p){
+ const min=Math.max(1,p?.min||1),max=Math.max(min,p?.max||6);
+ return {min,sides:max,value:min+Math.floor(Math.random()*(max-min+1)),player:p?.id||null};
+}
+function activePlayer(side,play){
+ const info=(side===state.off?PLAYS:DEFENSES).find(p=>p.id===play);
+ const ids=info?.actors||[];
+ if(side===0&&selectedActorId){
+  const picked=BY_ID[selectedActorId];
+  if(picked&&ids.includes(picked.role)&&drafts[0][picked.role]?.id===picked.id)return picked;
+ }
+ for(const role of ids)if(drafts[side][role])return drafts[side][role];
+ return drafts[side].RB||drafts[side].LB;
+}
+
 function chooseCpuOffense(){
  const need=toFirst(),x=Math.random();
  if(need>7)return x<.2?'quick':x<.36?'deep':x<.53?'slant':x<.7?'outside':x<.84?'seam':'playaction';
@@ -240,26 +254,23 @@ function chooseCpuDefense(){
 }
 
 function offensiveRoll(side,play){
- const team=drafts[side],qb=team.QB,rb=team.RB,wr=team.WR;
- switch(play){
-  case 'inside':return [rollForSkill(rb,'power'),rollForSkill(rb,'vision'),rollDie(6)];
-  case 'outside':return [rollForSkill(rb,'speed'),rollForSkill(rb,'vision'),rollDie(6)];
-  case 'scramble':return [rollForSkill(qb,'mob'),rollForSkill(rb,'speed'),rollDie(6)];
-  case 'quick':return [rollForSkill(qb,'acc'),rollForSkill(wr,'route'),rollDie(6)];
-  case 'deep':return [rollForSkill(qb,'arm'),rollForSkill(wr,'deep'),rollDie(6)];
-  default:throw Error('Unknown offensive play');
+ const team=drafts[side],choice=activePlayer(side,play);
+ const pass=PLAYS.find(p=>p.id===play)?.kind==='pass';
+ if(pass){
+  // QB throws, chosen WR/TE/RB receives, and the offense rolls one team die.
+  return [rollForPlayer(team.QB),rollForPlayer(choice.role==='QB'?team.WR:choice),rollDie(6)];
  }
+ if(play==='scramble')return [rollForPlayer(team.QB),rollForPlayer(team.RB),rollDie(6)];
+ return [rollForPlayer(choice.role==='OL'?team.RB:choice),rollForPlayer(team.RB),rollDie(6)];
 }
 function defensiveRoll(side,play){
- const team=drafts[side];
- // DL does not roll dice: it modifies the offense's result through pass rush or run stop.
- if(play==='blitz')return [rollForSkill(team.DB,'hit'),rollDie(8)];
- if(play==='runstop')return [rollForSkill(team.DB,'hit'),rollDie(6)];
- if(play==='coverage')return [rollForSkill(team.DB,'cover'),rollDie(6)];
- return [rollForSkill(team.DB,'hit'),rollDie(6)];
+ const team=drafts[side],primary=activePlayer(side,play);
+ const secondary=primary.role==='DB'?team.LB:team.DB;
+ return [rollForPlayer(primary),rollForPlayer(secondary)];
 }
+
 // Passive linemen: no independent dice. Every matchup compares offensive protection to defensive pressure.
-function lineBuff(skill){return Math.max(0,Math.min(3,Number(skill||0)-2))}
+function lineBuff(skill){return Math.max(0,Math.min(5,Number(skill||0)))}
 function calculateLineMatchup(off,pass){
  const ol=drafts[off].OL,dl=drafts[1-off].DL;
  const protection=lineBuff(ol.skills[pass?'protect':'block']);
@@ -309,7 +320,7 @@ function showDice(dice=null,spin=false){
  const attack=dice?.offenseDice||[],defend=dice?.defenseDice||[];
  function html(values,count){
   if(!values.length)return Array.from({length:count},()=>'<span class="face blank">—</span>').join('');
-  return values.map(x=>'<span class="face"><b>'+(spin?rand(x.sides):x.value)+'</b><small>D'+x.sides+'</small></span>').join('');
+  return values.map(x=>'<span class="face"><b>'+(spin?(x.min||1)+Math.floor(Math.random()*(x.sides-(x.min||1)+1)):x.value)+'</b><small>'+(x.min||1)+'–'+x.sides+'</small></span>').join('');
  }
  E('offenseDice').innerHTML=html(attack,3);
  E('defenseDice').innerHTML=html(defend,2);
@@ -451,7 +462,7 @@ function chooseConversion(points,automated=false){
  if(!state||state.phase!=='conversion'||(state.off===1&&!automated)||![1,2].includes(points))return;
  if(points===1){
   state.phase='kick';state.msg=(state.off===0?'Your':'Don’s')+' extra point is in the air.';renderGame();
-  const off=state.off,good=Math.random()<.87;
+  const off=state.off,kicker=drafts[off].K,good=Math.random()<clamp(.8+(((kicker?.min||1)+(kicker?.max||6))/2-5)*.025,.7,.96);
   const x=session;playTimer=setTimeout(()=>{
    if(!state||session!==x||state.phase!=='kick')return;
    if(good)state.score[off]++;
@@ -482,7 +493,7 @@ function specialTeams(kind,cpu=false){
  const off=state.off,from=state.pos,dist=distanceToGoal()+17;
  state.phase='kick';state.move=null;state.msg=(off===0?'You':'Don')+' '+(kind==='punt'?'punt':'attempt a field goal')+'...';
  selectedCard=null;renderGame();
- const token=++turnSerial,side=direction(off),puntDist=40+rand(23);
+ const token=++turnSerial,side=direction(off),puntPlayer=drafts[off].P,puntDist=34+rand(18)+Math.round(((puntPlayer?.min||1)+(puntPlayer?.max||6))/2);
  let landing=from+side*puntDist,touchback=landing<=0||landing>=100;
  const target=kind==='punt'?clamp(landing,0,100):off===0?100:0;
  E('kickVisual').hidden=false;E('kickVisual').style.transition='none';
@@ -499,7 +510,8 @@ function specialTeams(kind,cpu=false){
    notify('PUNT',touchback?'Touchback · receiving team on own 35':puntDist+' yards',toneByTeam(off),1500);
    return;
   }
-  const chance=clamp(95-(dist-25)*1.55,8,90),good=Math.random()*100<chance;
+  const kicker=drafts[off].K,skill=((kicker?.min||1)+(kicker?.max||6))/2;
+  const chance=clamp(85-(dist-25)*1.55+(skill-5)*2,8,95),good=Math.random()*100<chance;
   if(good){state.score[off]+=3;endDrive('Field goal good');notify('FIELD GOAL GOOD!','+'+3+' points · '+Math.round(dist)+'-yard kick',toneByTeam(off),1900)}
   else{endDrive('Field goal missed',from);notify('FIELD GOAL MISSED','No points · '+Math.round(dist)+'-yard attempt','red',1900)}
  },1300);
@@ -532,7 +544,7 @@ function finishGame(){
  const verdict=state.score[0]===state.score[1]?'GAME TIED':state.score[0]>state.score[1]?'YOU WIN!':'YOU LOSE!';
  E('winnerHeading').textContent=verdict;
  E('finalScore').textContent='YOU '+state.score[0]+' — '+state.score[1]+' DON';
- E('finalSummary').textContent='Your drafted '+drafts[0].QB.name+' / '+drafts[0].RB.name+' / '+drafts[0].WR.name+
+ E('finalSummary').textContent='Your roster led by '+drafts[0].QB.name+' / '+drafts[0].RB.name+' / '+drafts[0].WR.name+
  ' lineup earned '+state.score[0]+' points over '+DRIVES_PER_TEAM+' drives. Draft again to try a different combination.';
  window.scrollTo(0,0);
 }
@@ -608,17 +620,17 @@ function renderGame(){
  action.hidden=false;punt.hidden=true;fg.hidden=true;
  E('cardSection').hidden=!playMode;
  const heading=E('playHeading'),playsCounter=E('playsCount');
- playsCounter.textContent=s.passLeft[off]+' OF 2 PASSES LEFT';
+ playsCounter.textContent='UNLIMITED PASS PLAYS';
  if(s.phase==='conversion'){
   heading.textContent='Choose the conversion';
-  playGrid.innerHTML=off===0?'<button class="play-option" onclick="chooseConversion(1)"><strong>KICK FOR 1</strong><small>Approx. 87% chance</small></button><button class="play-option" onclick="chooseConversion(2)"><strong>GO FOR 2</strong><small>One play from the 5. Passes remaining carry over.</small></button>':'<div class="muted">DieBall Don is choosing its conversion...</div>';
+  playGrid.innerHTML=off===0?'<button class="play-option" onclick="chooseConversion(1)"><strong>KICK FOR 1</strong><small>Approx. 87% chance</small></button><button class="play-option" onclick="chooseConversion(2)"><strong>GO FOR 2</strong><small>One play from the 5. Passing is unlimited.</small></button>':'<div class="muted">DieBall Don is choosing its conversion...</div>';
   playsCounter.textContent='AFTER TOUCHDOWN';
   action.hidden=true;
  }else if(playMode){
   const options=currentPlays(),userOff=off===0;
   heading.textContent=s.phase==='two'?'TWO-POINT ATTEMPT · '+(userOff?'OFFENSE':'DEFENSE'):userOff?'CALL YOUR OFFENSE':'CALL YOUR DEFENSE';
   playGrid.innerHTML=options.map(p=>{
-   const disabled=userOff&&p.kind==='pass'&&s.passLeft[0]<=0;
+   const disabled=false;
    return '<button class="play-option '+(selected===p.id?'active':'')+'" '+(disabled?'disabled':'')+' onclick="choosePlay(\''+p.id+'\')"><strong>'+p.name+'</strong><small>'+p.desc+'</small><span class="die-skill">'+previewPlayDice(p.id,0)+'</span></button>';
   }).join('');
   action.disabled=!playEligible(selected);
