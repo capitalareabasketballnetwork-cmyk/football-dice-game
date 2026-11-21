@@ -99,6 +99,12 @@ footer{margin-top:28px;font-size:10px;color:#779980;letter-spacing:.5px;line-hei
 @media(max-width:650px){.eligible-list{grid-template-columns:1fr}.draft-content{grid-template-columns:1fr}#playGrid{max-height:470px}.player-card{min-height:110px}}
 
 .cap-panel{margin:0 0 16px;padding:13px;border:1px solid #547d53;border-radius:12px;background:#183825}
+.cap-panel.cap-warning{border-color:#ffc84d;background:#493b14;box-shadow:0 0 0 1px #ffc84d33}
+.cap-panel.cap-warning #capFree,.cap-panel.cap-warning #capUsed{color:#ffdc72}
+.cap-panel.cap-warning .cap-track span{background:#ffca56}
+.cap-panel.cap-maxed{border-color:#ff6565;background:#512323;box-shadow:0 0 0 1px #ff656544}
+.cap-panel.cap-maxed #capFree,.cap-panel.cap-maxed #capUsed{color:#ff9292}
+.cap-panel.cap-maxed .cap-track span{background:#ff6767}
 .cap-panel>div:first-child{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:12px}
 #capUsed{font-weight:900;color:var(--mint)}#capFree{color:#c8e6c0;font-size:11px}
 .cap-track,.roll-track{height:10px;background:#27392d;position:relative;overflow:hidden;border-radius:20px;margin-top:10px}
@@ -133,7 +139,7 @@ footer{margin-top:28px;font-size:10px;color:#779980;letter-spacing:.5px;line-hei
 <div class="draft-hero"><div><div class="smallcaps">DIEBOWL · IN TESTING</div><h1>BUILD YOUR<br><em>TEAM.</em></h1><p class="intro muted">No draft and no stars yet. Pick your starter from a few developing fictional players at each position. Your choices are yours to keep and improve later.</p></div>
 <div class="round-indicator"><small>YOUR ROSTER</small><strong id="draftRound">0 / 10</strong><small id="draftRoleLabel">CHOOSE YOUR STARTERS</small></div></div>
 <div class="team-builder-note"><strong>OWN YOUR TEAM.</strong> This is a persistent team builder, not a one-time draft. Choose a player at each position, then save your roster. Sign in for cloud saves when accounts are connected; until then your selections remain on this device for testing.</div>
-<section class="cap-panel"><div><strong>SALARY CAP</strong><span id="capUsed">$0 / $540</span><span id="capFree">$540 REMAINING</span></div><div class="cap-track"><span id="capMeter"></span></div></section>
+<section class="cap-panel" id="capPanel"><div><strong>SALARY CAP</strong><span id="capUsed">$0 / $540</span><span id="capFree">$540 REMAINING</span></div><div class="cap-track"><span id="capMeter"></span></div></section>
 <div id="draftSteps" class="draft-steps"></div>
 <div class="draft-content"><section class="panel draft-main"><div class="section-heading"><h2 id="draftHeading">Choose your quarterback</h2><span class="hint">Choose any one starter · You can change your mind</span></div>
 <div id="playerGrid" class="player-grid"></div><div class="roster-progress"><button type="button" class="btn-primary" id="startRosterButton" onclick="startRosterGame()">REVIEW ROSTER →</button></div>
