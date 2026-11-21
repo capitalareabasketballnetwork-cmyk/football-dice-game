@@ -1,5 +1,5 @@
 'use strict';
-/* DieBall Pro beta: separate five-position snake-style draft and local CPU match.
+/* DieBowl development beta: separate five-position draft and local CPU match.
    Player skill numbers below are original GAME BALANCE ratings, not official stats. */
 const E=id=>document.getElementById(id);
 const ROLES=[
@@ -15,36 +15,36 @@ const STATS={
  rush:'Rush',stop:'Run stop',cover:'Coverage',hit:'Tackle'
 };
 const POOL=[
- ['allen','Josh Allen','BUF','QB',{acc:5,arm:5,mob:5}],
- ['mahomes','Patrick Mahomes','KC','QB',{acc:5,arm:5,mob:4}],
- ['jackson','Lamar Jackson','BAL','QB',{acc:4,arm:4,mob:5}],
- ['burrow','Joe Burrow','CIN','QB',{acc:5,arm:4,mob:3}],
- ['maye','Drake Maye','NE','QB',{acc:4,arm:4,mob:4}],
- ['herbert','Justin Herbert','LAC','QB',{acc:4,arm:5,mob:3}],
- ['barkley','Saquon Barkley','PHI','RB',{power:4,speed:5,vision:5}],
- ['henry','Derrick Henry','BAL','RB',{power:5,speed:3,vision:4}],
- ['gibbs','Jahmyr Gibbs','DET','RB',{power:3,speed:5,vision:5}],
- ['robinson','Bijan Robinson','ATL','RB',{power:4,speed:5,vision:4}],
- ['mccaffrey','Christian McCaffrey','SF','RB',{power:3,speed:4,vision:5}],
- ['taylor','Jonathan Taylor','IND','RB',{power:5,speed:4,vision:4}],
- ['chase',"Ja'Marr Chase",'CIN','WR',{hands:5,deep:5,route:4}],
- ['nacua','Puka Nacua','LAR','WR',{hands:5,deep:4,route:5}],
- ['jefferson','Justin Jefferson','MIN','WR',{hands:5,deep:5,route:5}],
- ['jsn','Jaxon Smith-Njigba','SEA','WR',{hands:5,deep:4,route:5}],
- ['stbrown','Amon-Ra St. Brown','DET','WR',{hands:5,deep:3,route:5}],
- ['lamb','CeeDee Lamb','DAL','WR',{hands:5,deep:5,route:4}],
- ['garrett','Myles Garrett','LAR','EDGE',{rush:5,stop:5}],
- ['parsons','Micah Parsons','GB','EDGE',{rush:5,stop:4}],
- ['hutchinson','Aidan Hutchinson','DET','EDGE',{rush:5,stop:5}],
- ['anderson','Will Anderson Jr.','HOU','EDGE',{rush:5,stop:4}],
- ['bosa','Nick Bosa','SF','EDGE',{rush:5,stop:4}],
- ['crosby','Maxx Crosby','LV','EDGE',{rush:5,stop:5}],
- ['surtain','Patrick Surtain II','DEN','DB',{cover:5,hit:4}],
- ['stingley','Derek Stingley Jr.','HOU','DB',{cover:5,hit:4}],
- ['hamilton','Kyle Hamilton','BAL','DB',{cover:5,hit:5}],
- ['mcduffie','Trent McDuffie','LAR','DB',{cover:5,hit:4}],
- ['branch','Brian Branch','DET','DB',{cover:4,hit:5}],
- ['witherspoon','Devon Witherspoon','SEA','DB',{cover:5,hit:4}]
+ ['qb01',"Zane Westborough",'NTH','QB',{"acc":5,"arm":5,"mob":4}],
+ ['qb02',"Alden Flintwood",'BLZ','QB',{"acc":5,"arm":4,"mob":5}],
+ ['qb03',"Henrik Oakridge",'WLD','QB',{"acc":4,"arm":5,"mob":4}],
+ ['qb04',"Bowen Meadowcroft",'HBR','QB',{"acc":5,"arm":4,"mob":3}],
+ ['qb05',"Kendrick Silverbrook",'VLY','QB',{"acc":4,"arm":4,"mob":5}],
+ ['qb06',"Marcellus Pinecroft",'RIV','QB',{"acc":4,"arm":4,"mob":4}],
+ ['rb01',"Rhett Crestwick",'NTH','RB',{"power":5,"speed":4,"vision":5}],
+ ['rb02',"Callan Banner",'BLZ','RB',{"power":4,"speed":5,"vision":5}],
+ ['rb03',"Eamon Claybourne",'WLD','RB',{"power":5,"speed":4,"vision":4}],
+ ['rb04',"Alden Hawthorne",'HBR','RB',{"power":4,"speed":5,"vision":4}],
+ ['rb05',"Gaines Redbrook",'VLY','RB',{"power":4,"speed":4,"vision":5}],
+ ['rb06',"Vaughn Greycastle",'RIV','RB',{"power":5,"speed":3,"vision":4}],
+ ['wr01',"Lionel Meadowcroft",'NTH','WR',{"hands":5,"deep":5,"route":5}],
+ ['wr02',"Remy Oakridge",'BLZ','WR',{"hands":5,"deep":4,"route":5}],
+ ['wr03',"Devlin Stonewell",'WLD','WR',{"hands":4,"deep":5,"route":5}],
+ ['wr04',"Kendrick Ironwood",'HBR','WR',{"hands":5,"deep":5,"route":4}],
+ ['wr05',"Drake Crestwick",'VLY','WR',{"hands":4,"deep":4,"route":5}],
+ ['wr06',"Jaren Galecrest",'RIV','WR',{"hands":4,"deep":5,"route":4}],
+ ['edge01',"Koa Stonehaven",'NTH','EDGE',{"rush":5,"stop":5}],
+ ['edge02',"Zion Kingswell",'BLZ','EDGE',{"rush":5,"stop":4}],
+ ['edge03',"Maddox Delaney",'WLD','EDGE',{"rush":5,"stop":5}],
+ ['edge04',"Drake Fenwick",'HBR','EDGE',{"rush":4,"stop":5}],
+ ['edge05',"Forrest Yorkwell",'VLY','EDGE',{"rush":5,"stop":4}],
+ ['edge06',"Iker Thornbrook",'RIV','EDGE',{"rush":4,"stop":5}],
+ ['db01',"Teagan Frostmere",'NTH','DB',{"cover":5,"hit":5}],
+ ['db02',"Elias Rockford",'BLZ','DB',{"cover":5,"hit":4}],
+ ['db03',"Kieran Darkwell",'WLD','DB',{"cover":5,"hit":4}],
+ ['db04',"Zion Halden",'HBR','DB',{"cover":4,"hit":5}],
+ ['db05',"Devlin Vesperton",'VLY','DB',{"cover":5,"hit":3}],
+ ['db06',"Theo Wycliffe",'RIV','DB',{"cover":4,"hit":5}],
 ].map(([id,name,team,role,skills])=>({id,name,team,role,skills}));
 const BY_ID=Object.fromEntries(POOL.map(p=>[p.id,p]));
 const PLAYS=[
@@ -584,7 +584,7 @@ function renderGame(){
  }else{
   heading.textContent=s.phase==='touchdown'?'TOUCHDOWN!':s.phase==='recovery'||s.phase==='recovery-result'?'RECOVERY DIE':s.phase==='kick'?'KICK IN THE AIR':s.phase==='result'?'REVIEW THE DICE':'PLAY IN PROGRESS';
   playGrid.innerHTML='<span class="muted">'+esc(s.msg)+'</span>';
-  playsCounter.textContent='DIEBALL PRO';
+  playsCounter.textContent='DIEBOWL';
   action.disabled=true;action.textContent='PLEASE WAIT';
  }
 }
