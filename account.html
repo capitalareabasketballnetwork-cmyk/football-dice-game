@@ -1,4 +1,93 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b2116"><title>Account · DieBall</title><style>
-*{box-sizing:border-box}body{background:radial-gradient(circle at 15% 75%,#235b3645,transparent 48%),#091a10;color:#eaffea;font-family:Inter,system-ui,-apple-system,sans-serif;margin:0;min-height:100dvh}header{padding:17px max(20px,calc((100% - 1040px)/2));display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #335a3e;background:#102719}a{text-decoration:none;color:inherit}.brand{font-size:29px;font-weight:1000;letter-spacing:-1px}.brand span{color:#b6f47e}.back{padding:9px 14px;border:1px solid #4f7f56;border-radius:10px;font-weight:850;font-size:12px}main{width:min(100% - 30px,560px);margin:clamp(35px,8vh,95px) auto}h1{font-size:clamp(35px,6vw,56px);letter-spacing:-2px;margin:0 0 8px}h1 span{color:#b6f47e}p{color:#bad0bd;line-height:1.6;font-size:14px}.card{border:1px solid #53845b;background:linear-gradient(140deg,#173b25,#102c1c);border-radius:18px;padding:clamp(20px,4vw,32px);margin-top:26px;box-shadow:0 15px 50px #0004}label{display:block;font-size:11px;letter-spacing:1px;font-weight:950;margin:20px 0 8px;color:#c1e8c2}input{display:block;width:100%;padding:14px 15px;border:1px solid #61916b;background:#0b2216;color:white;border-radius:10px;font-size:16px}button{font:inherit;cursor:pointer}button.primary{display:block;width:100%;background:#b9f77c;color:#112817;padding:14px;border-radius:11px;font-weight:1000;border:0;margin-top:18px}.status{color:#c2f98f;font-weight:800;font-size:13px;min-height:24px;margin-top:12px}.warning{background:#2c3823;border:1px solid #727c4c;border-radius:10px;padding:14px 16px;color:#f2e9af;font-size:12px;line-height:1.55;margin-top:20px}.badge{color:#bdf78d;font-weight:900;font-size:11px;letter-spacing:1.3px}.next{margin-top:25px;color:#9cb8a2;font-size:12px}</style></head><body><header><a href="/" class="brand">Die<span>Ball.</span></a><a href="/" class="back">← HOME</a></header><main><div class="badge">YOUR PLAYER PROFILE</div><h1>YOUR <span>ACCOUNT.</span></h1><p>Create your player identity for DieBall. Profiles are currently saved on this device while secure account registration and cross-device sign-in are being developed.</p><section class="card"><div class="badge">LOCAL PROFILE</div><label for="displayName">DISPLAY NAME</label><input type="text" id="displayName" placeholder="Your player name" maxlength="22" autocomplete="nickname"><button class="primary" onclick="saveName()">SAVE MY PROFILE</button><div class="status" role="status" id="status"></div><div class="warning"><strong>Early access:</strong> this is a local profile, not an online account. There is no password or email authentication yet, and your name will not sync between devices. Don't enter a password here.</div></section><div class="next">Coming later: secure login, saved match records, online 1v1 and season progression.</div></main><script>
-const input=document.getElementById('displayName'),status=document.getElementById('status');input.value=localStorage.getItem('dieball-profile')||'';if(input.value)status.textContent='Current profile: '+input.value;function saveName(){const name=input.value.trim();if(name.length<2){status.textContent='Please enter a name with at least 2 characters.';return}localStorage.setItem('dieball-profile',name);status.textContent='Saved: '+name+'. Your profile will appear on the home page.'}
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b2116"><title>DieBall — Account</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 25% 15%,#1b4b2d,#08170f 56%);color:#f0ffee;font-family:Inter,system-ui,-apple-system,sans-serif;min-height:100dvh}
+a{color:inherit;text-decoration:none}button,input{font:inherit}button{cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}
+header{padding:20px max(20px,calc((100% - 1030px)/2));display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #2b5135}
+.logo{font-size:28px;font-weight:1000;letter-spacing:-1.5px}.logo span{color:#c5fb92}.back{border:1px solid #557e5b;border-radius:9px;padding:10px 14px;font-size:12px;font-weight:900;background:#143120}
+main{max-width:530px;margin:40px auto;padding:0 16px 55px}.eyebrow{font-size:11px;letter-spacing:2px;font-weight:1000;color:#b8f98c}h1{font-size:clamp(37px,7vw,57px);letter-spacing:-2.5px;line-height:1.1;margin:12px 0}h1 span{color:#c0fa8f}
+p{color:#b9d1ba;line-height:1.65;font-size:14px}.panel{background:linear-gradient(150deg,#183a27,#10291b);border:1px solid #567e5b;padding:clamp(18px,5vw,30px);border-radius:17px;margin-top:24px;box-shadow:0 24px 70px #0005}
+.tabrow{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:21px}.tabrow button{padding:12px;border-radius:9px;border:1px solid #62845b;background:#21442b;font-weight:900;color:#cadfc5}.tabrow button.active{background:#c0f58e;color:#193620;border-color:#b6f78b}
+label{display:block;margin:15px 0 8px;font-weight:950;font-size:11px;letter-spacing:.7px;color:#c9eac2}input{width:100%;padding:14px;border-radius:10px;background:#092015;border:1px solid #5d8866;color:white;font-size:16px}.primary{width:100%;margin-top:22px;padding:15px;background:#baf78a;color:#133a1e;border:0;border-radius:10px;font-weight:1000}.secondary{border:1px solid #6b955f;border-radius:9px;background:#25442a;padding:11px 13px;color:#ddf5d2;font-size:12px;font-weight:900}.status{min-height:23px;margin:14px 0;color:#d3fcae;font-size:12px;line-height:1.5}.error{color:#ff9e9e}
+.note{border:1px solid #6d8354;border-radius:11px;padding:15px;background:#293728;color:#e0e5c0;font-size:13px;line-height:1.6}
+.account-summary{padding:12px;border:1px solid #446d47;border-radius:10px;background:#102c1b;margin:16px 0;font-size:12px;color:#c7e5c7}
+.account-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}.textbutton{background:none;border:0;color:#c4fa9e;padding:10px 0;font-size:12px;font-weight:900}
+</style><script defer src="/auth.js"></script></head><body>
+<header><a href="/" class="logo">Die<span>Ball.</span></a><a href="/" class="back">← HOME</a></header>
+<main><div class="eyebrow">ONE ACCOUNT · ALL DIEBALL MODES</div><h1>YOUR <span>ACCOUNT.</span></h1><p>Create a DieBall account to keep your identity and save your DieBowl lineup. The same login is designed for the entire website.</p>
+<div id="unavailable" class="note" hidden><strong>Cloud accounts aren't connected yet.</strong> DieBall needs a configured Supabase project before secure registration can accept emails or passwords. You can still test DieBowl with a roster saved on this device. Connect Supabase to enable secure sign-up and cross-device saves.</div>
+<section class="panel" id="authPanel" hidden>
+ <div class="tabrow"><button type="button" id="loginTab" class="active" onclick="setAuthTab('login')">SIGN IN</button><button type="button" id="signupTab" onclick="setAuthTab('signup')">CREATE ACCOUNT</button></div>
+ <form id="authForm" onsubmit="submitAuth(event)">
+  <div id="displayNameRow" hidden><label for="displayName">DISPLAY NAME</label><input id="displayName" autocomplete="nickname" minlength="2" maxlength="22"></div>
+  <label for="email">EMAIL ADDRESS</label><input id="email" type="email" autocomplete="email" required>
+  <label for="password">PASSWORD</label><input id="password" type="password" minlength="8" autocomplete="current-password" required>
+  <button class="primary" id="submitBtn" type="submit">SIGN IN</button>
+ </form>
+ <button class="textbutton" onclick="sendReset()" type="button">Forgot password?</button>
+ <div class="status" id="authStatus" role="status" aria-live="polite"></div>
+</section>
+<section class="panel" id="signedIn" hidden><div class="eyebrow">SIGNED IN</div><h2 id="welcomeName">Welcome!</h2><div class="account-summary" id="accountSummary"></div>
+ <label for="accountName">DISPLAY NAME</label><input id="accountName" maxlength="22"><button type="button" class="secondary" onclick="saveAccountName()" style="margin-top:10px">UPDATE NAME</button>
+ <div class="account-actions" style="margin-top:20px"><a class="secondary" href="/diebowl">MY DIEBOWL TEAM</a><button class="secondary" type="button" onclick="logout()">SIGN OUT</button></div>
+ <div class="status" id="profileStatus" role="status"></div>
+</section>
+</main>
+<script>
+let currentTab='login';
+const E=id=>document.getElementById(id);
+function setAuthTab(tab){
+ currentTab=tab;
+ E('loginTab').classList.toggle('active',tab==='login');
+ E('signupTab').classList.toggle('active',tab==='signup');
+ E('displayNameRow').hidden=tab!=='signup';
+ E('password').autocomplete=tab==='signup'?'new-password':'current-password';
+ E('submitBtn').textContent=tab==='signup'?'CREATE ACCOUNT':'SIGN IN';
+ E('authStatus').textContent='';
+}
+function safeNext(){
+ const next=new URLSearchParams(location.search).get('next');
+ return next&&next[0]==='/'&&next[1]!=='/'?next:'/diebowl';
+}
+function message(text,error=false,id='authStatus'){E(id).textContent=text;E(id).classList.toggle('error',error)}
+async function checkAccount(){
+ try{
+  await window.DieBallAccount.init();
+  if(!window.DieBallAccount.isConfigured()){E('unavailable').hidden=false;return}
+  const user=await window.DieBallAccount.currentUser();
+  E('signedIn').hidden=!!(!user);E('authPanel').hidden=!!user;
+  if(user){
+   const name=user.user_metadata?.display_name||user.email?.split('@')[0]||'Player';
+   E('welcomeName').textContent='Welcome, '+name+'!';
+   E('accountSummary').textContent=user.email+' · Your DieBowl roster is saved to your account when you press Save Roster.';
+   E('accountName').value=name;
+  }
+ }catch(e){E('unavailable').hidden=false;E('unavailable').textContent='The account service could not be reached. '+e.message;}
+}
+async function submitAuth(ev){
+ ev.preventDefault();
+ const button=E('submitBtn');button.disabled=true;
+ try{
+  const email=E('email').value.trim(),password=E('password').value;
+  if(currentTab==='signup'){
+   const name=E('displayName').value.trim();
+   const data=await window.DieBallAccount.signUp(email,password,name);
+   if(data.session)location.href=safeNext();
+   else message('Account created. Check your email for the verification link, then sign in.');
+  }else{
+   await window.DieBallAccount.signIn(email,password);
+   location.href=safeNext();
+  }
+ }catch(e){message(e.message,true)}finally{button.disabled=false}
+}
+async function sendReset(){
+ const email=E('email').value.trim();
+ if(!email){message('Enter your email address first.',true);return}
+ try{await window.DieBallAccount.sendReset(email);message('If an account exists, a reset email has been sent.')}catch(e){message(e.message,true)}
+}
+async function logout(){try{await window.DieBallAccount.signOut();location.reload()}catch(e){message(e.message,true,'profileStatus')}}
+async function saveAccountName(){
+ try{await window.DieBallAccount.updateName(E('accountName').value);message('Display name updated.',false,'profileStatus');checkAccount()}
+ catch(e){message(e.message,true,'profileStatus')}
+}
+window.addEventListener('DOMContentLoaded',checkAccount);
 </script></body></html>
