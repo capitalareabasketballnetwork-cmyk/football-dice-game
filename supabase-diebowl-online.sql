@@ -110,7 +110,7 @@ begin
    end if;
   end if;
   for gained in 1..6 loop
-   generated_code:=upper(substr(encode(gen_random_bytes(5),'hex'),1,6));
+   generated_code:=upper(substr(encode(extensions.gen_random_bytes(5),'hex'),1,6));
    begin
     insert into public.diebowl_online_matches(code,queue_type,host_id,host_roster)
     values(generated_code,case when p_action='random' then 'random' else 'friend' end,u,roster)
