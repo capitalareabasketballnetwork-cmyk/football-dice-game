@@ -131,7 +131,21 @@ footer{margin-top:28px;font-size:10px;color:#779980;letter-spacing:.5px;line-hei
 .hub-upgrade button{font-size:10px;white-space:nowrap}
 .career-actions .btn-primary{margin-top:14px}#gameSetup{margin-top:18px;padding-top:14px;border-top:1px solid #46684b}
 @media(max-width:740px){.career-layout{grid-template-columns:1fr}.career-summary{grid-template-columns:1fr 1fr}.hub-player{flex-wrap:wrap}.career-header h1{font-size:36px}}
-</style><script defer src="/auth.js"></script><script defer src="/diebowl-players.js"></script><script defer src="/pro.js"></script><script defer src="/diebowl-career.js"></script></head>
+
+.online-lobby{display:flex;flex-direction:column;gap:12px}
+.online-inline{display:flex;gap:7px}
+.online-inline input{background:#0b2617;border:1px solid #588660;border-radius:9px;padding:11px;color:white;letter-spacing:3px;text-transform:uppercase;min-width:90px;width:100%;font:inherit}
+.online-roomtop{display:flex;align-items:center;justify-content:space-between;margin:18px 0;gap:8px}
+.online-score{display:flex;flex-direction:column;align-items:center;background:#09261a;border-radius:12px;padding:18px;gap:5px}
+.online-score strong{font-size:30px}
+.online-turn{display:flex;align-items:center;justify-content:space-between;margin:15px 0;padding:12px;border:1px solid #54835b;border-radius:10px;font-size:12px}
+#onlineTimer{font-size:20px;color:#ffdb7c;font-weight:900}
+.online-plays{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}
+.online-plays button{padding:9px;font-size:10px}
+.online-selected{border-color:#b8f782!important;background:#38693b!important;color:#fff!important}
+#onlineActions button{width:100%}
+#onlineMessage{margin:12px 0}
+</style><script defer src="/auth.js"></script><script defer src="/diebowl-players.js"></script><script defer src="/pro.js"></script><script defer src="/diebowl-career.js"></script><script defer src="/diebowl-online.js"></script></head>
 <body><div class="wrap">
 <header><a class="logo" href="/">Die<span>Ball.</span><span class="brand-note">DIEBOWL</span> <span class="testing-pill">IN TESTING</span></a><div class="top-actions"><a class="back" href="/">← CLASSIC</a><a class="outline" href="/account">ACCOUNT</a><button class="outline" id="restartBtn" onclick="restartPro()">MY ROSTER</button></div></header>
 
@@ -150,7 +164,25 @@ footer{margin-top:28px;font-size:10px;color:#779980;letter-spacing:.5px;line-hei
 <main id="careerScreen" hidden>
 <div class="career-header"><div><div class="smallcaps">DIEBOWL · YOUR FRANCHISE</div><h1>TEAM <em>HQ.</em></h1><p class="muted">Build a winning franchise within your salary cap, train your players and compete.</p></div><div class="career-toggle"><button id="modeSeason" class="active" onclick="chooseCareerMode('season')">🏆 SEASON</button><button id="modeOnline" onclick="chooseCareerMode('online')">🌐 ONLINE</button></div></div>
 <div class="career-summary"><div><small>TEAM BUDGET</small><strong id="hubBudget"></strong></div><div><small>DEVELOPMENT</small><strong id="hubCredits"></strong></div><div><small>SEASON RECORD</small><strong id="hubRecord"></strong></div></div>
-<div class="career-layout"><section class="panel career-roster"><div class="section-heading"><h2>YOUR TEAM</h2><button class="outline" onclick="restartPro()">EDIT LINEUP</button></div><p class="tiny">Train players using XP earned after CPU games. Each improvement adds +1 to their maximum die roll and $8 to their salary.</p><div id="hubRoster"></div></section><aside class="panel career-actions"><section id="careerSeason"><h2>🏆 SEASON MODE</h2><div class="smallcaps" id="hubWeek"></div><p class="muted">Play an eight-game CPU season. Earn development points after each game.</p><button id="nextSeasonGame" class="btn-primary" onclick="openGameSetup()">PLAY NEXT GAME →</button></section><section id="careerOnline" hidden><h2>🌐 ONLINE MODE</h2><p class="muted">Play with your saved roster against real people. Live matchmaking and synchronized turns are not enabled yet; online matches will become available when the multiplayer server is completed.</p><button class="outline" disabled>ONLINE MATCHMAKING · COMING SOON</button></section><div id="gameSetup" hidden><h3>GAME SETTINGS</h3><fieldset class="bowl-length"><legend>CHOOSE GAME LENGTH</legend><label><input type="radio" name="diebowlGameLength" value="4"><span><strong>SHORT GAME</strong><small>4 drives per team</small></span></label><label><input type="radio" name="diebowlGameLength" value="8" checked><span><strong>FULL GAME</strong><small>8 drives per team</small></span></label></fieldset><div class="roster-progress"><button class="outline" onclick="cancelGameSetup()">BACK</button><button class="btn-primary" onclick="startMatch()">START GAME →</button></div></div></aside></div>
+<div class="career-layout"><section class="panel career-roster"><div class="section-heading"><h2>YOUR TEAM</h2><button class="outline" onclick="restartPro()">EDIT LINEUP</button></div><p class="tiny">Train players using XP earned after CPU games. Each improvement adds +1 to their maximum die roll and $8 to their salary.</p><div id="hubRoster"></div></section><aside class="panel career-actions"><section id="careerSeason"><h2>🏆 SEASON MODE</h2><div class="smallcaps" id="hubWeek"></div><p class="muted">Play an eight-game CPU season. Earn development points after each game.</p><button id="nextSeasonGame" class="btn-primary" onclick="openGameSetup()">PLAY NEXT GAME →</button></section><section id="careerOnline" hidden><h2>🌐 ONLINE MODE <span class="testing-pill">BETA</span></h2>
+<p class="muted">Challenge a friend using a code or search for a random opponent. Offense chooses first, then defense responds. Each selection has a 10-second timer. All dice and game scores are determined by the server.</p>
+<div id="onlineLobby" class="online-lobby">
+<button class="btn-primary" onclick="onlineCreate(false)">CREATE FRIEND ROOM</button>
+<label class="tiny" for="onlineJoinCode">JOIN WITH SIX-CHARACTER CODE</label>
+<div class="online-inline"><input id="onlineJoinCode" maxlength="6" autocomplete="off" placeholder="ABC123" aria-label="Room code"><button class="outline" onclick="onlineJoin()">JOIN ROOM</button></div>
+<button class="outline" onclick="onlineCreate(true)">FIND RANDOM OPPONENT</button>
+</div>
+<div id="onlineMatch" hidden>
+<div class="online-roomtop"><strong>ROOM <span id="roomCode"></span></strong><button class="outline" onclick="onlineLeave()">LEAVE ROOM</button></div>
+<div class="online-score"><strong id="onlineScore">0 – 0</strong><small id="onlineField">Yard 35 · 1st &amp; 10</small></div>
+<div class="online-turn"><strong id="onlinePhase">WAITING</strong><span id="onlineTimer">—</span></div>
+<div id="onlineResult" class="tiny"></div>
+<div id="onlinePlays" class="online-plays"></div>
+<div id="onlineActors" class="online-plays"></div>
+<div id="onlineActions" hidden><button class="btn-primary" onclick="onlineSubmit()">CONFIRM PLAY</button></div>
+</div>
+<p id="onlineMessage" class="status-line" role="status" aria-live="polite">Loading online multiplayer...</p><small id="onlineXP" class="tiny"></small>
+</section><div id="gameSetup" hidden><h3>GAME SETTINGS</h3><fieldset class="bowl-length"><legend>CHOOSE GAME LENGTH</legend><label><input type="radio" name="diebowlGameLength" value="4"><span><strong>SHORT GAME</strong><small>4 drives per team</small></span></label><label><input type="radio" name="diebowlGameLength" value="8" checked><span><strong>FULL GAME</strong><small>8 drives per team</small></span></label></fieldset><div class="roster-progress"><button class="outline" onclick="cancelGameSetup()">BACK</button><button class="btn-primary" onclick="startMatch()">START GAME →</button></div></div></aside></div>
 </main>
 <main id="gameScreen" hidden>
 <div class="scoreboard"><div class="scoreteam"><div><div class="name">YOUR TEAM</div><small id="homeOff">HOME · OFFENSE</small></div><strong class="score" id="homeScore">0</strong></div>
