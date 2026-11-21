@@ -68,42 +68,102 @@ function resetTimers(){
  E('gameNotice').hidden=true;
  E('kickVisual').hidden=true;
 }
-function restartPro(){
- resetTimers();
- drafts=[{},{}];draftIndex=0;state=null;selected='inside';selectedCard=null;
- logMessages=[];draftMessages=[];
- E('draftScreen').hidden=false;E('gameScreen').hidden=true;E('finalScreen').hidden=true;
- renderDraft();window.scrollTo(0,0);
-}
-function draftPlayer(id){
- if(state||draftIndex>=ROLES.length)return;
- const role=ROLES[draftIndex].id;
- const choice=BY_ID[id];
- if(!choice||choice.role!==role||drafts[0][role])return;
- drafts[0][role]=choice;
- const remaining=POOL.filter(p=>p.role===role&&p.id!==id);
- remaining.sort((a,b)=>(grade(b)+Math.random()*5)-(grade(a)+Math.random()*5));
- const donPick=remaining[0];
- drafts[1][role]=donPick;
- draftMessages.push('You selected '+choice.name+' · Don selected '+donPick.name);
- draftIndex++;
- if(draftIndex===ROLES.length){startMatch();return}
+
+function rosterIds(){return Object.fromEntries(ROLES.filter(r=>drafts[0][r.id]).map(r=>[r.id,drafts[0][r.id].id]))}
+function hydrateRoster(ids){
+ if(!ids||typeof ids!=='object')return;
+ for(const role of ROLES){const p=BY_ID[ids[role.id]];if(p&&p.role===role.id)drafts[0][role.id]=p}
  renderDraft();
 }
+async function loadSavedRoster(){
+ const token=++rosterLoadGeneration;
+ try{const saved=localStorage.getItem('diebowl-roster-v1');if(saved)hydrateRoster(JSON.parse(saved))}catch(e){}
+ try{
+  if(!window.DieBallAccount)return;
+  await window.DieBallAccount.init();
+  const user=await window.DieBallAccount.currentUser();
+  if(token!==rosterLoadGeneration||state)return;
+  if(!user){
+   E('rosterStatus').textContent=window.DieBallAccount.isConfigured()?'Sign in to sync your roster. Guest selections stay on this device.':'Online accounts need a Supabase connection. Your testing roster stays on this device.';
+   return;
+  }
+  const cloud=await window.DieBallAccount.loadRoster();
+  if(token!==rosterLoadGeneration||state)return;
+  if(cloud){hydrateRoster(cloud);localStorage.setItem('diebowl-roster-v1',JSON.stringify(rosterIds()))}
+  E('rosterStatus').textContent='Signed in as '+(user.user_metadata?.display_name||user.email)+'. Save to sync your lineup.';
+ }catch(e){E('rosterStatus').textContent='Cloud roster unavailable: '+e.message+'. You can still test locally.'}
+}
+function restartPro(){
+ resetTimers();state=null;draftIndex=0;selected='inside';selectedActorId=null;selectedCard=null;
+ E('draftScreen').hidden=false;E('gameScreen').hidden=true;E('finalScreen').hidden=true;
+ renderDraft();loadSavedRoster();window.scrollTo(0,0);
+}
+function selectRosterRole(index){
+ if(state||!Number.isInteger(index)||index<0||index>=ROLES.length)return;
+ draftIndex=index;renderDraft();
+}
+function draftPlayer(id){
+ if(state)return;
+ const role=ROLES[draftIndex].id,choice=BY_ID[id];
+ if(!choice||choice.role!==role)return;
+ drafts[0][role]=choice;
+ try{localStorage.setItem('diebowl-roster-v1',JSON.stringify(rosterIds()))}catch(e){}
+ E('rosterStatus').textContent='Selected '+choice.name+'. Press Save My Roster to sync your team.';
+ const next=ROLES.findIndex((r,i)=>i>draftIndex&&!drafts[0][r.id]);
+ if(next>=0)draftIndex=next;
+ else if(ROLES.some(r=>!drafts[0][r.id]))draftIndex=ROLES.findIndex(r=>!drafts[0][r.id]);
+ renderDraft();
+}
+async function saveSelectedRoster(){
+ const ids=rosterIds(),count=Object.keys(ids).length;
+ if(!count){E('rosterStatus').textContent='Choose at least one player first.';return}
+ try{localStorage.setItem('diebowl-roster-v1',JSON.stringify(ids))}
+ catch(e){E('rosterStatus').textContent='Device storage unavailable: '+e.message;return}
+ const status=E('rosterStatus');status.textContent='Saved '+count+' of '+ROLES.length+' starters locally.';
+ try{
+  if(!window.DieBallAccount)return;
+  await window.DieBallAccount.init();
+  if(!window.DieBallAccount.isConfigured()){status.textContent+=' Connect Supabase to enable cloud saves.';return}
+  const user=await window.DieBallAccount.currentUser();
+  if(!user){status.textContent+=' Sign in to sync between devices.';return}
+  await window.DieBallAccount.saveRoster(ids);
+  status.textContent='Cloud roster saved to '+(user.user_metadata?.display_name||user.email)+'.';
+ }catch(e){status.textContent='Saved locally, but cloud sync failed: '+e.message}
+}
+function startRosterGame(){
+ const missing=ROLES.filter(r=>!drafts[0][r.id]);
+ if(missing.length){
+  draftIndex=ROLES.indexOf(missing[0]);renderDraft();
+  E('rosterStatus').textContent='Select '+missing.map(r=>r.id).join(', ')+' to begin.';
+  return;
+ }
+ drafts[1]={};
+ for(const role of ROLES){
+  const pool=POOL.filter(p=>p.role===role.id);
+  drafts[1][role.id]=pool[Math.floor(Math.random()*pool.length)];
+ }
+ saveSelectedRoster();
+ startMatch();
+}
+function portrait(p){return window.dieBowlPortrait?window.dieBowlPortrait(p):''}
 function renderDraft(){
- const step=ROLES[draftIndex]||ROLES.at(-1);
- E('draftRound').textContent=String(draftIndex+1).padStart(2,'0')+' / '+String(ROLES.length).padStart(2,'0');
- E('draftRoleLabel').textContent=step.name;
- E('draftHeading').textContent='Choose your '+step.name.toLowerCase();
- E('draftSteps').innerHTML=ROLES.map((r,i)=>'<div class="draft-step '+(i<draftIndex?'done':i===draftIndex?'current':'')+'"><span>'+r.id+'</span><small>'+(i<draftIndex?'PICKED':i===draftIndex?'ON THE CLOCK':'UP NEXT')+'</small></div>').join('');
- const available=POOL.filter(p=>p.role===step.id).sort((a,b)=>grade(b)-grade(a));
- E('playerGrid').innerHTML=available.map(p=>'<button class="player-card" onclick="draftPlayer(\''+p.id+'\')">'+
- '<div class="topline"><span>'+p.team+' / '+p.role+'</span><span class="grade">'+grade(p)+' OVR</span></div>'+
- '<strong>'+esc(p.name)+'</strong><div class="attrs">'+
- Object.entries(p.skills).map(([key,val])=>'<span class="attribute">'+STATS[key]+' <b>'+(p.role==='OL'||p.role==='DL'?'+'+lineBuff(val):'d'+skillDie(val))+'</b></span>').join('')+'</div></button>').join('');
- E('draftRoster').innerHTML=ROLES.map(r=>'<div class="roster-row"><span class="position">'+r.id+'</span><strong>'+
- (drafts[0][r.id]?esc(drafts[0][r.id].name):'<span class="empty">NOT DRAFTED</span>')+'</strong></div>').join('');
- E('cpuDraftNote').textContent=draftMessages.at(-1)||'You pick first. Don chooses a different player from the same position pool after every pick.';
+ const role=ROLES[draftIndex],filled=ROLES.filter(r=>drafts[0][r.id]).length;
+ E('draftRound').textContent=filled+' / '+ROLES.length;
+ E('draftRoleLabel').textContent=role.name;
+ E('draftHeading').textContent='Choose your '+role.name.toLowerCase();
+ E('draftSteps').innerHTML=ROLES.map((r,i)=>'<button type="button" onclick="selectRosterRole('+i+')" class="draft-step '+(i===draftIndex?'current ':'')+(drafts[0][r.id]?'done':'')+'"><span>'+r.id+'</span><small>'+(drafts[0][r.id]?'READY':'CHOOSE')+'</small></button>').join('');
+ E('playerGrid').innerHTML=POOL.filter(p=>p.role===role.id).sort((a,b)=>b.overall-a.overall).map(p=>
+  '<button type="button" class="player-card '+(drafts[0][role.id]?.id===p.id?'selected':'')+'" onclick="draftPlayer(\''+p.id+'\')">'+
+  '<div class="topline"><span>'+p.role+' · '+p.overall+' OVR</span><span class="grade">#'+(p.rank||'—')+'</span></div>'+
+  '<div class="team-choice-select"><img class="pixel-portrait" alt="" src="'+portrait(p)+'"><div class="player-details"><strong>'+esc(p.name)+'</strong><small class="muted">'+esc(p.ability)+'</small></div></div>'+
+  '<div class="attrs">'+(p.role==='OL'?'<span class="attribute">PROTECT +'+p.protect+'</span><span class="attribute">BLOCK +'+p.block+'</span>':
+  p.role==='DL'?'<span class="attribute">PRESSURE +'+p.rush+'</span><span class="attribute">STOP +'+p.stop+'</span>':
+  '<span class="attribute">ROLL '+p.min+'–'+p.max+'</span>')+'</div></button>').join('');
+ E('draftRoster').innerHTML=ROLES.map(r=>'<div class="roster-row"><span class="position">'+r.id+'</span><span class="name-and-face">'+
+  (drafts[0][r.id]?'<img class="small-portrait" alt="" src="'+portrait(drafts[0][r.id])+'"><strong>'+esc(drafts[0][r.id].name)+'</strong>':
+  '<strong class="empty">NOT SELECTED</strong>')+'</span></div>').join('');
+ E('cpuDraftNote').textContent='Pick one starter at each position. Your picks are not exclusive and can be changed whenever you return.';
+ E('startRosterButton').disabled=filled!==ROLES.length;
 }
 function newDeck(){
  const a=[];for(let val=2;val<=10;val++)for(let i=0;i<4;i++)a.push(val);
@@ -566,6 +626,9 @@ function renderGame(){
   action.disabled=true;action.textContent='PLEASE WAIT';
  }
 }
+window.selectRosterRole=selectRosterRole;
+window.saveSelectedRoster=saveSelectedRoster;
+window.startRosterGame=startRosterGame;
 window.draftPlayer=draftPlayer;
 window.restartPro=restartPro;
 window.choosePlay=choosePlay;
