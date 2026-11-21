@@ -11,19 +11,29 @@ const STATS={
 const POOL=(window.DIEBOWL_OPTIONS||[]).map(p=>({...p,team:'FREE AGENT',skills:p.role==='OL'?{protect:p.protect,block:p.block}:p.role==='DL'?{rush:p.rush,stop:p.stop}:{acc:3,arm:3,mob:3,power:3,speed:3,vision:3,hands:3,deep:3,route:3,rush:3,stop:3,cover:3,hit:3}}));
 const BY_ID=Object.fromEntries(POOL.map(p=>[p.id,p]));
 const PLAYS=[
- {id:'inside',name:'INSIDE RUN',kind:'run',desc:'RB power + vision. Reliable yards.',skill:'RB POWER'},
- {id:'outside',name:'OUTSIDE RUN',kind:'run',desc:'RB speed + vision. Beat the edge.',skill:'RB SPEED'},
- {id:'scramble',name:'QB SCRAMBLE',kind:'run',desc:'QB mobility + RB speed. Surprise run.',skill:'QB MOBILITY'},
- {id:'quick',name:'QUICK PASS',kind:'pass',desc:'QB accuracy + WR routes. Needs +4, then ×2.',skill:'QB / WR'},
- {id:'deep',name:'DEEP PASS',kind:'pass',desc:'QB arm + WR deep. Needs +6, then ×2 +3.',skill:'HIGH RISK'}
+ {id:'inside',name:'INSIDE RUN',kind:'run',desc:'Attack the gap behind your OL.',skill:'RB / OL',actors:['RB','QB']},
+ {id:'outside',name:'OUTSIDE RUN',kind:'run',desc:'Race toward the sideline.',skill:'RB / OL',actors:['RB','QB']},
+ {id:'power',name:'POWER RUN',kind:'run',desc:'Run downhill behind the TE.',skill:'RB / TE / OL',actors:['RB','TE']},
+ {id:'draw',name:'DRAW PLAY',kind:'run',desc:'Show a pass, then run.',skill:'RB / QB',actors:['RB','QB']},
+ {id:'scramble',name:'QB SCRAMBLE',kind:'run',desc:'Quarterback escapes the rush.',skill:'QB / RB',actors:['QB','RB']},
+ {id:'quick',name:'QUICK PASS',kind:'pass',desc:'A fast short throw.',skill:'QB / WR / TE',actors:['WR','TE']},
+ {id:'slant',name:'SLANT',kind:'pass',desc:'Receiver cuts inside.',skill:'QB / WR / TE',actors:['WR','TE']},
+ {id:'screen',name:'SCREEN PASS',kind:'pass',desc:'Dump the ball into space.',skill:'QB / RB / WR',actors:['RB','WR']},
+ {id:'deep',name:'DEEP PASS',kind:'pass',desc:'Take a vertical shot.',skill:'QB / WR / TE',actors:['WR','TE']},
+ {id:'playaction',name:'PLAY ACTION',kind:'pass',desc:'Fake the handoff, throw deep.',skill:'QB / WR / TE',actors:['WR','TE']},
+ {id:'seam',name:'TE SEAM',kind:'pass',desc:'Attack between safeties.',skill:'QB / TE / WR',actors:['TE','WR']},
+ {id:'hailmary',name:'HAIL MARY',kind:'pass',desc:'Desperate deep shot.',skill:'QB / WR / TE',actors:['WR','TE']}
 ];
 const DEFENSES=[
- {id:'base',name:'BASE DEFENSE',desc:'Balanced against every play.',skill:'STANDARD'},
- {id:'blitz',name:'BLITZ',desc:'Strong against passes, weak vs. runs.',skill:'EDGE RUSH'},
- {id:'runstop',name:'RUN STOP',desc:'Stack the box to stop rushes.',skill:'EDGE / TACKLE'},
- {id:'coverage',name:'COVERAGE',desc:'Protect against big pass gains.',skill:'DB COVERAGE'}
+ {id:'base',name:'BASE DEFENSE',kind:'defense',desc:'Balanced standard defense.',skill:'LB / DB',actors:['LB','DB']},
+ {id:'blitz',name:'BLITZ',kind:'defense',desc:'Rush the quarterback.',skill:'LB / DL',actors:['LB','DB']},
+ {id:'runstop',name:'RUN STOP',kind:'defense',desc:'Load the box for runs.',skill:'LB / DL',actors:['LB','DB']},
+ {id:'coverage',name:'DEEP COVERAGE',kind:'defense',desc:'Limit long receptions.',skill:'DB / LB',actors:['DB','LB']},
+ {id:'zone',name:'ZONE COVERAGE',kind:'defense',desc:'Defend zones across the field.',skill:'LB / DB',actors:['LB','DB']},
+ {id:'man',name:'MAN COVERAGE',kind:'defense',desc:'Follow specific receivers.',skill:'DB / LB',actors:['DB','LB']},
+ {id:'spy',name:'QB SPY',kind:'defense',desc:'Watch for scrambles.',skill:'LB / DB',actors:['LB','DB']},
+ {id:'prevent',name:'PREVENT',kind:'defense',desc:'Keep the ball in front.',skill:'DB / LB',actors:['DB','LB']}
 ];
-// Unlimited passes in DieBowl only (Classic and TV retain their limits).
 const TWO_PASSES=Infinity;
 let DRIVES_PER_TEAM=8;
 const rand=n=>1+Math.floor(Math.random()*n);
@@ -216,19 +226,19 @@ function cpuCardChoice(declaredCount){
 }
 function rollForSkill(player,key){return rollDie(skillDie(player.skills[key]))}
 function chooseCpuOffense(){
- const passes=true,need=toFirst();
- const p=Math.random();
- if(passes&&need>7)return p<.48?'quick':p<.68?'deep':p<.85?'outside':'inside';
- if(passes&&state.down>=3)return p<.42?'quick':p<.64?'deep':'outside';
- return p<.37?'inside':p<.64?'outside':p<.83?'scramble':passes?'quick':'inside';
+ const need=toFirst(),x=Math.random();
+ if(need>7)return x<.2?'quick':x<.36?'deep':x<.53?'slant':x<.7?'outside':x<.84?'seam':'playaction';
+ if(state.down>=3)return x<.24?'slant':x<.43?'quick':x<.59?'screen':x<.74?'power':'inside';
+ return x<.22?'inside':x<.42?'outside':x<.58?'power':x<.73?'screen':x<.88?'scramble':'quick';
 }
+
 function chooseCpuDefense(){
  const need=toFirst(),down=state.down,x=Math.random();
- // Does NOT read the user's selected play; only the down, distance and prior usage.
- if(down>=3&&need>5)return x<.36?'coverage':x<.64?'blitz':'base';
- if(need<=3)return x<.6?'runstop':x<.85?'base':'blitz';
- return x<.35?'base':x<.58?'blitz':x<.8?'runstop':'coverage';
+ if(down>=3&&need>5)return x<.24?'coverage':x<.45?'blitz':x<.64?'zone':x<.82?'man':'prevent';
+ if(need<=3)return x<.45?'runstop':x<.7?'base':x<.84?'spy':'blitz';
+ return x<.25?'base':x<.43?'blitz':x<.58?'runstop':x<.75?'coverage':x<.88?'zone':'man';
 }
+
 function offensiveRoll(side,play){
  const team=drafts[side],qb=team.QB,rb=team.RB,wr=team.WR;
  switch(play){
@@ -259,11 +269,15 @@ function calculateLineMatchup(off,pass){
    'OL run blocking +'+protection+' vs DL run stop +'+pressure};
 }
 function playModifiers(offense,defense){
- const isPass=offense==='quick'||offense==='deep';
- let mod=offense==='inside'?2:offense==='outside'?1:offense==='scramble'?2:offense==='quick'?1:-2;
- if(defense==='blitz')mod+=isPass?-2:3;
+ const isPass=PLAYS.find(p=>p.id===offense)?.kind==='pass';
+ let mod={inside:2,outside:1,power:3,draw:1,scramble:2,quick:1,slant:2,screen:1,deep:-2,playaction:-1,seam:1,hailmary:-5}[offense]||0;
+ if(defense==='blitz')mod+=isPass?-3:3;
  if(defense==='runstop')mod+=isPass?2:-3;
  if(defense==='coverage')mod+=isPass?-3:2;
+ if(defense==='zone')mod+=isPass?-2:1;
+ if(defense==='man')mod+=isPass?-2:1;
+ if(defense==='spy')mod+=offense==='scramble'?-4:isPass?-1:0;
+ if(defense==='prevent')mod+=isPass?-4:3;
  return mod;
 }
 function prepareRoll(isTwo=false){
