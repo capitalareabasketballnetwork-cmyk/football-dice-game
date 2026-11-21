@@ -146,6 +146,81 @@ footer{margin-top:28px;font-size:10px;color:#779980;letter-spacing:.5px;line-hei
 .online-selected{border-color:#b8f782!important;background:#38693b!important;color:#fff!important}
 #onlineActions button{width:100%}
 #onlineMessage{margin:12px 0}
+
+/* Compact team builder: designed to keep ten positions and four player choices visible
+   on typical portrait phones without requiring a long page scroll. */
+@media(max-width:620px){
+  body:has(#draftScreen:not([hidden])) .wrap{padding:7px 8px 12px}
+  body:has(#draftScreen:not([hidden])) header{padding-bottom:6px;margin-bottom:7px;gap:5px}
+  body:has(#draftScreen:not([hidden])) .logo{font-size:21px;white-space:nowrap}
+  body:has(#draftScreen:not([hidden])) .brand-note{font-size:8px;letter-spacing:0;margin-left:3px}
+  body:has(#draftScreen:not([hidden])) .testing-pill{display:none}
+  body:has(#draftScreen:not([hidden])) .top-actions{gap:4px}
+  body:has(#draftScreen:not([hidden])) .top-actions .back,
+  body:has(#draftScreen:not([hidden])) .top-actions .outline{padding:6px 7px;font-size:9px}
+  #draftScreen .draft-hero{align-items:center;gap:6px;margin-bottom:7px;flex-wrap:nowrap}
+  #draftScreen .draft-hero .smallcaps{font-size:9px;letter-spacing:1px}
+  #draftScreen .draft-hero h1{font-size:27px;line-height:1;letter-spacing:-1px;margin:3px 0}
+  #draftScreen .draft-hero .intro{display:none}
+  #draftScreen .round-indicator{padding:6px 8px;min-width:90px;border-radius:9px;text-align:center}
+  #draftScreen .round-indicator strong{font-size:21px;line-height:1.1}
+  #draftScreen .round-indicator small{font-size:8px;letter-spacing:0}
+  #draftScreen .team-builder-note{display:none}
+  #draftScreen .cap-panel{padding:7px 9px;margin:0 0 7px;border-radius:9px}
+  #draftScreen .cap-panel>div:first-child{gap:4px;font-size:10px}
+  #draftScreen .cap-panel #capFree{font-size:9px}
+  #draftScreen .cap-track{height:6px;margin-top:5px}
+  #draftScreen .draft-steps{grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;margin:0 0 7px}
+  #draftScreen .draft-step{padding:5px 2px;border-radius:6px;gap:0;min-height:31px}
+  #draftScreen .draft-step span{font-size:10px}
+  #draftScreen .draft-step small{font-size:7px}
+  #draftScreen .draft-content{display:flex;flex-direction:column;gap:7px}
+  #draftScreen .draft-aside{order:1;padding:8px;border-radius:10px}
+  #draftScreen .draft-main{order:0;padding:9px;border-radius:10px}
+  #draftScreen .section-heading{margin-bottom:7px;gap:5px}
+  #draftScreen .section-heading h2{font-size:15px}
+  #draftScreen .section-heading .hint{display:none}
+  #draftScreen .player-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+  #draftScreen .player-card{min-height:108px;padding:7px;gap:4px;border-radius:8px;transition:none}
+  #draftScreen .player-card:hover{transform:none}
+  #draftScreen .player-card .topline span{font-size:8px;letter-spacing:0}
+  #draftScreen .player-card .grade{font-size:10px;padding:3px 5px;border-radius:5px}
+  #draftScreen .team-choice-select{gap:5px}
+  #draftScreen .player-card .pixel-portrait{width:35px;height:35px;flex-shrink:0}
+  #draftScreen .player-card strong{font-size:12px;line-height:1.1;letter-spacing:-.25px}
+  #draftScreen .player-details small{font-size:8px;line-height:1.15}
+  #draftScreen .range-caption{font-size:8px;gap:2px}
+  #draftScreen .roll-track{height:7px;margin-top:2px}
+  #draftScreen .roll-labels{font-size:8px}
+  #draftScreen .roster-progress{margin-top:7px;gap:4px}
+  #draftScreen .roster-progress button{padding:8px 10px;font-size:11px}
+  #draftScreen #rosterStatus{min-height:0;margin-top:4px;font-size:9px;line-height:1.2}
+  #draftScreen .roster-title{font-size:10px;letter-spacing:.5px;margin:0 0 5px}
+  #draftScreen #draftRoster{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px}
+  #draftScreen .roster-row{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    min-width:0;min-height:42px;padding:3px 1px;border:1px solid #2b4935;border-radius:6px}
+  #draftScreen .roster-row .position{min-width:0;padding:1px 3px;font-size:8px;border:0;background:transparent}
+  #draftScreen .roster-row .name-and-face{display:flex;flex-direction:column;gap:2px;min-width:0;width:100%;align-items:center}
+  #draftScreen .roster-row .name-and-face strong{font-size:8px;text-align:center;line-height:1.05;
+    max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #draftScreen .roster-row .small-portrait{width:18px;height:18px;order:-1}
+  #draftScreen .roster-row .empty{font-size:7px;color:#839c88}
+  #draftScreen .cpu-note,#draftScreen .chips{display:none}
+  body:has(#draftScreen:not([hidden])) footer{display:none}
+}
+@media(max-width:390px){
+  #draftScreen .player-card .pixel-portrait{width:30px;height:30px}
+  #draftScreen .player-card strong{font-size:11px}
+  #draftScreen .player-card{padding:6px;min-height:103px}
+  #draftScreen .draft-hero h1{font-size:25px}
+}
+@media(max-width:620px) and (max-height:740px){
+  #draftScreen .draft-hero h1{font-size:23px}
+  #draftScreen .round-indicator{padding:4px 6px}
+  #draftScreen .draft-step{min-height:27px;padding:3px 2px}
+  #draftScreen .player-card{min-height:97px}
+  #draftScreen .roster-row{min-height:37px}
+}
 </style><script defer src="/auth.js"></script><script defer src="/diebowl-players.js"></script><script defer src="/pro.js"></script><script defer src="/diebowl-career.js"></script><script defer src="/diebowl-online.js"></script></head>
 <body><div class="wrap">
 <header><a class="logo" href="/">Die<span>Ball.</span><span class="brand-note">DIEBOWL</span> <span class="testing-pill">IN TESTING</span></a><div class="top-actions"><a class="back" href="/">← CLASSIC</a><a class="outline" href="/account">ACCOUNT</a><button class="outline" id="restartBtn" onclick="restartPro()">MY ROSTER</button></div></header>
