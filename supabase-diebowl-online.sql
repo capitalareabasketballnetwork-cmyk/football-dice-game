@@ -147,7 +147,7 @@ begin
  if u is null then raise exception 'Sign in to play online.'; end if;
  if p_action not in ('create','random','join','refresh','offense','defense','leave') then raise exception 'Invalid action'; end if;
  if p_action in ('create','random') then
-  select roster into roster from public.diebowl_rosters where user_id=u;
+  select r.roster into roster from public.diebowl_rosters r where r.user_id=u;
   if roster is null or jsonb_typeof(coalesce(roster->'players',roster))<>'object' then
    raise exception 'Save your complete DieBowl roster first.';
   end if;
@@ -191,7 +191,7 @@ begin
  if p_action='join' then
   if m.host_id=u or m.guest_id=u then return to_jsonb(m); end if;
   if m.status<>'waiting' then raise exception 'This room is not available.';end if;
-  select roster into roster from public.diebowl_rosters where user_id=u;
+  select r.roster into roster from public.diebowl_rosters r where r.user_id=u;
   if roster is null or jsonb_typeof(coalesce(roster->'players',roster))<>'object' then
    raise exception 'Save your complete DieBowl roster first.';
   end if;
