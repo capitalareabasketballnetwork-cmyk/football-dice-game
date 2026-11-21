@@ -272,9 +272,11 @@ function prepareRoll(isTwo=false){
  const bonus=playModifiers(attack,defense)+line.net+(offenseCard-defenseCard);
  const advantage=(triple?offRaw*2:offRaw)-defRaw+bonus;
  const success=pass&&(attack==='deep'?advantage>=6:advantage>=4);
- const yards=pass?(success?(advantage*2+(attack==='deep'?3:0)):-5):advantage;
+ // DL can force a sack when its rush advantage is strong and the QB fails the pass.
+ const sack=pass&&!success&&line.net<=-2&&!sameRaw;
+ const yards=pass?(success?(advantage*2+(attack==='deep'?3:0)):(sack?-7:-5)):advantage;
  return {off,attack,defense,offenseDice,defenseDice,offRaw,defRaw,triple:triple&&!sameRaw,pass,success,
-  bonus,advantage,yards,sameRaw,offenseCard,defenseCard,line,isTwo};
+  bonus,advantage,yards,sameRaw,sack,offenseCard,defenseCard,line,isTwo};
 }
 function showDice(dice=null,spin=false){
  const attack=dice?.offenseDice||[],defend=dice?.defenseDice||[];
@@ -309,7 +311,7 @@ function takeTurn(){
   clearInterval(spinTimer);spinTimer=null;
   state.lastRoll=roll;state.net=roll.sameRaw?(roll.pass?-5:0):roll.yards;
   state.phase='result';
-  state.msg=(roll.pass?'PASS':'RUN')+' / '+roll.attack.toUpperCase()+' · '+roll.line.summary+' · '+(state.net>0?'+':'')+state.net+' yards · Review dice.';
+  state.msg=(roll.sack?'SACK!':roll.pass?'PASS':'RUN')+' / '+roll.attack.toUpperCase()+' · '+roll.line.summary+' · '+(state.net>0?'+':'')+state.net+' yards · Review dice.';
   renderGame();
   const pause=roll.triple?2200:1400;
   if(roll.triple)notify('TRIPLE DIE!','Three matching offensive dice · ×2','green',2000);
@@ -351,7 +353,7 @@ function applyYards(yards,roll){
  const off=state.off,from=state.pos,physical=from+direction(off)*yards;
  state.net=yards;state.move={from,to:clamp(physical,0,100),yards};
  const user=off===0?'You':'DieBall Don';
- recordLog(user+' '+roll.attack.toUpperCase()+' vs '+roll.defense.toUpperCase()+' · '+(yards>=0?'+':'')+yards+' yards.');
+ recordLog(user+' '+(roll.sack?'SACK · ':'')+roll.attack.toUpperCase()+' vs '+roll.defense.toUpperCase()+' · '+(yards>=0?'+':'')+yards+' yards.');
  if(yards<0&&(physical<=0||physical>=100)){awardSafety('Negative play into the offense’s end zone');return}
  if(yards>0&&(physical>=100||physical<=0)){state.pos=clamp(physical,0,100);awardTouchdown();return}
  state.pos=clamp(physical,1,99);
@@ -557,6 +559,7 @@ function renderGame(){
  const down=E('downBadge'),quarter=Math.min(4,Math.floor(countDrives()/(DRIVES_PER_TEAM/2))+1);
  down.className='center-stats down-'+(playMode?s.down:1);
  E('driveLabel').textContent='Q'+quarter+' · DRIVE '+Math.min(DRIVES_PER_TEAM*2,countDrives()+1)+' OF '+(DRIVES_PER_TEAM*2);
+ E('scorecardHeading').textContent='THE '+(DRIVES_PER_TEAM*2)+'-DRIVE SCORECARD';
  E('downText').textContent=s.phase==='two'?'2-POINT TRY':s.phase==='conversion'?'CONVERSION':s.phase==='touchdown'?'TOUCHDOWN':downLabel()+' & '+toFirst();
  E('spotText').textContent='BALL ON '+spotLabel(s.pos,off);
  updateField();
