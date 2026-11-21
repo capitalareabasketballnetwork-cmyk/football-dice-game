@@ -97,6 +97,34 @@ footer{margin-top:28px;font-size:10px;color:#779980;letter-spacing:.5px;line-hei
 .eligible-player strong{font-size:10px;line-height:1.25}.eligible-player small{display:block;font-size:10px;color:#bff7a0;margin-top:3px}
 .player-game-roster{display:flex;align-items:center;gap:8px}.player-game-roster img{width:31px;height:31px;image-rendering:pixelated;border-radius:4px}
 @media(max-width:650px){.eligible-list{grid-template-columns:1fr}.draft-content{grid-template-columns:1fr}#playGrid{max-height:470px}.player-card{min-height:110px}}
+
+.cap-panel{margin:0 0 16px;padding:13px;border:1px solid #547d53;border-radius:12px;background:#183825}
+.cap-panel>div:first-child{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:12px}
+#capUsed{font-weight:900;color:var(--mint)}#capFree{color:#c8e6c0;font-size:11px}
+.cap-track,.roll-track{height:10px;background:#27392d;position:relative;overflow:hidden;border-radius:20px;margin-top:10px}
+.cap-track span{height:100%;display:block;background:#b8f782;border-radius:20px}
+.range-caption{font-size:11px;color:#d9ebd6;display:flex;justify-content:space-between}.range-caption b{color:#b8f782}
+.roll-track{height:12px;background:repeating-linear-gradient(90deg,#294032 0 calc(5% - 2px),#15291c calc(5% - 2px) 5%);border:1px solid #45614a;margin-top:5px}
+.roll-fill{position:absolute;top:0;bottom:0;background:#9ef07e;border-radius:3px}
+.roll-labels{display:flex;justify-content:space-between;color:#b5d3b6;font-size:10px}
+.roster-row .name-and-face{display:flex;gap:8px;align-items:center;justify-content:flex-end}
+.roster-row strong{text-align:right}
+.roster-review{margin-top:22px;padding:22px;max-width:750px}
+.review-player{display:flex;justify-content:space-between;gap:10px;padding:9px;border-bottom:1px solid #3e5942;font-size:13px}
+.career-header{display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}
+.career-header h1{margin:10px 0}.career-toggle{display:flex;gap:5px;border:1px solid #557a56;background:#193725;padding:5px;border-radius:14px}
+.career-toggle button{background:none;border-radius:9px;padding:12px 16px;font-weight:900;font-size:12px}.career-toggle button.active{background:#b8f782;color:#142717}
+.career-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0}
+.career-summary>div{background:#153523;border:1px solid #406747;border-radius:12px;padding:15px}
+.career-summary small{display:block;color:#b2cdb4;letter-spacing:1px;font-size:10px}.career-summary strong{font-size:20px}
+.career-layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr);gap:16px}
+.career-roster,.career-actions{padding:20px}.hub-player{display:flex;justify-content:space-between;gap:9px;align-items:center;border-bottom:1px solid #304b37;padding:10px 0}
+.hub-player .name-and-face{display:flex;align-items:center;gap:10px}.hub-player .small-portrait{order:3}
+.hub-player .position{font-size:10px;font-weight:900;color:#b8f782;min-width:30px}
+.hub-player strong{font-size:12px}.hub-upgrade{display:flex;align-items:center;gap:10px}.hub-upgrade small{color:#bfd4bd;font-size:10px}
+.hub-upgrade button{font-size:10px;white-space:nowrap}
+.career-actions .btn-primary{margin-top:14px}#gameSetup{margin-top:18px;padding-top:14px;border-top:1px solid #46684b}
+@media(max-width:740px){.career-layout{grid-template-columns:1fr}.career-summary{grid-template-columns:1fr 1fr}.hub-player{flex-wrap:wrap}.career-header h1{font-size:36px}}
 </style><script defer src="/auth.js"></script><script defer src="/diebowl-players.js"></script><script defer src="/pro.js"></script></head>
 <body><div class="wrap">
 <header><a class="logo" href="/">Die<span>Ball.</span><span class="brand-note">DIEBOWL</span> <span class="testing-pill">IN TESTING</span></a><div class="top-actions"><a class="back" href="/">← CLASSIC</a><a class="outline" href="/account">ACCOUNT</a><button class="outline" id="restartBtn" onclick="restartPro()">MY ROSTER</button></div></header>
@@ -105,12 +133,18 @@ footer{margin-top:28px;font-size:10px;color:#779980;letter-spacing:.5px;line-hei
 <div class="draft-hero"><div><div class="smallcaps">DIEBOWL · IN TESTING</div><h1>BUILD YOUR<br><em>TEAM.</em></h1><p class="intro muted">No draft and no stars yet. Pick your starter from a few developing fictional players at each position. Your choices are yours to keep and improve later.</p></div>
 <div class="round-indicator"><small>YOUR ROSTER</small><strong id="draftRound">0 / 10</strong><small id="draftRoleLabel">CHOOSE YOUR STARTERS</small></div></div>
 <div class="team-builder-note"><strong>OWN YOUR TEAM.</strong> This is a persistent team builder, not a one-time draft. Choose a player at each position, then save your roster. Sign in for cloud saves when accounts are connected; until then your selections remain on this device for testing.</div>
-<fieldset class="bowl-length"><legend>CHOOSE GAME LENGTH</legend><label><input type="radio" name="diebowlGameLength" value="4"><span><strong>SHORT GAME</strong><small>4 drives per team</small></span></label><label><input type="radio" name="diebowlGameLength" value="8" checked><span><strong>FULL GAME</strong><small>8 drives per team</small></span></label></fieldset>
+<section class="cap-panel"><div><strong>SALARY CAP</strong><span id="capUsed">$0 / $540</span><span id="capFree">$540 REMAINING</span></div><div class="cap-track"><span id="capMeter"></span></div></section>
 <div id="draftSteps" class="draft-steps"></div>
 <div class="draft-content"><section class="panel draft-main"><div class="section-heading"><h2 id="draftHeading">Choose your quarterback</h2><span class="hint">Choose any one starter · You can change your mind</span></div>
-<div id="playerGrid" class="player-grid"></div><div class="roster-progress"><button type="button" class="btn-primary" id="saveRosterButton" onclick="saveSelectedRoster()">SAVE MY ROSTER</button><button type="button" class="outline" id="startRosterButton" onclick="startRosterGame()">START DIEBOWL →</button></div>
+<div id="playerGrid" class="player-grid"></div><div class="roster-progress"><button type="button" class="btn-primary" id="startRosterButton" onclick="startRosterGame()">REVIEW ROSTER →</button></div>
 <div class="account-save-state" id="rosterStatus" role="status"></div></section>
 <aside class="panel draft-aside"><h3 class="roster-title">YOUR STARTING LINEUP</h3><div id="draftRoster"></div><div class="cpu-note" id="cpuDraftNote">DieBall Don has its own team. Your choices don't block anyone else from selecting a player.</div><div class="chips"><span class="chip">10 POSITIONS</span><span class="chip">UNLIMITED PASSES</span><span class="chip">OL & DL BUFFS</span></div></aside></div>
+<section class="panel roster-review" id="rosterReview" hidden><h2>YOUR STARTING ROSTER</h2><p class="muted">Review your choices before entering DieBowl.</p><div id="reviewSummary"></div><h3 id="reviewBudget"></h3><div class="roster-progress"><button class="outline" onclick="backToRoster()">GO BACK</button><button class="btn-primary" onclick="saveAndContinue()">SAVE AND CONTINUE →</button></div></section>
+</main>
+<main id="careerScreen" hidden>
+<div class="career-header"><div><div class="smallcaps">DIEBOWL · YOUR FRANCHISE</div><h1>TEAM <em>HQ.</em></h1><p class="muted">Build a winning franchise within your salary cap, train your players and compete.</p></div><div class="career-toggle"><button id="modeSeason" class="active" onclick="chooseCareerMode('season')">🏆 SEASON</button><button id="modeOnline" onclick="chooseCareerMode('online')">🌐 ONLINE</button></div></div>
+<div class="career-summary"><div><small>TEAM BUDGET</small><strong id="hubBudget"></strong></div><div><small>DEVELOPMENT</small><strong id="hubCredits"></strong></div><div><small>SEASON RECORD</small><strong id="hubRecord"></strong></div></div>
+<div class="career-layout"><section class="panel career-roster"><div class="section-heading"><h2>YOUR TEAM</h2><button class="outline" onclick="restartPro()">EDIT LINEUP</button></div><p class="tiny">Train players using XP earned after CPU games. Each improvement adds +1 to their maximum die roll and $8 to their salary.</p><div id="hubRoster"></div></section><aside class="panel career-actions"><section id="careerSeason"><h2>🏆 SEASON MODE</h2><div class="smallcaps" id="hubWeek"></div><p class="muted">Play an eight-game CPU season. Earn development points after each game.</p><button class="btn-primary" onclick="openGameSetup()">PLAY NEXT GAME →</button></section><section id="careerOnline" hidden><h2>🌐 ONLINE MODE</h2><p class="muted">Play with your saved roster against real people. Live matchmaking and synchronized turns are not enabled yet; online matches will become available when the multiplayer server is completed.</p><button class="outline" disabled>ONLINE MATCHMAKING · COMING SOON</button></section><div id="gameSetup" hidden><h3>GAME SETTINGS</h3><fieldset class="bowl-length"><legend>CHOOSE GAME LENGTH</legend><label><input type="radio" name="diebowlGameLength" value="4"><span><strong>SHORT GAME</strong><small>4 drives per team</small></span></label><label><input type="radio" name="diebowlGameLength" value="8" checked><span><strong>FULL GAME</strong><small>8 drives per team</small></span></label></fieldset><div class="roster-progress"><button class="outline" onclick="cancelGameSetup()">BACK</button><button class="btn-primary" onclick="startMatch()">START GAME →</button></div></div></aside></div>
 </main>
 <main id="gameScreen" hidden>
 <div class="scoreboard"><div class="scoreteam"><div><div class="name">YOUR TEAM</div><small id="homeOff">HOME · OFFENSE</small></div><strong class="score" id="homeScore">0</strong></div>
@@ -133,11 +167,11 @@ footer{margin-top:28px;font-size:10px;color:#779980;letter-spacing:.5px;line-hei
 <div class="card-bar" id="cardSection"><div class="card-title"><span>YOUR PENALTY CARDS</span><span id="cpuCardCount">DON HAS 3 CARDS</span></div><div id="penaltyHand" class="penalty-hand"></div><p class="tiny">Select up to one card per play. Don can respond to the number of cards you declare, not their hidden values.</p></div>
 <div id="gameStatus" class="status-line" role="status" aria-live="polite">Pick a play, then roll.</div></section>
 </div>
-<aside class="game-side"><section class="panel side-roster"><h3>YOUR DRAFTED LINEUP</h3><div id="gameRoster"></div><h3 class="opponent-roster-label">DIEBALL DON’S LINEUP</h3><div id="cpuRoster"></div></section>
+<aside class="game-side"><section class="panel side-roster"><h3>YOUR STARTING LINEUP</h3><div id="gameRoster"></div><h3 class="opponent-roster-label">DIEBALL DON’S LINEUP</h3><div id="cpuRoster"></div></section>
 <section class="panel drive-card"><h3 id="scorecardHeading">THE DRIVE SCORECARD</h3><div class="drive-subhead">YOUR DRIVES</div><div id="homeDrives" class="drive-grid"></div><div class="drive-subhead">DON’S DRIVES</div><div id="awayDrives" class="drive-grid"></div><div class="tiny" style="margin-top:11px">Red = no score · Yellow = FG · Green = TD + conversion</div></section>
 <section class="panel log-card"><h3>PLAY-BY-PLAY</h3><ul id="playLog" class="log-list"></ul></section></aside></div>
 </main>
-<main id="finalScreen" hidden><section class="panel final-area"><div class="smallcaps">DIEBOWL · FINAL</div><h2 id="winnerHeading">GAME OVER</h2><div id="finalScore" class="final-score"></div><p id="finalSummary" class="muted"></p><button class="btn-primary" onclick="restartPro()">DRAFT ANOTHER TEAM</button></section></main>
+<main id="finalScreen" hidden><section class="panel final-area"><div class="smallcaps">DIEBOWL · FINAL</div><h2 id="winnerHeading">GAME OVER</h2><div id="finalScore" class="final-score"></div><p id="finalSummary" class="muted"></p><button class="btn-primary" onclick="showCareerHub()">BACK TO TEAM HQ →</button></section></main>
 <div class="game-notice" id="gameNotice" hidden><h2 id="noticeHeading"></h2><p id="noticeDetail"></p></div>
-<footer>All DieBowl players and pixel portraits are fictional. This is an early test build: player ratings and play designs are being balanced. Online account saves require connecting Supabase. Classic and TV game rules remain separate.</footer>
+<footer>All DieBowl players are fictional. Roster development and CPU Season Mode are in testing. Online multiplayer requires real-time matchmaking and synchronized game state before release. Classic and TV rules remain separate.</footer>
 </div></body></html>
