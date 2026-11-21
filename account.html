@@ -59,7 +59,7 @@ async function checkAccount(){
    const name=user.user_metadata?.display_name||user.email?.split('@')[0]||'Player';
    E('welcomeName').textContent='Welcome, '+name+'!';
    E('accountSummary').textContent=user.email+' · Your DieBowl roster is saved to your account when you press Save Roster.';
-   E('accountName').value=name;
+   E('accountName').value=name;try{localStorage.setItem('dieball-profile',name)}catch(e){}
   }
  }catch(e){E('unavailable').hidden=false;E('unavailable').textContent='The account service could not be reached. '+e.message;}
 }
