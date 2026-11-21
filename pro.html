@@ -69,19 +69,48 @@ footer{margin-top:28px;font-size:10px;color:#779980;letter-spacing:.5px;line-hei
 .testing-pill{font-size:10px;letter-spacing:1px;color:#123518;background:#b8f78b;padding:7px 9px;border-radius:6px;font-weight:1000}
 .player-card .attribute{font-size:10px}
 @media(max-width:520px){.bowl-length{grid-template-columns:1fr}.draft-steps{gap:3px}.draft-step{padding:7px 1px}.draft-step small{font-size:7px}}
-</style><script defer src="/pro.js"></script></head>
+
+/* Fictional team builder, pixel portraits and play diagrams */
+.team-builder-note{border:1px solid #5e865e;border-radius:13px;background:#20442b;padding:13px 15px;color:#cceacb;font-size:12px;line-height:1.55}
+.roster-progress{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}
+.roster-progress .btn-primary{min-width:175px}
+.roster-progress .outline{font-size:11px}
+.team-choice-select{display:flex;align-items:center;gap:12px;min-height:90px}
+.pixel-portrait{width:64px;height:64px;image-rendering:pixelated;border:2px solid #8bc88b;border-radius:9px;background:#183522;flex:none}
+.player-card .pixel-portrait{width:62px;height:62px}
+.player-card.selected{border-color:#bcfd87!important;background:#2a5932!important;box-shadow:0 0 16px #82f57035}
+.player-card .player-details{display:flex;flex-direction:column;gap:5px}
+.player-card .player-details strong{font-size:16px}
+.roster-row .small-portrait{width:32px;height:32px;image-rendering:pixelated;border-radius:5px;border:1px solid #5b9d71}
+.roster-row{align-items:center}
+.roster-row .name-and-face{display:flex;align-items:center;gap:8px}
+.account-save-state{font-size:12px;color:#b9e9a8;line-height:1.5;min-height:30px;margin-top:12px}
+#playGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-height:400px;overflow-y:auto}
+.play-option{min-height:132px!important}
+.play-diagram{width:100%;height:65px;border:1px solid #588462;border-radius:9px;background:#1c472d;display:block}
+.play-personnel{margin-top:16px;padding:14px;border:1px solid #4b805a;border-radius:12px;background:#0e2b1b}
+.play-personnel h3{font-size:12px;letter-spacing:1px;font-weight:1000;margin:0 0 9px}
+.eligible-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.eligible-player{display:flex;align-items:center;gap:8px;text-align:left;background:#1a3d27;border:1px solid #426c4a;border-radius:9px;padding:8px;color:#ecffec}
+.eligible-player.active{border-color:#bcfb85;background:#305b35}
+.eligible-player img{width:37px;height:37px;image-rendering:pixelated;border-radius:6px;background:#233a24}
+.eligible-player strong{font-size:10px;line-height:1.25}.eligible-player small{display:block;font-size:10px;color:#bff7a0;margin-top:3px}
+.player-game-roster{display:flex;align-items:center;gap:8px}.player-game-roster img{width:31px;height:31px;image-rendering:pixelated;border-radius:4px}
+@media(max-width:650px){.eligible-list{grid-template-columns:1fr}.draft-content{grid-template-columns:1fr}#playGrid{max-height:470px}.player-card{min-height:110px}}
+</style><script defer src="/auth.js"></script><script defer src="/diebowl-players.js"></script><script defer src="/pro.js"></script></head>
 <body><div class="wrap">
-<header><a class="logo" href="/">Die<span>Ball.</span><span class="brand-note">DIEBOWL</span> <span class="testing-pill">IN TESTING</span></a><div class="top-actions"><a class="back" href="/">← CLASSIC</a><button class="outline" id="restartBtn" onclick="restartPro()">NEW DRAFT</button></div></header>
+<header><a class="logo" href="/">Die<span>Ball.</span><span class="brand-note">DIEBOWL</span> <span class="testing-pill">IN TESTING</span></a><div class="top-actions"><a class="back" href="/">← CLASSIC</a><a class="outline" href="/account">ACCOUNT</a><button class="outline" id="restartBtn" onclick="restartPro()">MY ROSTER</button></div></header>
+
 <main id="draftScreen">
-<div class="draft-hero"><div><div class="smallcaps">THE NEXT LEVEL OF DIEBALL</div><h1>DRAFT. CALL.<br><em>WIN.</em></h1><p class="intro muted">Draft fictional football stars. Call offensive and defensive plays; skill-based dice decide the main action while OL and DL provide protection and pressure buffs.</p></div>
-<div class="round-indicator"><small>DRAFT ROUND</small><strong id="draftRound">01 / 06</strong><small id="draftRoleLabel">QUARTERBACK</small></div></div>
-<fieldset class="bowl-length">
- <legend>CHOOSE GAME LENGTH</legend>
- <label><input type="radio" name="diebowlGameLength" value="4"><span><strong>SHORT GAME</strong><small>4 drives per team</small></span></label>
- <label><input type="radio" name="diebowlGameLength" value="8" checked><span><strong>FULL GAME</strong><small>8 drives per team</small></span></label>
-</fieldset><div id="draftSteps" class="draft-steps"></div>
-<div class="draft-content"><section class="panel draft-main"><div class="section-heading"><h2 id="draftHeading">Choose your Quarterback</h2><span class="hint">You pick first. DieBall Don selects from those remaining.</span></div><div id="playerGrid" class="player-grid"></div></section>
-<aside class="panel draft-aside"><h3 class="roster-title">YOUR TEAM / DRAFT BOARD</h3><div id="draftRoster"></div><div class="cpu-note" id="cpuDraftNote">DieBall Don will build a separate roster from the same draft pool. Every pick is exclusive.</div><div class="chips"><span class="chip">QB + RB + WR</span><span class="chip">OL + DL + DB</span><span class="chip">6 PICKS EACH</span></div></aside></div>
+<div class="draft-hero"><div><div class="smallcaps">DIEBOWL · IN TESTING</div><h1>BUILD YOUR<br><em>TEAM.</em></h1><p class="intro muted">No draft and no stars yet. Pick your starter from a few developing fictional players at each position. Your choices are yours to keep and improve later.</p></div>
+<div class="round-indicator"><small>YOUR ROSTER</small><strong id="draftRound">0 / 10</strong><small id="draftRoleLabel">CHOOSE YOUR STARTERS</small></div></div>
+<div class="team-builder-note"><strong>OWN YOUR TEAM.</strong> This is a persistent team builder, not a one-time draft. Choose a player at each position, then save your roster. Sign in for cloud saves when accounts are connected; until then your selections remain on this device for testing.</div>
+<fieldset class="bowl-length"><legend>CHOOSE GAME LENGTH</legend><label><input type="radio" name="diebowlGameLength" value="4"><span><strong>SHORT GAME</strong><small>4 drives per team</small></span></label><label><input type="radio" name="diebowlGameLength" value="8" checked><span><strong>FULL GAME</strong><small>8 drives per team</small></span></label></fieldset>
+<div id="draftSteps" class="draft-steps"></div>
+<div class="draft-content"><section class="panel draft-main"><div class="section-heading"><h2 id="draftHeading">Choose your quarterback</h2><span class="hint">Choose any one starter · You can change your mind</span></div>
+<div id="playerGrid" class="player-grid"></div><div class="roster-progress"><button type="button" class="btn-primary" id="saveRosterButton" onclick="saveSelectedRoster()">SAVE MY ROSTER</button><button type="button" class="outline" id="startRosterButton" onclick="startRosterGame()">START DIEBOWL →</button></div>
+<div class="account-save-state" id="rosterStatus" role="status"></div></section>
+<aside class="panel draft-aside"><h3 class="roster-title">YOUR STARTING LINEUP</h3><div id="draftRoster"></div><div class="cpu-note" id="cpuDraftNote">DieBall Don has its own team. Your choices don't block anyone else from selecting a player.</div><div class="chips"><span class="chip">10 POSITIONS</span><span class="chip">UNLIMITED PASSES</span><span class="chip">OL & DL BUFFS</span></div></aside></div>
 </main>
 <main id="gameScreen" hidden>
 <div class="scoreboard"><div class="scoreteam"><div><div class="name">YOUR TEAM</div><small id="homeOff">HOME · OFFENSE</small></div><strong class="score" id="homeScore">0</strong></div>
@@ -98,17 +127,17 @@ footer{margin-top:28px;font-size:10px;color:#779980;letter-spacing:.5px;line-hei
 <div class="field-footer"><strong id="netYards">NET YARDS —</strong><span id="fieldMessage">Choose a play to begin.</span></div></section>
 <section class="panel dice-panel"><div class="dice-side"><small id="offenseDiceTitle">OFFENSE · 3 DICE</small><div class="dice-faces" id="offenseDice"></div><div id="offenseTotal" class="dice-total">TOTAL —</div></div>
 <div class="dice-side red"><small id="defenseDiceTitle">DEFENSE · 2 DICE</small><div class="dice-faces" id="defenseDice"></div><div id="defenseTotal" class="dice-total">TOTAL —</div></div></section>
-<section class="panel play-board"><div class="board-top"><h2 id="playHeading">Call your offensive play</h2><span class="tiny" id="playsCount">2 PASS PLAYS LEFT</span></div>
-<div id="playGrid" class="play-grid"></div>
+<section class="panel play-board"><div class="board-top"><h2 id="playHeading">Call your offensive play</h2><span class="tiny" id="playsCount">UNLIMITED PASS PLAYS</span></div>
+<div id="playGrid" class="play-grid"></div><section id="playPersonnel" class="play-personnel" hidden><h3>SELECT PLAYERS FOR THIS PLAY</h3><div class="eligible-list" id="eligiblePlayers"></div></section>
 <div class="controls-bottom"><button id="playAction" class="btn-primary" onclick="takeTurn()">ROLL THE DICE</button><button id="puntAction" class="outline" onclick="specialTeams('punt')">PUNT</button><button id="fgAction" class="outline" onclick="specialTeams('fg')">FIELD GOAL</button></div>
 <div class="card-bar" id="cardSection"><div class="card-title"><span>YOUR PENALTY CARDS</span><span id="cpuCardCount">DON HAS 3 CARDS</span></div><div id="penaltyHand" class="penalty-hand"></div><p class="tiny">Select up to one card per play. Don can respond to the number of cards you declare, not their hidden values.</p></div>
 <div id="gameStatus" class="status-line" role="status" aria-live="polite">Pick a play, then roll.</div></section>
 </div>
 <aside class="game-side"><section class="panel side-roster"><h3>YOUR DRAFTED LINEUP</h3><div id="gameRoster"></div><h3 class="opponent-roster-label">DIEBALL DON’S LINEUP</h3><div id="cpuRoster"></div></section>
-<section class="panel drive-card"><h3 id="scorecardHeading">THE DRIVE SCORECARD</h3><div class="drive-subhead">YOUR EIGHT DRIVES</div><div id="homeDrives" class="drive-grid"></div><div class="drive-subhead">DON'S EIGHT DRIVES</div><div id="awayDrives" class="drive-grid"></div><div class="tiny" style="margin-top:11px">Red = no score · Yellow = FG · Green = TD + conversion</div></section>
+<section class="panel drive-card"><h3 id="scorecardHeading">THE DRIVE SCORECARD</h3><div class="drive-subhead">YOUR DRIVES</div><div id="homeDrives" class="drive-grid"></div><div class="drive-subhead">DON’S DRIVES</div><div id="awayDrives" class="drive-grid"></div><div class="tiny" style="margin-top:11px">Red = no score · Yellow = FG · Green = TD + conversion</div></section>
 <section class="panel log-card"><h3>PLAY-BY-PLAY</h3><ul id="playLog" class="log-list"></ul></section></aside></div>
 </main>
 <main id="finalScreen" hidden><section class="panel final-area"><div class="smallcaps">DIEBOWL · FINAL</div><h2 id="winnerHeading">GAME OVER</h2><div id="finalScore" class="final-score"></div><p id="finalSummary" class="muted"></p><button class="btn-primary" onclick="restartPro()">DRAFT ANOTHER TEAM</button></section></main>
 <div class="game-notice" id="gameNotice" hidden><h2 id="noticeHeading"></h2><p id="noticeDetail"></p></div>
-<footer>DieBall Pro is an unofficial experimental game mode. All players are fictional. Skill ratings, roll ranges, and line buffs are provisional game-design values. DieBowl is IN TESTING against DieBall Don. Fictional player abilities, OL/DL buffs and draft balance are being evaluated; online DieBowl competition is not yet available.</footer>
+<footer>All DieBowl players and pixel portraits are fictional. This is an early test build: player ratings and play designs are being balanced. Online account saves require connecting Supabase. Classic and TV game rules remain separate.</footer>
 </div></body></html>
