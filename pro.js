@@ -2,58 +2,13 @@
 /* DieBowl development beta: separate five-position draft and local CPU match.
    Player skill numbers below are original GAME BALANCE ratings, not official stats. */
 const E=id=>document.getElementById(id);
-const ROLES=[
- {id:'QB',name:'QUARTERBACK',sub:'Throwing and scrambling'},
- {id:'RB',name:'RUNNING BACK',sub:'Power and open-field speed'},
- {id:'WR',name:'WIDE RECEIVER',sub:'Hands and deep-ball ability'},
- {id:'OL',name:'OFFENSIVE LINEMAN',sub:'Protect your quarterback and open run lanes'},
- {id:'DL',name:'DEFENSIVE LINEMAN',sub:'Apply pass pressure and stop the run'},
- {id:'DB',name:'DEFENSIVE BACK',sub:'Coverage and hard tackles'}
-];
+const ROLES=[['QB','QUARTERBACK'],['RB','RUNNING BACK'],['WR','WIDE RECEIVER'],['TE','TIGHT END'],['OL','OFFENSIVE LINE'],['DL','DEFENSIVE LINE'],['LB','LINEBACKER'],['DB','DEFENSIVE BACK'],['K','KICKER'],['P','PUNTER']].map(([id,name])=>({id,name}));
 const STATS={
  acc:'Accuracy',arm:'Arm',mob:'Mobility',power:'Power',speed:'Speed',
  vision:'Vision',hands:'Hands',deep:'Deep',route:'Routes',
  rush:'Rush',stop:'Run stop',cover:'Coverage',hit:'Tackle',protect:'Pass protect',block:'Run block'
 };
-const POOL=[
- ['qb01',"Zane Westborough",'NTH','QB',{"acc":5,"arm":5,"mob":4}],
- ['qb02',"Alden Flintwood",'BLZ','QB',{"acc":5,"arm":4,"mob":5}],
- ['qb03',"Henrik Oakridge",'WLD','QB',{"acc":4,"arm":5,"mob":4}],
- ['qb04',"Bowen Meadowcroft",'HBR','QB',{"acc":5,"arm":4,"mob":3}],
- ['qb05',"Kendrick Silverbrook",'VLY','QB',{"acc":4,"arm":4,"mob":5}],
- ['qb06',"Marcellus Pinecroft",'RIV','QB',{"acc":4,"arm":4,"mob":4}],
- ['rb01',"Rhett Crestwick",'NTH','RB',{"power":5,"speed":4,"vision":5}],
- ['rb02',"Callan Banner",'BLZ','RB',{"power":4,"speed":5,"vision":5}],
- ['rb03',"Eamon Claybourne",'WLD','RB',{"power":5,"speed":4,"vision":4}],
- ['rb04',"Alden Hawthorne",'HBR','RB',{"power":4,"speed":5,"vision":4}],
- ['rb05',"Gaines Redbrook",'VLY','RB',{"power":4,"speed":4,"vision":5}],
- ['rb06',"Vaughn Greycastle",'RIV','RB',{"power":5,"speed":3,"vision":4}],
- ['wr01',"Lionel Meadowcroft",'NTH','WR',{"hands":5,"deep":5,"route":5}],
- ['wr02',"Remy Oakridge",'BLZ','WR',{"hands":5,"deep":4,"route":5}],
- ['wr03',"Devlin Stonewell",'WLD','WR',{"hands":4,"deep":5,"route":5}],
- ['wr04',"Kendrick Ironwood",'HBR','WR',{"hands":5,"deep":5,"route":4}],
- ['wr05',"Drake Crestwick",'VLY','WR',{"hands":4,"deep":4,"route":5}],
- ['wr06',"Jaren Galecrest",'RIV','WR',{"hands":4,"deep":5,"route":4}],
- ['edge01',"Koa Stonehaven",'NTH','DL',{"rush":5,"stop":5}],
- ['edge02',"Zion Kingswell",'BLZ','DL',{"rush":5,"stop":4}],
- ['edge03',"Maddox Delaney",'WLD','DL',{"rush":5,"stop":5}],
- ['edge04',"Drake Fenwick",'HBR','DL',{"rush":4,"stop":5}],
- ['edge05',"Forrest Yorkwell",'VLY','DL',{"rush":5,"stop":4}],
- ['edge06',"Iker Thornbrook",'RIV','DL',{"rush":4,"stop":5}],
- ['db01',"Teagan Frostmere",'NTH','DB',{"cover":5,"hit":5}],
- ['db02',"Elias Rockford",'BLZ','DB',{"cover":5,"hit":4}],
- ['db03',"Kieran Darkwell",'WLD','DB',{"cover":5,"hit":4}],
- ['db04',"Zion Halden",'HBR','DB',{"cover":4,"hit":5}],
- ['db05',"Devlin Vesperton",'VLY','DB',{"cover":5,"hit":3}],
- ['db06',"Theo Wycliffe",'RIV','DB',{"cover":4,"hit":5}],
-
- ['ol01',"Brant Draycott",'NTH','OL',{"protect":5,"block":5}],
- ['ol02',"Eamon Yorkwell",'BLZ','OL',{"protect":4,"block":5}],
- ['ol03',"Jaxon Fenwick",'WLD','OL',{"protect":4,"block":5}],
- ['ol04',"Nash Woodbridge",'HBR','OL',{"protect":5,"block":4}],
- ['ol05',"Theo Banner",'VLY','OL',{"protect":5,"block":5}],
- ['ol06',"Denzel Valebrook",'RIV','OL',{"protect":5,"block":4}],
-].map(([id,name,team,role,skills])=>({id,name,team,role,skills}));
+const POOL=(window.DIEBOWL_OPTIONS||[]).map(p=>({...p,team:'FREE AGENT',skills:p.role==='OL'?{protect:p.protect,block:p.block}:p.role==='DL'?{rush:p.rush,stop:p.stop}:{acc:3,arm:3,mob:3,power:3,speed:3,vision:3,hands:3,deep:3,route:3,rush:3,stop:3,cover:3,hit:3}}));
 const BY_ID=Object.fromEntries(POOL.map(p=>[p.id,p]));
 const PLAYS=[
  {id:'inside',name:'INSIDE RUN',kind:'run',desc:'RB power + vision. Reliable yards.',skill:'RB POWER'},
@@ -68,7 +23,8 @@ const DEFENSES=[
  {id:'runstop',name:'RUN STOP',desc:'Stack the box to stop rushes.',skill:'EDGE / TACKLE'},
  {id:'coverage',name:'COVERAGE',desc:'Protect against big pass gains.',skill:'DB COVERAGE'}
 ];
-const TWO_PASSES=2;
+// Unlimited passes in DieBowl only (Classic and TV retain their limits).
+const TWO_PASSES=Infinity;
 let DRIVES_PER_TEAM=8;
 const rand=n=>1+Math.floor(Math.random()*n);
 const sum=a=>a.reduce((n,x)=>n+x,0);
@@ -76,10 +32,11 @@ const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const skillDie=rating=>rating>=5?10:rating>=4?8:6;
 const rollDie=sides=>({value:rand(sides),sides});
-const grade=p=>Math.round(65+Object.values(p.skills).reduce((a,b)=>a+b,0)/Object.keys(p.skills).length*6);
+const grade=p=>p.overall;
 const roster=(side,role)=>drafts[side][role];
 const toneByTeam=side=>side===0?'green':'red';
-let drafts=[{},{}],draftIndex=0,state=null,selected='inside',selectedCard=null,noticeSerial=0,turnSerial=0;
+let drafts=[{},{}],draftIndex=0,state=null,selected='inside',selectedActorId=null,selectedCard=null,noticeSerial=0,turnSerial=0;
+let rosterLoadGeneration=0;
 let noticeTimer=null,spinTimer=null,playTimer=null,kickTimer=null,session=0,logMessages=[],draftMessages=[];
 function countDrives(){return state?.drives[0].length+state?.drives[1].length||0}
 function spotLabel(pos,side){
@@ -173,13 +130,10 @@ function startMatch(){
  renderGame();window.scrollTo(0,0);notify('GAME ON!','Your drafted team takes the field.','green',1800);
 }
 function currentPlays(){return state.off===0?PLAYS:DEFENSES}
-function playEligible(id){
- const p=currentPlays().find(p=>p.id===id);
- return p&&!(state.off===0&&p.kind==='pass'&&state.passLeft[0]<=0);
-}
+function playEligible(id){return !!currentPlays().find(p=>p.id===id)}
 function choosePlay(id){
  if(!state||!['play','two'].includes(state.phase)||!playEligible(id))return;
- selected=id;renderGame();
+ selected=id;selectedActorId=null;renderGame();
 }
 function chooseCard(index){
  if(!state||!['play','two'].includes(state.phase))return;
@@ -202,7 +156,7 @@ function cpuCardChoice(declaredCount){
 }
 function rollForSkill(player,key){return rollDie(skillDie(player.skills[key]))}
 function chooseCpuOffense(){
- const passes=state.passLeft[1],need=toFirst(),options=passes>0?PLAYS:PLAYS.filter(p=>p.kind!=='pass');
+ const passes=true,need=toFirst();
  const p=Math.random();
  if(passes&&need>7)return p<.48?'quick':p<.68?'deep':p<.85?'outside':'inside';
  if(passes&&state.down>=3)return p<.42?'quick':p<.64?'deep':'outside';
@@ -256,9 +210,8 @@ function prepareRoll(isTwo=false){
  const off=state.off,userOff=off===0;
  const attack=userOff?selected:chooseCpuOffense();
  const defense=userOff?chooseCpuDefense():selected;
- const pass=attack==='quick'||attack==='deep';
- if(pass&&state.passLeft[off]<=0)return null;
- if(pass)state.passLeft[off]--;
+ const pass=PLAYS.find(p=>p.id===attack)?.kind==='pass';
+ // Passes are unlimited in DieBowl.
  const offenseDice=offensiveRoll(off,attack),defenseDice=defensiveRoll(1-off,defense);
  const offRaw=sum(offenseDice.map(x=>x.value)),defRaw=sum(defenseDice.map(x=>x.value));
  const sameRaw=offRaw===defRaw,triple=offenseDice.every(d=>d.value===offenseDice[0].value);
@@ -271,10 +224,10 @@ function prepareRoll(isTwo=false){
  const line=calculateLineMatchup(off,pass);
  const bonus=playModifiers(attack,defense)+line.net+(offenseCard-defenseCard);
  const advantage=(triple?offRaw*2:offRaw)-defRaw+bonus;
- const success=pass&&(attack==='deep'?advantage>=6:advantage>=4);
+ const success=pass&&(attack==='hailmary'?advantage>=10:['deep','playaction'].includes(attack)?advantage>=6:advantage>=4);
  // DL can force a sack when its rush advantage is strong and the QB fails the pass.
  const sack=pass&&!success&&line.net<=-2&&!sameRaw;
- const yards=pass?(success?(advantage*2+(attack==='deep'?3:0)):(sack?-7:-5)):advantage;
+ const yards=pass?(success?(advantage*2+(['deep','playaction','hailmary'].includes(attack)?3:0)):(sack?-7:-5)):advantage;
  return {off,attack,defense,offenseDice,defenseDice,offRaw,defRaw,triple:triple&&!sameRaw,pass,success,
   bonus,advantage,yards,sameRaw,sack,offenseCard,defenseCard,line,isTwo};
 }
