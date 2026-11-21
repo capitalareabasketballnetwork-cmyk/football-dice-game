@@ -140,12 +140,24 @@ async function saveSelectedRoster(){
   status.textContent='Cloud roster saved to '+(user.user_metadata?.display_name||user.email)+'.';
  }catch(e){status.textContent='Saved locally, but cloud sync failed: '+e.message}
 }
-function startRosterGame(){
+async function startRosterGame(){
  const missing=ROLES.filter(r=>!drafts[0][r.id]);
  if(missing.length){
   draftIndex=ROLES.indexOf(missing[0]);renderDraft();
   E('rosterStatus').textContent='Select '+missing.map(r=>r.id).join(', ')+' to begin.';
   return;
+ }
+ if(window.DieBallAccount){
+  try{
+   await window.DieBallAccount.init();
+   if(window.DieBallAccount.isConfigured()){
+    const user=await window.DieBallAccount.currentUser();
+    if(!user){location.href='/account?next=/diebowl';return}
+   }
+  }catch(e){
+   E('rosterStatus').textContent='Account service unavailable: '+e.message;
+   return;
+  }
  }
  drafts[1]={};
  for(const role of ROLES){
