@@ -1,6 +1,6 @@
 'use strict';
-/* DieBowl development beta: separate five-position draft and local CPU match.
-   Player skill numbers below are original GAME BALANCE ratings, not official stats. */
+/* DieBowl testing engine: fictional ten-position starter lineup, persistent roster,
+   unlimited passing, illustrated offensive/defensive calls and skill-based rolls. */
 const E=id=>document.getElementById(id);
 const ROLES=[['QB','QUARTERBACK'],['RB','RUNNING BACK'],['WR','WIDE RECEIVER'],['TE','TIGHT END'],['OL','OFFENSIVE LINE'],['DL','DEFENSIVE LINE'],['LB','LINEBACKER'],['DB','DEFENSIVE BACK'],['K','KICKER'],['P','PUNTER']].map(([id,name])=>({id,name}));
 const STATS={
