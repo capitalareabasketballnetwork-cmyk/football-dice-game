@@ -221,9 +221,39 @@ footer{margin-top:28px;font-size:10px;color:#779980;letter-spacing:.5px;line-hei
   #draftScreen .player-card{min-height:97px}
   #draftScreen .roster-row{min-height:37px}
 }
+
+.play-filter{display:flex;gap:3px;background:#0e2d1a;border:1px solid #426e48;padding:3px;border-radius:9px;flex-wrap:nowrap}
+.play-filter button{border:0;border-radius:6px;background:transparent;color:#b5d0b6;font-size:10px;font-weight:950;padding:8px 10px;white-space:nowrap}
+.play-filter button.active{background:var(--mint);color:#102b16}
+.play-filter button:focus-visible{outline:2px solid #fff;outline-offset:1px}
+#playFilter[hidden],#ogFilter[hidden]{display:none!important}
+.online-game-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+.online-game-head h1{font-size:clamp(27px,4.5vw,49px);margin:5px 0}
+.online-game-head .smallcaps{font-size:10px}
+#ogPhase{font-size:11px}#ogTimer{font-size:18px;color:#ffdf77}
+#ogRoster .compact-player{padding:7px 0}
+#ogPlayGrid .play-option{min-height:95px}
+#ogPlayGrid .play-diagram{height:55px}
+#ogActorGrid .eligible-player img{width:31px;height:31px}
+#ogActorGrid .eligible-player{gap:6px}
+#ogActorGrid .eligible-player small{font-size:10px}
+#onlineEnterGame{width:100%;margin:10px 0}
+@media(max-width:650px){
+ .play-filter button{padding:6px 7px;font-size:9px}
+ .board-top{align-items:flex-start}
+ .online-game-head{margin-bottom:8px}
+ .online-game-head h1{font-size:28px}
+ #onlineGameScreen .scoreboard{margin-bottom:9px}
+ #onlineGameScreen .field{height:155px}
+ #onlineGameScreen .play-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #onlineGameScreen .play-board{padding:12px}
+ #onlineGameScreen .game-side{display:block}
+ #onlineGameScreen .log-card{margin-top:9px}
+ #ogFilter{margin-bottom:10px}
+}
 </style><script defer src="/auth.js"></script><script defer src="/diebowl-players.js"></script><script defer src="/pro.js"></script><script defer src="/diebowl-career.js"></script><script defer src="/diebowl-online.js"></script></head>
 <body><div class="wrap">
-<header><a class="logo" href="/">Die<span>Ball.</span><span class="brand-note">DIEBOWL</span> <span class="testing-pill">IN TESTING</span></a><div class="top-actions"><a class="back" href="/">← CLASSIC</a><a class="outline" href="/account">ACCOUNT</a><button class="outline" id="restartBtn" onclick="restartPro()">MY ROSTER</button></div></header>
+<header><a class="logo" href="/" aria-label="DieBall home">Die<span>Ball.</span></a><div class="top-actions"><a class="outline" href="/account">ACCOUNT</a><button class="outline" id="restartBtn" onclick="restartPro()">MY ROSTER</button></div></header>
 
 <main id="draftScreen">
 <div class="draft-hero"><div><div class="smallcaps">DIEBOWL · IN TESTING</div><h1>BUILD YOUR<br><em>TEAM.</em></h1><p class="intro muted">No draft and no stars yet. Pick your starter from a few developing fictional players at each position. Your choices are yours to keep and improve later.</p></div>
@@ -251,7 +281,7 @@ footer{margin-top:28px;font-size:10px;color:#779980;letter-spacing:.5px;line-hei
 <div id="onlineMatch" hidden>
 <div class="online-roomtop"><strong>ROOM <span id="roomCode"></span></strong><button class="outline" onclick="onlineLeave()">LEAVE ROOM</button></div>
 <div class="online-score"><strong id="onlineScore">0 – 0</strong><small id="onlineField">Yard 35 · 1st &amp; 10</small></div>
-<div class="online-turn"><strong id="onlinePhase">WAITING</strong><span id="onlineTimer">—</span></div>
+<div class="online-turn"><strong id="onlinePhase">WAITING</strong><span id="onlineTimer">—</span></div><button class="btn-primary" id="onlineEnterGame" onclick="onlineEnterGame()" hidden>ENTER GAME →</button>
 <div id="onlineResult" class="tiny"></div>
 <div id="onlinePlays" class="online-plays"></div>
 <div id="onlineActors" class="online-plays"></div>
@@ -259,6 +289,34 @@ footer{margin-top:28px;font-size:10px;color:#779980;letter-spacing:.5px;line-hei
 </div>
 <p id="onlineMessage" class="status-line" role="status" aria-live="polite">Loading online multiplayer...</p><small id="onlineXP" class="tiny"></small>
 </section><div id="gameSetup" hidden><h3>GAME SETTINGS</h3><fieldset class="bowl-length"><legend>CHOOSE GAME LENGTH</legend><label><input type="radio" name="diebowlGameLength" value="4"><span><strong>SHORT GAME</strong><small>4 drives per team</small></span></label><label><input type="radio" name="diebowlGameLength" value="8" checked><span><strong>FULL GAME</strong><small>8 drives per team</small></span></label></fieldset><div class="roster-progress"><button class="outline" onclick="cancelGameSetup()">BACK</button><button class="btn-primary" onclick="startMatch()">START GAME →</button></div></div></aside></div>
+</main>
+<main id="onlineGameScreen" hidden>
+  <div class="online-game-head"><div><span class="smallcaps">DIEBOWL · HEAD-TO-HEAD</span><h1>ONLINE <em>GAME.</em></h1><span class="tiny">ROOM <b id="ogCode"></b></span></div><button class="outline" onclick="onlineBackToLobby()">BACK TO ROOM</button></div>
+  <div class="scoreboard online-game-scoreboard">
+   <div class="scoreteam"><div><div class="name">HOME · HOST</div><small id="ogHomeSide">OFFENSE</small></div><strong class="score" id="ogHomeScore">0</strong></div>
+   <div class="center-stats down-1" id="ogDownBadge"><small id="ogDrive">DRIVE 1 OF 8</small><strong id="ogDownText">1ST & 10</strong><small id="ogSpot">BALL ON 35</small></div>
+   <div class="scoreteam away"><div><div class="name">AWAY · GUEST</div><small id="ogAwaySide">DEFENSE</small></div><strong class="score" id="ogAwayScore">0</strong></div>
+  </div>
+  <div class="game-grid"><div class="game-main">
+    <section class="panel field-panel"><div class="field-header"><b>THE FIELD</b><span id="ogFieldInfo">BALL ON OWN 35</span></div>
+      <div class="field"><div class="endzone">HOME</div><div class="turf">
+        <div class="field-numbers"><span>10</span><span>20</span><span>30</span><span>40</span><span>50</span><span>40</span><span>30</span><span>20</span><span>10</span></div>
+        <div class="field-numbers bottom"><span>10</span><span>20</span><span>30</span><span>40</span><span>50</span><span>40</span><span>30</span><span>20</span><span>10</span></div>
+        <div class="los" id="ogLine" style="left:35%"></div><div class="first-line" id="ogFirstLine" style="left:45%"></div><span class="football" id="ogBall" style="left:35%">🏈</span>
+      </div><div class="endzone away">AWAY</div></div>
+      <div class="field-footer"><strong id="ogFieldFoot">1ST & 10</strong><span id="ogLastPlay">Awaiting kickoff</span></div>
+    </section>
+    <section class="panel play-board"><div class="board-top"><h2 id="ogHeading">Pick your play</h2><div class="online-turn"><span id="ogPhase">OFFENSE CHOOSES</span><strong id="ogTimer">10s</strong></div></div>
+      <div class="play-filter" id="ogFilter" role="group" aria-label="Filter online plays"><button class="active" data-filter="run" onclick="onlineSetFilter('run')">RUN</button><button data-filter="pass" onclick="onlineSetFilter('pass')">PASS</button><button data-filter="playaction" onclick="onlineSetFilter('playaction')">PLAY ACTION</button></div>
+      <div id="ogPlayGrid" class="play-grid"></div>
+      <section class="play-personnel" id="ogPersonnel" hidden><h3>CHOOSE YOUR PLAYER</h3><div id="ogActorGrid" class="eligible-list"></div></section>
+      <div class="controls-bottom"><button id="ogSubmit" class="btn-primary" onclick="onlineSubmit()">CONFIRM PLAY</button></div>
+      <p id="ogStatus" class="status-line" role="status" aria-live="polite"></p>
+    </section>
+  </div><aside class="game-side">
+    <section class="panel side-roster"><h3>YOUR TEAM</h3><div id="ogRoster"></div></section>
+    <section class="panel log-card"><h3>GAME RECAP</h3><div id="ogResult" class="muted">Waiting for the first play</div><p class="tiny">Both players' plays and dice are resolved by the server.</p></section>
+  </aside></div>
 </main>
 <main id="gameScreen" hidden>
 <div class="scoreboard"><div class="scoreteam"><div><div class="name">YOUR TEAM</div><small id="homeOff">HOME · OFFENSE</small></div><strong class="score" id="homeScore">0</strong></div>
@@ -275,7 +333,7 @@ footer{margin-top:28px;font-size:10px;color:#779980;letter-spacing:.5px;line-hei
 <div class="field-footer"><strong id="netYards">NET YARDS —</strong><span id="fieldMessage">Choose a play to begin.</span></div></section>
 <section class="panel dice-panel"><div class="dice-side"><small id="offenseDiceTitle">OFFENSE · 3 DICE</small><div class="dice-faces" id="offenseDice"></div><div id="offenseTotal" class="dice-total">TOTAL —</div></div>
 <div class="dice-side red"><small id="defenseDiceTitle">DEFENSE · 2 DICE</small><div class="dice-faces" id="defenseDice"></div><div id="defenseTotal" class="dice-total">TOTAL —</div></div></section>
-<section class="panel play-board"><div class="board-top"><h2 id="playHeading">Call your offensive play</h2><span class="tiny" id="playsCount">UNLIMITED PASS PLAYS</span></div>
+<section class="panel play-board"><div class="board-top"><h2 id="playHeading">Pick your play</h2><div class="play-filter" id="playFilter" role="group" aria-label="Filter plays"><button type="button" class="active" data-filter="run" aria-pressed="true" onclick="setPlayFilter('run')">RUN</button><button type="button" data-filter="pass" aria-pressed="false" onclick="setPlayFilter('pass')">PASS</button><button type="button" data-filter="playaction" aria-pressed="false" onclick="setPlayFilter('playaction')">PLAY ACTION</button></div><span class="tiny" id="playsCount" hidden></span></div>
 <div id="playGrid" class="play-grid"></div><section id="playPersonnel" class="play-personnel" hidden><h3>SELECT PLAYERS FOR THIS PLAY</h3><div class="eligible-list" id="eligiblePlayers"></div></section>
 <div class="controls-bottom"><button id="playAction" class="btn-primary" onclick="takeTurn()">ROLL THE DICE</button><button id="puntAction" class="outline" onclick="specialTeams('punt')">PUNT</button><button id="fgAction" class="outline" onclick="specialTeams('fg')">FIELD GOAL</button></div>
 <div class="card-bar" id="cardSection"><div class="card-title"><span>YOUR PENALTY CARDS</span><span id="cpuCardCount">DON HAS 3 CARDS</span></div><div id="penaltyHand" class="penalty-hand"></div><p class="tiny">Select up to one card per play. Don can respond to the number of cards you declare, not their hidden values.</p></div>
