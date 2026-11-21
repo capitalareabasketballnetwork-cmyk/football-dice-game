@@ -35,6 +35,9 @@ renderDraft=function(){
  E('capUsed').textContent='$'+careerTotal()+' / $'+CAREER_CAP;
  E('capFree').textContent='$'+(CAREER_CAP-careerTotal())+' REMAINING';
  E('capMeter').style.width=Math.min(100,100*careerTotal()/CAREER_CAP)+'%';
+ const remaining=CAREER_CAP-careerTotal(),capBox=E('capPanel');
+ capBox.classList.toggle('cap-warning',remaining>0&&remaining<=Math.round(CAREER_CAP*.15));
+ capBox.classList.toggle('cap-maxed',remaining===0);
  E('draftSteps').innerHTML=ROLES.map((r,i)=>'<button type="button" onclick="selectRosterRole('+i+')" class="draft-step '+(i===draftIndex?'current ':'')+(drafts[0][r.id]?'done':'')+'"><span>'+r.id+'</span><small>'+(drafts[0][r.id]?'READY':'CHOOSE')+'</small></button>').join('');
  E('playerGrid').innerHTML=POOL.filter(p=>p.role===role.id).sort((a,b)=>b.overall-a.overall).map(p=>{
   const current=drafts[0][role.id],eff=careerPlayer(p),affordable=careerTotal()-(current?careerPrice(current):0)+careerPrice(eff)<=CAREER_CAP;
