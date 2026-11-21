@@ -70,5 +70,16 @@
   const {data,error}=await c.auth.updateUser({data:{display_name:name.trim().slice(0,22)}});
   if(error)throw error;return data;
  }
- window.DieBallAccount={init,currentUser,signUp,signIn,signOut,sendReset,saveRoster,loadRoster,updateName,isConfigured:()=>!!config?.available};
+ 
+ async function onlineAction(action,code=null,play=null,actor=null){
+  const c=await init();if(!c)throw Error('Online connection unavailable.');
+  const {data,error}=await c.rpc('diebowl_online_action',{p_action:action,p_code:code,p_play:play,p_actor:actor});
+  if(error)throw error;return data;
+ }
+ async function onlineXP(){
+  const c=await init(),user=await currentUser();if(!c||!user)return null;
+  const {data,error}=await c.from('diebowl_online_xp').select('earned,games').eq('user_id',user.id).maybeSingle();
+  if(error)throw error;return data||{earned:0,games:0};
+ }
+ window.DieBallAccount={init,currentUser,signUp,signIn,signOut,sendReset,saveRoster,loadRoster,updateName,onlineAction,onlineXP,isConfigured:()=>!!config?.available};
 })();
