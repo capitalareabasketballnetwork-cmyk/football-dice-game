@@ -53,8 +53,9 @@
     scorebar.insertBefore(host,guest);
     host.style.gridColumn='1';
     host.style.justifyContent='flex-start';
-    guest.style.gridColumn='2';
+    guest.style.gridColumn='3';
     guest.style.justifyContent='flex-end';
+    scorebar.querySelector('.center').style.gridColumn='2';
    }
    scorebar.classList.add('season-scoreboard');
    const homeBox=scorebar.querySelector(window.seasonIsAway?'.mini-team.opponent':'.mini-team:not(.opponent)');
