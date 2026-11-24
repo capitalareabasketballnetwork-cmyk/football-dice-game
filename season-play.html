@@ -542,7 +542,7 @@ body:has(#bodymode.phone.local-game) #overlay .modal .reveal-net{font-size:24px;
 .season-scoreboard.season-away .mini-team:not(.opponent){grid-column:3!important;justify-content:flex-end!important}
 #seasonLaunching{position:fixed;inset:0;z-index:9999;background:#091c11;color:#c5ffad;display:grid;place-items:center;font-weight:950;font-size:17px;text-align:center;padding:22px}
 #seasonLaunching small{display:block;margin-top:12px;color:#95b9a1;font-size:12px;font-weight:500}
-body:has(#seasonMatchInfo) .header-right button[onclick="reset()"]{display:none}
+#bodymode .header-right button[onclick="reset()"]{display:none}
 @media(max-width:650px){
  .season-scoreboard .mini-team span{font-size:clamp(9px,2.55vw,11px)!important;max-width:100%;min-width:0}
  .season-scoreboard.season-away .mini-team:not(.opponent){grid-column:2!important}
@@ -572,7 +572,7 @@ function reset(){localReady=[false,false];localEyes=[false,false];localDice=[nul
 function say(s){g.msg=s;g.logs.unshift(s);g.logs=g.logs.slice(0,25)}
 function own(){let p=g.off===0?g.pos:100-g.pos;return p<=50?'Own '+p:'Opp '+(100-p)}
 
-function sideName(side){return currentMode==='local'?teamNames[side]:(side===0?'You':'DieBall Don')}
+function sideName(side){return currentMode==='local'||window.seasonTeamName?teamNames[side]:(side===0?'You':'DieBall Don')}
 function recordDrive(side){if(!g.driveHistory)return;const earned=Math.max(0,g.score[side]-(g.driveStartScore??g.score[side]));if(g.driveHistory[side].length<g.drivesPerTeam)g.driveHistory[side].push(earned)}
 function announceLastDrive(){const side=g.off;if(g.driveHistory&&g.driveHistory[side].length===g.drivesPerTeam-1&&!g.lastDriveAnnounced[side]){g.lastDriveAnnounced[side]=true;showFieldAnnouncement(sideName(side)+"'s last drive",side===0?'green':'red',2700,'Final possession for '+sideName(side))}}
 function announceWinner(){
