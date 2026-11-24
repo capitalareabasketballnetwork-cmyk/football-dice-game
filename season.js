@@ -340,7 +340,12 @@ function renderPlayoffs(){
  if(!season)return;
  const buildSide=div=>{
   const seeds=playoffSeeds(div);
-  const slot=i=>'<span><b class="seed">#'+(i+1)+'</b> '+htmlSafe(name(seeds[i]))+' <small>('+seeds[i].w+'–'+seeds[i].l+')</small></span>';
+  const slot=i=>{
+   const team=seeds[i],mine=team.id===season.userTeamId;
+   return '<span class="playoff-team '+(mine?'playoff-user-team':'')+'"><b class="seed">#'+(i+1)+'</b> '+htmlSafe(name(team))+
+    (mine?' <b class="playoff-you">★ YOUR TEAM</b>':'')+
+    ' <small>('+team.w+'–'+team.l+')</small></span>';
+  };
   const wildCard=[
    '<div class="playoff-match playoff-bye">'+slot(0)+'<span>FIRST-ROUND BYE</span></div>',
    ...[[1,6],[2,5],[3,4]].map(([a,b])=>'<div class="playoff-match">'+slot(a)+slot(b)+'</div>')
@@ -356,7 +361,15 @@ function renderPlayoffs(){
   return '<section class="playoff-side '+(div==='E'?'east':'west')+'"><h3>'+
    (div==='E'?'EASTERN':'WESTERN')+' DIVISION</h3><div class="playoff-rounds">'+rounds+'</div></section>';
  };
- el('playoffDivisions').innerHTML='<div class="playoff-bracket">'+
+ const myTeam=season.teams[season.userTeamId];
+ const ranked=standings().filter(t=>t.division===myTeam.division);
+ const myRank=ranked.findIndex(t=>t.id===season.userTeamId)+1;
+ const qualifies=myRank<=7;
+ const yourPosition='<div class="playoff-user-status '+(qualifies?'qualified':'outside')+'">'+
+   '<span>★ '+htmlSafe(name(myTeam))+'</span><strong>'+(qualifies?'CURRENT PLAYOFF SEED #'+myRank:
+    'CURRENTLY OUTSIDE THE PLAYOFFS · #'+myRank+' IN '+(myTeam.division==='E'?'EAST':'WEST'))+'</strong>'+
+   '</div>';
+ el('playoffDivisions').innerHTML=yourPosition+'<div class="playoff-bracket">'+
   buildSide('E')+
   '<div class="playoff-final"><span class="trophy">🏆</span><div class="eyebrow">DFL CHAMPIONSHIP</div><strong>EAST CHAMPION</strong><small>vs</small><strong>WEST CHAMPION</strong><small>To be decided</small></div>'+
   buildSide('W')+'</div>';
