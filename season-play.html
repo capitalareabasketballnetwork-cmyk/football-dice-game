@@ -1226,7 +1226,7 @@ window.DFL_restore=function(snapshot){
   kpos=Number(snapshot.kickMarker)||0;
   if(E('kickoffMark'))E('kickoffMark').style.top=(100-kpos)+'%';
  }else if(state==='convert-menu'){
-  render();conversionMenu();
+  g.state='conversion';render();conversionMenu();
  }else if(state==='convert-cards'&&pending?.side===8){
   const actor=pending.actor;
   openConversionCards(actor);
