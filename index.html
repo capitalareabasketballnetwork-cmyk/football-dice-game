@@ -562,8 +562,9 @@ function announceWinner(){
  rolling=false;showFieldAnnouncement('GAME OVER',lead<0?'gold':currentMode==='cpu'?(lead===0?'green':'red'):'gold',0,line+'\n'+scoreline);
  E('announcementSub').classList.add('final-score-sub');E('flippedAnnouncementSub').classList.add('final-score-sub');
  if(currentMode==='cpu'&&window.finishSeasonGame)window.finishSeasonGame();
+ if(currentMode==='cpu')window.DieBallStats?.final();
 }
-function announceFirstDown(y,viaCards=false){showFieldAnnouncement('First Down',g.off===0?'green':'red',2050,sideName(g.off)+' · '+(viaCards?'Cards':'Dice')+' · '+(y>=0?'+':'')+y+' yards')}
+function announceFirstDown(y,viaCards=false){window.DieBallStats?.onFirstDown(g);showFieldAnnouncement('First Down',g.off===0?'green':'red',2050,sideName(g.off)+' · '+(viaCards?'Cards':'Dice')+' · '+(y>=0?'+':'')+y+' yards')}
 function cycleDice(duration,done){const token=animationSeq;clearInterval(diceCycleTimer);const show=()=>{E('odice').innerHTML=Array.from({length:3},()=>die(rng(6),true)).join('');E('ddice').innerHTML=Array.from({length:2},()=>die(rng(6),true)).join('')};show();diceCycleTimer=setInterval(show,95);setTimeout(()=>{clearInterval(diceCycleTimer);if(token===animationSeq)done()},duration)}
 
 function animateScoringKick(good,side,kind,after){
@@ -621,7 +622,7 @@ function advanceQuarterIfReady(){
  }
 }
 
-function finishDrive(text){localReady=[false,false];localEyes=[false,false];if(text.toLowerCase().includes("turnover on downs"))showFieldAnnouncement("Turnover on Downs","red",1900);let previous=g.off;recordDrive(previous);g.drives[previous]++;g.off=1-previous;advanceQuarterIfReady();if(g.quarter>4){g.state='over';say('FINAL · '+g.score.join(' – '));announceWinner();return}g.pos=limit(g.pos,1,99);freshCards();g.state='play';say(text+' · '+sideName(g.off)+' possession.');announceLastDrive()}
+function finishDrive(text){window.DieBallStats?.onDriveEnd(g,g.off,text);localReady=[false,false];localEyes=[false,false];if(text.toLowerCase().includes("turnover on downs"))showFieldAnnouncement("Turnover on Downs","red",1900);let previous=g.off;recordDrive(previous);g.drives[previous]++;g.off=1-previous;advanceQuarterIfReady();if(g.quarter>4){g.state='over';say('FINAL · '+g.score.join(' – '));announceWinner();return}g.pos=limit(g.pos,1,99);freshCards();g.state='play';say(text+' · '+sideName(g.off)+' possession.');announceLastDrive()}
 function rememberMovement(from,to,off){if(Math.abs(to-from)<.01){g.lastMove=null;return}g.lastMove={from:limit(from,0,100),to:limit(to,0,100),forward:(to-from)*(off===0?1:-1)>0,off:off,delta:Math.abs(to-from)};}
 
 
@@ -679,7 +680,7 @@ function rollRecovery(){
  },1700);
 }
 
-function scoreTouchdown(){
+function scoreTouchdown(){window.DieBallStats?.onTouchdown(g);
  const side=g.off,token=animationSeq;
  g.score[side]+=6;g.state='touchdown';g.pos=side===0?100:0;
  say(sideName(side)+' TOUCHDOWN! +6 points. Conversion choices follow the touchdown announcement.');
@@ -715,6 +716,7 @@ function doPlay(type,offDice,defDice){
   g.passes--;choice='run';
  }
  if(a===b){
+  window.DieBallStats?.onDice(g,type,type==='pass'?-5:0,false);
   if(type==='pass'){
    const from=g.pos,to=from+(g.off===0?-5:5);
    g.net=-5;rememberMovement(from,limit(to,0,100),g.off);
@@ -727,6 +729,8 @@ function doPlay(type,offDice,defDice){
  const passSuccess=type==='pass'&&advantage>=4;
  const y=type==='pass'?(passSuccess?advantage*2:-5):advantage;
  g.net=y;
+ const overthrow=passSuccess&&y>=(g.off===0?110-g.pos:g.pos+10);
+ window.DieBallStats?.onDice(g,type,overthrow?0:y,type==='pass'&&passSuccess&&!overthrow);
  if(passSuccess&&y>=(g.off===0?110-g.pos:g.pos+10)){
   g.lastMove=null;g.down++;say('INCOMPLETE! Pass sailed past the end zone.');
   if(g.down>4)finishDrive('Turnover on downs');return;
@@ -1164,4 +1168,4 @@ function openAccount(){E('accountOverlay').style.display='flex';E('accountHeadin
 function closeAccount(){E('accountOverlay').style.display='none';}
 function saveLocalProfile(){const n=E('profileName').value.trim();if(n.length<2){E('accountStatus').textContent='Enter at least 2 characters.';return}localStorage.setItem('dieball-profile',n);E('accountStatus').textContent='Saved on this device as '+n+'.';E('homeScreen').querySelector('.home-account-btn').textContent=n+' ↗';}
 
-reset();if(localStorage.getItem("dieball-profile"))E("homeScreen").querySelector(".home-account-btn").textContent=localStorage.getItem("dieball-profile")+" ↗";if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));</script><script defer src="/auth.js"></script><script defer src="/season-game.js"></script></body></html>
+reset();if(localStorage.getItem("dieball-profile"))E("homeScreen").querySelector(".home-account-btn").textContent=localStorage.getItem("dieball-profile")+" ↗";if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));</script><script defer src="/auth.js"></script><script defer src="/season-game.js"></script><script defer src="/game-stats.js"></script></body></html>
