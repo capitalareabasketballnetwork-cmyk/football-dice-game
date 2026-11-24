@@ -91,7 +91,7 @@
   if(typeof g==='undefined'||!g)return;
   ensureUI();
   const box=buildBox(g),over=final||g.state==='over';
-  const title=over?(g.score[0]===g.score[1]?'IT\'S A TIE!':g.score[0]>g.score[1]?'YOU WON!':'YOU LOST!'):'GAME STATISTICS';
+  const title=over?(g.score[0]===g.score[1]?'YOU TIED!':g.score[0]>g.score[1]?'YOU WON!':'YOU LOST!'):'GAME STATISTICS';
   const table=box.rows.map(([label,calc])=>'<tr><td>'+safe(calc(box.data[0],0))+'</td><td>'+safe(label)+'</td><td>'+safe(calc(box.data[1],1))+'</td></tr>').join('');
   const drives=box.names.map((name,i)=>'<section><h3>'+safe(name)+' · '+g.driveHistory[i].length+' / '+g.drivesPerTeam+' DRIVES</h3><div class="dbs-drive-list">'+Array.from({length:g.drivesPerTeam},(_,j)=>'<span title="Drive '+(j+1)+'">'+(g.driveHistory[i][j]===undefined?'—':g.driveHistory[i][j]===0?'0':g.driveHistory[i][j])+'</span>').join('')+'</div></section>').join('');
   const returnTo=window.seasonTeamName?'/season':'/';
@@ -105,7 +105,7 @@
   document.getElementById('dieballBoxScore').hidden=false;
  }
  function hide(){const e=document.getElementById('dieballBoxScore');if(e&&typeof g!=='undefined'&&g?.state!=='over')e.hidden=true}
- function final(){setTimeout(()=>show(true),1600)}
+ function final(){setTimeout(()=>show(true),350)}
  window.DieBallStats={onDice,onFirstDown,onTouchdown,onDriveEnd,show,hide,final,ensureUI,buildBox};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ensureUI);else ensureUI();
 })();
