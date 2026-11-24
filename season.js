@@ -391,6 +391,13 @@ function render(){
   el('nextTitle').textContent=(isHome?'vs ':'@ ')+name(opp);
   el('nextSubtitle').textContent='Week '+(week+1)+' · '+(isHome?'Home game':'Away game')+' · '+season.drives+' drives per team';
   el('playNext').hidden=false;
+  const active=season.activeGame;
+  const ongoing=active&&active.week===week&&active.createdAt===season.createdAt&&active.snapshot?.game?.state!=='over';
+  el('playNext').textContent=ongoing?'CONTINUE GAME →':'PLAY NEXT GAME →';
+  if(ongoing){
+   const checkpoint=active.snapshot.game;
+   el('nextSubtitle').textContent+=' · Saved Q'+Math.min(checkpoint.quarter,4)+' · '+checkpoint.score[0]+'–'+checkpoint.score[1];
+  }
  }
  selectDivision(division);updateMap();renderScores();renderPlayoffs();
 }
