@@ -114,6 +114,26 @@
 .playoff-user-status{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border:1px solid #73b987;border-radius:9px;background:#1c472c;padding:11px 13px;font-size:12px}
 .playoff-user-status span{font-weight:900}.playoff-user-status strong{font-size:11px;color:#c0ff9e;letter-spacing:.5px}
 .playoff-user-status.outside{border-color:#8c8557;background:#342f1d}.playoff-user-status.outside strong{color:#eedda0}
+
+/* Full-season team statistics */
+.season-stats-section{margin-top:18px;padding:20px}
+.season-stats-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px}
+.season-stats-head h2{font-size:23px;margin:4px 0}
+.season-stats-through{background:#244f32;border:1px solid #83c780;border-radius:9px;color:#ddffce;font-size:12px;font-weight:950;letter-spacing:.8px;padding:11px 14px}
+.season-stats-highlights{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;margin-bottom:20px}
+.season-stat-big{background:linear-gradient(155deg,#214e32,#142c21);border:1px solid #487b51;border-radius:12px;padding:15px;display:flex;flex-direction:column;gap:6px}
+.season-stat-big span,.season-stat-card span{font-size:10px;text-transform:uppercase;color:#b4ceb7;font-weight:850;letter-spacing:.55px}
+.season-stat-big strong{font-size:clamp(23px,3vw,34px);line-height:1.1;color:#efffdd}
+.season-stat-big small{color:#9cc3a2;font-size:11px}
+.season-stats-groups{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+.season-stats-group{border:1px solid #3c6346;border-radius:12px;background:#0e271b;padding:13px;min-width:0}
+.season-stats-group h3{margin:0 0 12px;font-size:12px;color:#d3f7c5;letter-spacing:1px}
+.season-stats-cells{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.season-stat-card{background:#1a3b29;border:1px solid #365840;border-radius:8px;padding:11px;min-width:0}
+.season-stat-card strong{display:block;font-size:19px;color:#fff;margin-top:6px}
+.season-stats-note{margin:15px 0 0;color:#a2c4aa;font-size:11px;line-height:1.55}
+@media(max-width:900px){.season-stats-highlights{grid-template-columns:repeat(2,minmax(0,1fr))}.season-stats-groups{grid-template-columns:1fr 1fr}}
+@media(max-width:540px){.season-stats-groups{grid-template-columns:1fr}.season-stats-section{padding:14px}.season-stat-big{padding:12px}}
 </style><script defer src="/auth.js"></script><script defer src="/us-state-paths.js"></script><script defer src="/season.js"></script></head>
 <body><div class="page"><header class="top"><a class="logo" href="/">Die<em>Ball.</em><small>DFL · SEASON MODE</small></a><a href="/">← MAIN MENU</a></header>
 <section id="auth" class="card" hidden><div class="eyebrow">SIGN IN REQUIRED</div><h1>Your season. Your legacy.</h1><p class="muted">You need a DieBall account to create a team and save your season progress across devices.</p><a class="button" href="/account">SIGN IN / CREATE ACCOUNT</a><p id="authError" class="status"></p></section>
@@ -135,4 +155,13 @@
 <div class="season-dashboard-row season-map-row">
  <div class="season-panel"><section class="card"><h2>DFL · UNITED STATES</h2><div id="map" class="map" aria-label="Map of the United States with DFL team locations"></div><div id="teamMapDetail" class="team-map-detail" aria-live="polite" hidden></div><div class="legend"><span><i class="dot mine"></i>Your team</span><span><i class="dot"></i>Other DFL teams</span><span><i class="dot away"></i>Selected opponent</span></div><p class="map-note" id="mapHint"></p></section></div>
  <div class="season-panel"><section class="card"><h2>YOUR 16-GAME SCHEDULE</h2><div id="schedule" class="games"></div></section></div>
-</div></section></div></body></html>
+</div>
+<section class="card season-stats-section" id="seasonStatsSection">
+ <div class="season-stats-head">
+  <div><div class="eyebrow">YOUR TEAM · COMPLETE SEASON TOTALS</div><h2>SEASON STATISTICS</h2></div>
+  <div class="season-stats-through" id="seasonStatsThrough">THROUGH 0 GAMES</div>
+ </div>
+ <div class="season-stats-highlights" id="seasonStatsHighlights"></div>
+ <div class="season-stats-groups" id="seasonStatsGroups"></div>
+ <p class="season-stats-note" id="seasonStatsNote"></p>
+</section></section></div></body></html>
