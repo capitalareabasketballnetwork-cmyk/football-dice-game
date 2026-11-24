@@ -153,7 +153,7 @@ function standings(){
 }
 function selectDivision(next){division=next;el('tabE').classList.toggle('active',next==='E');el('tabW').classList.toggle('active',next==='W');
  const clubs=standings().filter(t=>t.division===division);
- el('standings').innerHTML=clubs.map((t,i)=>'<tr class="'+(t.user?'mine':'')+'"><td>'+(i+1)+'</td><td>'+htmlSafe(name(t))+(t.user?' ★':'')+'</td><td class="num">'+t.w+'</td><td class="num">'+t.l+'</td><td class="num">'+t.t+'</td></tr>').join('');
+ el('standings').innerHTML=clubs.map((t,i)=>'<tr class="'+(t.user?'mine':'')+'"><td>'+(i+1)+'</td><td>'+htmlSafe(name(t))+(t.user?' ★':'')+'</td><td class="num">'+t.w+'</td><td class="num">'+t.l+'</td><td class="num">'+t.t+'</td><td class="num">'+t.pf+'</td><td class="num">'+t.pa+'</td></tr>').join('');
 }
 window.setDivision=selectDivision;
 
