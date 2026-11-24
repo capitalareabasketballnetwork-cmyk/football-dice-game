@@ -205,11 +205,12 @@ function sharePublic(){
 }
 function broadcast(){
  if(!G)return;
+ if(G.stage==='kickoff'&&G.results[G.off].length===G.drivesPerTeam-1&&G.results[1-G.off].length>=G.drivesPerTeam){endDrive(G.pos,'Final possession completed');return;}
  if(role==='host')renderHost();
  const shared=sharePublic();links.forEach((c,i)=>{if(c?.open)try{c.send({t:'state',public:shared,cards:[...G.hands[i]]})}catch(e){}});
 }
 function announce(title,tone='gold',detail='',duration=2000){
- if(!G)return;const id=++G.annId;G.announcement={title,tone,detail};broadcast();
+ if(!G)return;if(G.stage==='finished'&&title!=='GAME OVER')return;const id=++G.annId;G.announcement={title,tone,detail};broadcast();
  if(duration>0)setTimeout(()=>{if(G&&id===G.annId){G.announcement=null;broadcast()}},duration);
 }
 function downText(g){if(g.stage==='finished')return 'FINAL';const n=g.down;return (n===1?'1st':n===2?'2nd':n===3?'3rd':'4th')+' & '+Math.abs(g.goal-g.pos)}
