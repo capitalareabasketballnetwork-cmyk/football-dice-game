@@ -4,6 +4,47 @@
  const params=new URLSearchParams(location.search);
  if(!/^\/season-play(?:\.html)?\/?$/.test(location.pathname)&&params.get('seasonGame')!=='1')return;
  let launched=false,saving=false,saved=false,context=null;
+ let localKey=null,latestSnapshot=null,lastLocalVersion=0,lastCloudVersion=0,writeTask=null,haltSaves=false;
+ function snapshotValid(entry,season,week){
+  return entry&&entry.week===week&&entry.createdAt===season.createdAt&&entry.snapshot?.version===1&&
+   entry.snapshot.game?.state!=='over'&&Array.isArray(entry.snapshot.game?.score);
+ }
+ function localRead(){
+  try{return localKey?JSON.parse(localStorage.getItem(localKey)||'null'):null}catch{return null}
+ }
+ function recordSnapshot(){
+  if(!context||haltSaves||saved||saving||typeof window.DFL_capture!=='function')return;
+  const snap=window.DFL_capture();
+  if(!snap)return;
+  const previous=latestSnapshot?.snapshot;
+  const oldJson=previous?JSON.stringify(previous.game)+JSON.stringify(previous.pending)+previous.choice:'';
+  const newJson=JSON.stringify(snap.game)+JSON.stringify(snap.pending)+snap.choice;
+  if(newJson===oldJson)return;
+  latestSnapshot={week:context.week,createdAt:context.season.createdAt,snapshot:snap,updatedAt:Date.now()};
+  lastLocalVersion++;
+  try{localStorage.setItem(localKey,JSON.stringify(latestSnapshot))}catch(e){console.warn('Local season backup unavailable',e)}
+ }
+ async function flushProgress(){
+  if(!context||haltSaves||saved||saving||!latestSnapshot)return;
+  if(writeTask)return writeTask;
+  if(lastLocalVersion===lastCloudVersion)return;
+  const version=lastLocalVersion,entry=JSON.parse(JSON.stringify(latestSnapshot));
+  writeTask=(async()=>{
+   const latest=await window.DieBallAccount.loadSeason();
+   if(!latest||latest.createdAt!==context.season.createdAt||currentWeek(latest)!==context.week)return;
+   latest.activeGame=entry;
+   await window.DieBallAccount.saveSeason(latest);
+   lastCloudVersion=version;
+  })();
+  try{await writeTask}catch(err){console.warn('Season checkpoint sync failed; local backup retained',err)}
+  finally{writeTask=null}
+ }
+ function startAutosave(){
+  setInterval(()=>{if(!haltSaves){recordSnapshot();if(lastCloudVersion!==lastLocalVersion)void flushProgress()}},1100);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'){recordSnapshot();void flushProgress()}});
+  window.addEventListener('pagehide',()=>{recordSnapshot();void flushProgress()});
+ }
+
  function currentWeek(s){let n=0;while(s.results[String(n)])n++;return n}
  function deterministicScore(team,week,salt){
   let h=(team+31)*2654435761 ^ (week+13)*1597334677 ^ salt*1640531527;
@@ -15,6 +56,13 @@
   if(!header||document.getElementById('seasonBack'))return;
   const link=document.createElement('a');
   link.id='seasonBack';link.href='/season.html';link.className='smallbtn';
+  link.addEventListener('click',async e=>{
+   if(saved||haltSaves)return;
+   e.preventDefault();
+   recordSnapshot();
+   await flushProgress();
+   location.href='/season';
+  });
   link.textContent='← SEASON';link.style.cssText='background:#b8fb8b;color:#12321c;padding:8px;border-radius:8px;text-decoration:none;font-weight:950';
   header.prepend(link);
  }
@@ -34,6 +82,7 @@
    const otherId=match.home===season.userTeamId?match.away:match.home;
    const opponent=season.teams[otherId],my=season.teams[season.userTeamId];
    context={season,week,match,opponent,me:my};
+   localKey='dieball-season-inprogress:'+user.id+':'+season.createdAt+':'+week;
    window.seasonTeamName=my.city+' '+my.name;
    window.seasonOpponentName=opponent.city+' '+opponent.name;
    window.seasonOpponentNickname=opponent.name;
@@ -45,6 +94,16 @@
    currentMode='cpu';teamNames=[window.seasonTeamName,window.seasonOpponentName];
    document.getElementById('cpuName').textContent=window.seasonOpponentName;
    enterGame();
+   const cached=localRead();
+   const cloud=season.activeGame;
+   const validLocal=snapshotValid(cached,season,week);
+   const validCloud=snapshotValid(cloud,season,week);
+   const resume=validLocal&&(!validCloud||cached.updatedAt>cloud.updatedAt)?cached:validCloud?cloud:null;
+   if(resume&&window.DFL_restore?.(resume.snapshot)){
+    latestSnapshot=resume;
+    lastLocalVersion=1;
+    lastCloudVersion=validCloud&&resume===cloud?1:0;
+   }
    const scorebar=document.querySelector('#bodymode .scorebar');
    if(window.seasonIsAway){
     scorebar.classList.add('season-away');
@@ -76,6 +135,8 @@
    info.textContent='SEASON · WEEK '+(week+1)+' · '+(match.home===season.userTeamId?'HOME':'AWAY')+' vs '+window.seasonOpponentName;
    info.style.cssText='font-size:10px;color:#b8fb8b;font-weight:900;text-align:center;padding:2px 4px';
    document.querySelector('#bodymode .scorebar').before(info);
+   recordSnapshot();
+   startAutosave();
   }catch(err){
    launched=false;
    console.error('Season match launch error',err);
@@ -92,6 +153,8 @@
  }
  async function finish(){
   if(!context||saved||saving)return;
+  haltSaves=true;
+  if(writeTask)try{await writeTask}catch{}
   saving=true;
   let notice=document.getElementById('seasonSaveStatus');
   if(!notice){notice=document.createElement('div');notice.id='seasonSaveStatus';notice.style.cssText='position:fixed;right:10px;bottom:10px;z-index:5000;background:#1c4c2b;border:1px solid #9fe47c;padding:10px 13px;border-radius:9px;font-weight:900;font-size:12px;max-width:90vw';document.body.append(notice)}
@@ -109,12 +172,14 @@
     }
    }
    latest.results[String(context.week)]=games;
+   delete latest.activeGame;
    await window.DieBallAccount.saveSeason(latest);
+   try{if(localKey)localStorage.removeItem(localKey)}catch{}
    saved=true;notice.textContent='✓ Week '+(context.week+1)+' saved. Return to Season for updated standings.';
    const link=document.createElement('a');link.href='/season.html';link.textContent=' VIEW SEASON →';
    link.style.cssText='color:#fff2af;text-decoration:underline;margin-left:5px';notice.append(link);
   }catch(err){notice.textContent='Season save failed: '+(err.message||err)+'. Please keep this game open and tap to retry.';notice.style.cursor='pointer';notice.onclick=()=>{saving=false;finish()}}
-  finally{saving=false}
+  finally{saving=false;if(!saved)haltSaves=false}
  }
  window.finishSeasonGame=finish;
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',begin);else begin();
