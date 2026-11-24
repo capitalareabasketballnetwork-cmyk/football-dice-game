@@ -2,7 +2,7 @@
 /* Connect the Season dashboard to the existing full DieBall CPU match rules. */
 (function(){
  const params=new URLSearchParams(location.search);
- if(params.get('seasonGame')!=='1')return;
+ if(!location.pathname.endsWith('/season-play.html')&&params.get('seasonGame')!=='1')return;
  let launched=false,saving=false,saved=false,context=null;
  function currentWeek(s){let n=0;while(s.results[String(n)])n++;return n}
  function deterministicScore(team,week,salt){
@@ -36,10 +36,39 @@
    context={season,week,match,opponent,me:my};
    window.seasonTeamName=my.city+' '+my.name;
    window.seasonOpponentName=opponent.city+' '+opponent.name;
+   const home=season.teams[match.home],away=season.teams[match.away];
+   window.seasonHomeName=home.city+' '+home.name;
+   window.seasonAwayName=away.city+' '+away.name;
+   window.seasonIsAway=match.away===season.userTeamId;
    gameDrivesPerTeam=season.drives;
    currentMode='cpu';teamNames=[window.seasonTeamName,window.seasonOpponentName];
    document.getElementById('cpuName').textContent=window.seasonOpponentName;
-   enterGame();seasonHeader();render();
+   enterGame();
+   const scorebar=document.querySelector('#bodymode .scorebar');
+   if(window.seasonIsAway){
+    scorebar.classList.add('season-away');
+    const guest=scorebar.querySelector('.mini-team:not(.opponent)');
+    const host=scorebar.querySelector('.mini-team.opponent');
+    // Visual scoreboard only. The underlying CPU game keeps the player as side 0.
+    scorebar.insertBefore(host,guest);
+    host.style.gridColumn='1';
+    host.style.justifyContent='flex-start';
+    guest.style.gridColumn='2';
+    guest.style.justifyContent='flex-end';
+   }
+   scorebar.classList.add('season-scoreboard');
+   const homeBox=scorebar.querySelector(window.seasonIsAway?'.mini-team.opponent':'.mini-team:not(.opponent)');
+   const awayBox=scorebar.querySelector(window.seasonIsAway?'.mini-team:not(.opponent)':'.mini-team.opponent');
+   function putBadge(box,label){
+    let badge=box.querySelector('.season-side-label');
+    if(!badge){badge=document.createElement('small');badge.className='season-side-label';box.append(badge)}
+    badge.textContent=label;
+   }
+   putBadge(homeBox,'HOME');
+   putBadge(awayBox,'AWAY');
+   seasonHeader();render();
+   const loading=document.getElementById('seasonLaunching');
+   if(loading)loading.remove();
    if(document.getElementById('walkthrough'))document.getElementById('walkthrough').style.display='none';
    let info=document.createElement('div');info.id='seasonMatchInfo';
    info.textContent='SEASON · WEEK '+(week+1)+' · '+(match.home===season.userTeamId?'HOME':'AWAY')+' vs '+window.seasonOpponentName;
