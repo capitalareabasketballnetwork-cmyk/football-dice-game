@@ -107,6 +107,13 @@
  .season-scores-row .weekly-games .week-game{min-height:90px;padding:11px 12px}
  .season-scores-row .week-game .match-row{font-size:12px}
 }
+
+/* Spotlight the user's playoff seed without obscuring the bracket. */
+.playoff-team.playoff-user-team{display:block;background:#1e6138;border:1px solid #adff8e;box-shadow:0 0 13px #6bff874d,inset 0 0 7px #a7ff7633;border-radius:6px;padding:6px 5px;margin:-4px -3px;color:#f5ffdf;font-weight:900}
+.playoff-team .playoff-you{display:inline-block;font-size:8px;background:#baff91;color:#16321a;border-radius:4px;padding:3px 4px;margin-left:3px;letter-spacing:.3px}
+.playoff-user-status{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;border:1px solid #73b987;border-radius:9px;background:#1c472c;padding:11px 13px;font-size:12px}
+.playoff-user-status span{font-weight:900}.playoff-user-status strong{font-size:11px;color:#c0ff9e;letter-spacing:.5px}
+.playoff-user-status.outside{border-color:#8c8557;background:#342f1d}.playoff-user-status.outside strong{color:#eedda0}
 </style><script defer src="/auth.js"></script><script defer src="/us-state-paths.js"></script><script defer src="/season.js"></script></head>
 <body><div class="page"><header class="top"><a class="logo" href="/">Die<em>Ball.</em><small>DFL · SEASON MODE</small></a><a href="/">← MAIN MENU</a></header>
 <section id="auth" class="card" hidden><div class="eyebrow">SIGN IN REQUIRED</div><h1>Your season. Your legacy.</h1><p class="muted">You need a DieBall account to create a team and save your season progress across devices.</p><a class="button" href="/account">SIGN IN / CREATE ACCOUNT</a><p id="authError" class="status"></p></section>
