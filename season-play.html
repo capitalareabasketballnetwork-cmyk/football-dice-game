@@ -1,0 +1,1187 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b2116"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="DieBall"><link rel="manifest" href="/manifest.webmanifest"><link rel="icon" type="image/svg+xml" href="/icon.svg"><title>DieBall Season Game — Football Strategy</title><style>
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,sans-serif;background:#07160f;color:#f1f9ee}button,select{font:inherit}button{cursor:pointer;border:0}button:disabled{opacity:.35;cursor:not-allowed}.app{max-width:1540px;margin:auto;height:100dvh;min-height:690px;display:flex;flex-direction:column;padding:12px 18px;gap:10px}.header{display:flex;align-items:center;justify-content:space-between;gap:12px}.logo{font-size:25px;letter-spacing:-1.5px;font-weight:1000}.logo span{color:#a9f675}.tag{font-size:10px;letter-spacing:2px;color:#a3baa8;font-weight:800}.header-right{display:flex;gap:9px;align-items:center}.mode{display:flex;border:1px solid #376147;border-radius:99px;padding:3px;background:#0d2619}.mode button{color:#a3b6a8;border-radius:99px;background:transparent;padding:7px 12px;font-size:12px;font-weight:800}.mode button.on{background:#b8f57d;color:#10321b}.smallbtn{border:1px solid #34543d;color:#c4e2c9;background:#143020;border-radius:10px;padding:9px 11px;font-weight:700;font-size:12px}.scorebar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:16px;background:linear-gradient(100deg,#173c27,#0e271a,#173c27);border:1px solid #345d3f;border-radius:15px;padding:8px 18px}.team{display:flex;gap:14px;align-items:center;font-weight:900}.team.right{justify-content:flex-end}.avatar{width:38px;height:38px;display:grid;place-items:center;background:#274f30;border:1px solid #54845a;border-radius:11px;font-size:20px}.score{font-size:32px;font-weight:1000;line-height:1}.center{text-align:center}.center b{font-size:13px}.center small{display:block;color:#a9c3ae;margin-top:2px;font-weight:700}.name{font-size:11px;color:#bfd7bd;letter-spacing:1px}.fieldbox{flex:1;min-height:190px;max-height:43vh;border-radius:17px;border:2px solid #46764b;position:relative;overflow:hidden;background:#155b31;transition:box-shadow .35s,border-color .35s}.fieldbox.glow{border-color:#c1ff79;box-shadow:0 0 24px #8fe76185,inset 0 0 28px #9df06a55}.field{height:100%;width:100%;display:flex;position:relative;background:repeating-linear-gradient(90deg,#216a3e 0 10%,#256f42 10% 20%)}.end{width:8%;background:#123b25;display:grid;place-items:center;writing-mode:vertical-rl;font-size:clamp(13px,2vw,22px);font-weight:1000;letter-spacing:.18em;color:#a5c4a4}.turf{position:relative;width:84%;background:repeating-linear-gradient(90deg,transparent 0 calc(10% - 1px),#ffffff78 calc(10% - 1px) 10%)}.numbers{position:absolute;top:11%;width:100%;display:flex;justify-content:space-around;font-weight:900;font-size:clamp(10px,1.4vw,20px);color:#ffffffa0}.bottomnums{top:auto;bottom:11%}.marker{position:absolute;top:0;bottom:0;width:3px;z-index:2}.marker.los{background:#79dbff;box-shadow:0 0 8px #7cdaff}.marker.first{background:#ffdf68;box-shadow:0 0 8px #ffe064}.football{position:absolute;top:50%;transform:translate(-50%,-50%) rotate(-24deg);width:24px;height:15px;border:2px solid white;background:#9b5c2f;border-radius:60%;z-index:3;box-shadow:0 0 10px white}.fieldlabels{position:absolute;bottom:9px;left:15px;right:15px;display:flex;justify-content:space-between;color:#ecffef;font-size:11px;font-weight:850;text-shadow:0 1px 5px #000}.work{display:grid;grid-template-columns: minmax(0,1.22fr) minmax(0,.94fr) minmax(0,.9fr);gap:10px;min-height:256px;height:34%;max-height:385px}.panel{border:1px solid #315f41;border-radius:14px;background:#102b1c;padding:13px;min-width:0;display:flex;flex-direction:column;gap:9px;overflow:hidden}.panel h3{font-size:12px;text-transform:uppercase;letter-spacing:1.3px;margin:0;color:#bce4be}.switch{display:flex;background:#092116;border:1px solid #386448;border-radius:12px;position:relative;padding:4px;gap:4px}.switch button{flex:1;padding:9px;background:transparent;color:#b2c9b4;border-radius:9px;font-weight:900;font-size:13px;display:flex;justify-content:center;gap:6px;align-items:center}.switch button.active{background:#c2fa87;color:#14321a;box-shadow:0 0 12px #aefa5b35}.bubble{display:grid;place-items:center;background:#295d36;color:#d8ffb3;width:21px;height:21px;border-radius:50%;font-size:12px}.switch .active .bubble{background:#29542c;color:#fff}.dicearea{display:flex;align-items:center;gap:8px;justify-content:space-between}.dicegroup{display:flex;gap:5px;align-items:center}.die{width:39px;height:39px;background:#f7fff0;border:2px solid #c2eebf;border-radius:9px;display:grid;place-items:center;box-shadow:inset 0 -4px #c5dfc5,0 2px 4px #0005}.die.roll{animation:spin .65s ease-in-out 2}@keyframes spin{0%{transform:rotate(0) scale(1)}30%{transform:rotate(80deg) scale(.8)}70%{transform:rotate(300deg) scale(1.14)}100%{transform:rotate(360deg) scale(1)}}.pips{width:25px;height:25px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:2px}.pip{width:6px;height:6px;border-radius:50%;background:#183d25;margin:auto}.pip.off{visibility:hidden}.total{font-size:11px;color:#b3c7b6;text-align:right}.total strong{display:block;font-size:21px;color:#fff}.net{padding:9px;border-radius:10px;font-size:22px;font-weight:1000;text-align:center;background:#244331;color:#a5dabc}.net.pos{background:#18522d;color:#b5ff9d}.net.neg{background:#632e2b;color:#ffd5d0}.mainbtn{width:100%;background:#b8fa7c;color:#102d18;font-weight:1000;padding:11px;border-radius:10px}.actions{display:flex;gap:6px}.actions button{flex:1;border-radius:9px;font-size:11px;padding:8px 4px;background:#1e4930;border:1px solid #3a714c;color:#d1eccc;font-weight:850}.cards{display:flex;gap:7px;align-items:center;min-height:85px}.card{background:#f7fff7;color:#193c25;border:2px solid #b8d1bb;width:55px;height:76px;border-radius:7px;position:relative;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:1000;box-shadow:inset 0 0 0 3px white,0 4px 9px #0005}.card:before{content:'D';font-size:10px;position:absolute;top:5px;left:6px;font-weight:900;color:#45704b}.card:after{content:'◆';font-size:11px;position:absolute;bottom:5px;right:6px;color:#45704b}.card.chosen{transform:translateY(-8px);border-color:#cfff78;box-shadow:0 0 16px #b3f56a85}.muted{font-size:11px;line-height:1.45;color:#9db8a2}.status{background:#0c2217;border:1px solid #2d4d35;padding:9px;border-radius:9px;color:#dcf2d9;font-size:12px;line-height:1.4;min-height:40px}.log{overflow:auto;min-height:0;flex:1;font-size:11px;color:#abc2ad}.log div{border-bottom:1px solid #2c4833;padding:7px 0}.buttons{display:flex;gap:6px;flex-wrap:wrap}.buttons button{background:#214a30;border:1px solid #417250;color:#e2f3df;border-radius:8px;padding:8px;font-size:12px;font-weight:800}.buttons button.strong{background:#b7f67e;color:#16341b}.overlay{position:fixed;inset:0;background:#06110bcf;backdrop-filter:blur(6px);z-index:20;display:none;align-items:center;justify-content:center;padding:16px}.overlay.open{display:flex}.modal{background:linear-gradient(140deg,#1e4c2d,#102819);border:1px solid #73a764;border-radius:20px;box-shadow:0 22px 80px #0009;width:min(440px,95vw);padding:23px}.modal h2{margin:0 0 9px;font-size:23px}.modal p{color:#c0d8c4;font-size:13px}.modal .cards{margin:18px 0}.meter{height:28px;background:#314437;border-radius:8px;overflow:hidden;position:relative}.zone{height:100%;background:#73e898;position:absolute;left:50%;transform:translateX(-50%)}.needle{height:100%;width:4px;background:white;box-shadow:0 0 8px white;position:absolute;top:0}.extra{display:flex;justify-content:space-between;gap:10px}.extra select{border:1px solid #43694c;background:#1b3926;color:white;border-radius:8px;padding:5px;font-size:11px}input[type=range]{width:100%;accent-color:#b6f87d}.phone .app{max-width:450px;border:5px solid #3b6143;border-radius:28px;min-height:0;height:calc(100dvh - 14px);margin:7px auto;padding:8px;overflow:auto}.phone .work{display:flex;flex-direction:column;height:auto;max-height:none;min-height:0}.phone .panel{min-height:185px;overflow:visible}.phone .fieldbox{height:230px;flex:none}.phone .scorebar{padding:7px}.phone .logo{font-size:22px}.phone .tag{display:none}.phone .dicearea{justify-content:space-between}.phone .app{font-size:12px}@media(max-width:850px){.app{height:auto;min-height:100dvh}.work{grid-template-columns:1fr 1fr;height:auto;max-height:none}.work .panel:first-child{grid-column:span 2}.fieldbox{height:280px;flex:none}}@media(max-width:550px){.work{display:flex;flex-direction:column}.panel{min-height:170px}.fieldbox{height:225px}.name{font-size:10px}.header-right{gap:4px}.mode button{padding:6px 7px}.logo{font-size:22px}}
+
+/* DieBall V2.1 — responsive single-viewport desktop and boxed mobile sections */
+.cpu-title{display:inline-flex;align-items:center;border:1px solid #6ca36b;background:#1c4c2c;border-radius:8px;padding:5px 9px;color:#d9ffc8;font-size:12px;white-space:nowrap}
+@media(min-width:851px){
+html,body,#bodymode{height:100%;overflow:hidden}
+.app{height:100dvh;min-height:0;padding:9px 14px;gap:7px;overflow:hidden}
+.header{flex:0 0 auto;min-height:38px}
+.scorebar{flex:0 0 auto;padding:6px 13px}
+.fieldbox{flex:1 1 auto;min-height:130px;max-height:none}
+.work{flex:0 0 clamp(268px,39vh,355px);height:auto;max-height:none;min-height:0;gap:8px}
+.panel{min-height:0;padding:10px;gap:6px}
+.panel h3{font-size:11px}
+.die{width:clamp(30px,4.5vh,39px);height:clamp(30px,4.5vh,39px)}
+.pips{transform:scale(.9)}
+.card{width:clamp(40px,5.5vh,55px);height:clamp(56px,8vh,76px)}
+.mainbtn{padding:8px}
+.status{padding:7px;min-height:30px;font-size:11px}
+.dicearea{min-height:32px}
+.net{padding:6px;font-size:20px}
+.panel .log{min-height:0;overflow-y:auto}
+}
+.phone .app{height:calc(100dvh - 14px);min-height:0;max-width:450px;overflow-y:auto;gap:10px}
+.phone .work{display:flex;flex-direction:column;flex:none;height:auto;min-height:0;max-height:none;gap:12px}
+.phone .panel{background:linear-gradient(155deg,#17422a,#0c2518);border:2px solid #477650;border-radius:16px;box-shadow:0 6px 18px #0004;padding:14px;min-height:0;overflow:visible;gap:12px}
+.phone .panel h3{font-size:13px;padding-bottom:8px;border-bottom:1px solid #456f4b}
+.phone .fieldbox{height:215px;min-height:215px;max-height:none;flex:none}
+.phone .scorebar{border:2px solid #507b54;border-radius:16px;background:#163b27}
+.phone .dicearea{min-height:47px}
+.phone .status{font-size:12px}
+.phone .log{max-height:170px;overflow-y:auto;flex:none}
+.phone .cards{min-height:86px}
+@media(max-width:850px){
+body:not(:has(.phone)){overflow:auto}
+.app{height:auto;min-height:100dvh;overflow:visible}
+.work{height:auto;min-height:0;max-height:none}
+.panel{background:#12341f;border:2px solid #426c49;border-radius:15px;min-height:220px}
+}
+@media(max-width:550px){
+.work{gap:11px}
+.work .panel{min-height:0;padding:13px;border:2px solid #477650;background:linear-gradient(150deg,#17422a,#0c2518)}
+.work .panel h3{border-bottom:1px solid #477650;padding-bottom:7px}
+.scorebar{border-radius:13px}
+}
+
+/* Larger opposing team scoreboards with live field position and down / distance */
+.scorebar{grid-template-columns:minmax(0,1fr) minmax(105px,.3fr) minmax(0,1fr);gap:12px;padding:7px 10px}
+.team-score-box{min-width:0;border:2px solid #3e7049;background:linear-gradient(145deg,#1c452b,#102d1e);border-radius:15px;padding:10px 14px;display:flex;flex-direction:column;gap:9px;transition:border-color .3s,box-shadow .3s}
+.team-score-box.possessing{border-color:#b7f57e;box-shadow:0 0 15px #a4ed6c40}
+.team-score-top{display:flex;align-items:center;gap:12px;min-width:0}
+.team-score-top .score{font-size:clamp(29px,3.1vw,48px);margin-left:auto}
+.team-score-top .avatar{width:42px;height:42px;flex:0 0 42px}
+.team-name{display:flex;flex-direction:column;gap:3px;min-width:0}
+.team-name span{font-size:10px;font-weight:800;letter-spacing:1.4px;color:#a7c2a8}
+.team-name strong{font-size:clamp(12px,1.45vw,19px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.team-data{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.team-data>div{min-width:0;padding:8px 10px;background:#0b2819;border:1px solid #366d44;border-radius:10px}
+.team-data span{display:block;color:#a8c4aa;font-size:9px;letter-spacing:.8px;font-weight:800;margin-bottom:4px}
+.team-data strong{display:block;font-size:clamp(14px,1.5vw,21px);font-weight:1000;color:#efffe7;white-space:nowrap}
+.scorebar .center b{font-size:13px}
+@media(min-width:851px){
+.scorebar{padding:5px 9px;gap:9px}
+.team-score-box{padding:7px 10px;gap:6px}
+.team-score-top .avatar{height:35px;width:35px;flex-basis:35px}
+.team-data>div{padding:6px 9px}
+.fieldbox{min-height:118px}
+}
+@media(max-width:620px){
+.scorebar{grid-template-columns:1fr 1fr;gap:7px;padding:7px}
+.scorebar .center{grid-column:1/-1;grid-row:1;display:flex;justify-content:space-between;align-items:center;padding:3px 5px}
+.scorebar .center small{margin:0}
+.team-score-box{padding:8px;gap:7px}
+.team-score-top{gap:6px}
+.team-score-top .avatar{width:27px;height:27px;flex-basis:27px;font-size:15px}
+.team-score-top .score{font-size:26px}
+.team-name span{font-size:8px}
+.team-name strong{font-size:11px}
+.team-data{grid-template-columns:1fr;gap:5px}
+.team-data>div{padding:6px}
+.team-data strong{font-size:14px}
+.team-data span{font-size:8px}
+}
+
+/* Compact scoreboard, two-panel layout and bottom situational strip */
+.scorebar.compact{grid-template-columns:1fr auto 1fr;gap:12px;padding:7px 14px;border-radius:12px}
+.mini-team{display:flex;align-items:center;gap:14px;font-weight:900;min-width:0}
+.mini-team span{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini-team strong{font-size:29px;line-height:1;color:#e5ffd3}
+.mini-team.opponent{justify-content:flex-end}
+.scorebar.compact .center small{font-size:10px}
+.work{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.compact-net{align-self:center;min-width:86px;max-width:130px;padding:5px 14px;font-size:24px;line-height:1.2}
+.bottom-status{display:flex;align-items:center;flex-wrap:wrap;gap:8px;background:#102d1d;border:1px solid #426e48;border-radius:13px;padding:8px 12px;flex:0 0 auto}
+.status-item{display:flex;align-items:center;gap:9px;padding:6px 12px;border-radius:10px;background:#0a2015;border:1px solid #356844}
+.status-item span{color:#a9c0a9;font-size:10px;font-weight:800;letter-spacing:.6px}
+.status-item strong{color:#f5ffe8;font-size:18px;white-space:nowrap}
+.status-item.slim strong{font-size:13px}
+.footer-actions{display:flex;gap:8px;margin-left:auto}
+.footer-actions button{background:#b9f884;color:#122e1c;padding:9px 15px;border-radius:9px;font-weight:900;cursor:pointer}
+.last-move{position:absolute;inset:0;z-index:2;pointer-events:none}
+.prior-line{position:absolute;top:0;bottom:0;border-left:3px dashed #fff9;filter:drop-shadow(0 0 3px #fff8)}
+.move-arrow{position:absolute;top:52%;height:4px;min-width:2px;transform:translateY(-50%);color:#88ffa2;background:currentColor;filter:drop-shadow(0 0 5px currentColor)}
+.move-arrow.backward{color:#ff6868}
+.move-arrow:after{content:'';position:absolute;top:50%;transform:translateY(-50%);border-top:9px solid transparent;border-bottom:9px solid transparent}
+.move-arrow.rightward:after{right:-1px;border-left:14px solid currentColor}
+.move-arrow.leftward:after{left:-1px;border-right:14px solid currentColor}
+.move-arrow span{position:absolute;top:-31px;left:50%;transform:translateX(-50%);background:#081c12dc;border:1px solid currentColor;padding:3px 6px;border-radius:7px;color:inherit;font-size:11px;font-weight:900;white-space:nowrap}
+.card-reveal{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
+.card-reveal>div{background:#0b281a;border:1px solid #52845d;padding:10px;border-radius:12px;min-width:0}
+.card-reveal b{font-size:12px}.card-reveal .cards{gap:4px;flex-wrap:wrap}.card-reveal .card{width:42px;height:60px;font-size:24px}.card-reveal span{font-size:12px;color:#b9d0b9}
+.reveal-net{text-align:center;font-size:30px;font-weight:1000;border-radius:12px;padding:12px;background:#24562f;color:#b6ff9c}
+.reveal-net.loss{background:#612f30;color:#ffcaca}
+.reveal-net small{display:block;font-size:12px;font-weight:700}
+@media(min-width:851px){.scorebar.compact{padding:4px 12px}.work{flex-basis:clamp(235px,36vh,320px)}.bottom-status{padding:5px 10px}.status-item{padding:5px 9px}}
+@media(max-width:650px){.scorebar.compact{gap:5px}.mini-team{gap:5px}.mini-team span{font-size:11px}.mini-team strong{font-size:23px}.bottom-status{display:grid;grid-template-columns:1fr 1fr}.status-item{display:flex;flex-direction:column;align-items:flex-start}.status-item.slim{grid-column:span 2}.footer-actions{grid-column:span 2;margin:0}.footer-actions button{flex:1}.card-reveal .card{width:35px;height:52px}}
+.phone .work{display:flex;flex-direction:column}.phone .bottom-status{display:grid;grid-template-columns:1fr 1fr}.phone .status-item{flex-direction:column;align-items:flex-start}.phone .status-item.slim,.phone .footer-actions{grid-column:span 2}.phone .footer-actions{margin:0}.phone .footer-actions button{flex:1}
+
+/* v2.4: stacked, color-coded situational cards beside penalty cards */
+.work{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(180px,.78fr);gap:10px}
+.situation-stack{display:flex;flex-direction:column;gap:10px;min-width:0;min-height:0}
+.situation-card{flex:1;min-height:88px;padding:15px 18px;border:2px solid #548967;border-radius:15px;display:flex;flex-direction:column;justify-content:center;gap:8px;background:linear-gradient(140deg,#1c4a30,#103322);box-shadow:0 5px 15px #0003}
+.situation-card>span{font-weight:900;letter-spacing:1.3px;font-size:11px;opacity:.83}
+.situation-card>strong{font-weight:1000;letter-spacing:-.7px;font-size:clamp(25px,2.7vw,40px);white-space:nowrap;line-height:1.12}
+.down-card{transition:background .28s ease,border-color .28s ease,color .28s ease}
+.down-card.down-1{background:linear-gradient(135deg,#133924,#0c291a);border-color:#367a4b;color:#e9ffed}
+.down-card.down-2{background:linear-gradient(135deg,#69bb71,#a6e68a);border-color:#c0f5a5;color:#102f1a}
+.down-card.down-3{background:linear-gradient(135deg,#e2b735,#ffe37a);border-color:#ffefaf;color:#342900}
+.down-card.down-4{background:linear-gradient(135deg,#a92f32,#e55748);border-color:#f68678;color:#fff4ef}
+.down-card.down-neutral{background:linear-gradient(135deg,#244d33,#173622);border-color:#558866;color:#e8ffeb}
+.situational-actions{display:flex;gap:7px;flex-wrap:wrap}
+.situational-actions button{flex:1;background:#b9f884;color:#102a17;border:0;border-radius:9px;font-weight:900;padding:10px;white-space:nowrap}
+@media(min-width:851px){.work{flex-basis:clamp(255px,36vh,330px)}.situation-card{min-height:0;padding:10px 13px;gap:6px}.situation-card>strong{font-size:clamp(24px,2.5vw,38px)}}
+@media(max-width:850px){.work{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.work .panel:first-child{grid-column:1/-1}.situation-stack{grid-column:2;grid-row:2}.work .panel:nth-child(2){grid-column:1;grid-row:2}.situation-card{min-height:105px}}
+@media(max-width:550px){.work{display:grid;grid-template-columns:minmax(0,1fr) minmax(135px,.72fr);gap:9px}.work .panel:first-child{grid-column:1/-1}.work .panel:nth-child(2){grid-column:1;grid-row:2}.situation-stack{grid-column:2;grid-row:2;gap:9px}.situation-card{padding:9px 8px;min-height:90px;border-radius:13px}.situation-card>span{font-size:9px;letter-spacing:.7px}.situation-card>strong{font-size:clamp(17px,5vw,24px)}.situational-actions button{padding:8px 4px;font-size:10px}.work .panel:nth-child(2) .cards{gap:3px;flex-wrap:wrap}.work .panel:nth-child(2) .card{width:37px;height:53px;font-size:20px}}
+.phone .work{display:grid;grid-template-columns:minmax(0,1fr) minmax(132px,.72fr);gap:10px}
+.phone .work .panel:first-child{grid-column:1/-1}
+.phone .work .panel:nth-child(2){grid-column:1;grid-row:2;min-width:0}
+.phone .situation-stack{grid-column:2;grid-row:2;gap:10px}
+.phone .situation-card{padding:10px;min-height:96px;border-radius:15px}
+.phone .situation-card>span{font-size:9px;letter-spacing:.6px}
+.phone .situation-card>strong{font-size:clamp(17px,4.5vw,26px)}
+.phone .work .panel:nth-child(2) .cards{flex-wrap:wrap}
+.phone .work .panel:nth-child(2) .card{width:39px;height:55px;font-size:22px}
+
+/* Compact play controls */
+.play-panel{gap:7px}
+.play-head{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:27px}
+.tiny-switch{width:auto;flex:none;padding:2px;gap:2px;border-radius:10px}
+.tiny-switch button{flex:none;padding:5px 8px;font-size:10px;border-radius:7px;gap:5px;min-height:26px}
+.tiny-switch .bubble{width:17px;height:17px;font-size:10px}
+.dice-stack{display:flex;flex-direction:column;gap:8px;justify-content:center;flex:1;min-height:0}
+.compact-dice{display:flex;gap:7px;align-items:center;justify-content:flex-start;flex-wrap:nowrap}
+.dice-caption{width:66px;flex:0 0 66px;font-size:10px;font-weight:900;letter-spacing:.6px;color:#b9dabc}
+.compact-dice .dicegroup{gap:4px;flex:none}
+.compact-dice .die{width:clamp(29px,3vw,36px);height:clamp(29px,3vw,36px);border-radius:8px}
+.compact-dice .pips{transform:scale(.82)}
+.equals{font-size:19px;font-weight:900;color:#98bda4}
+.dice-total{min-width:24px;font-size:23px;font-weight:1000;color:#fff;text-align:center}
+.compact-dice .compact-net{margin-left:auto;flex:0 0 auto;min-width:54px;max-width:75px;padding:5px 8px;font-size:20px;line-height:1.1}
+.kick-actions{display:flex;flex:0 0 auto;gap:8px}
+.kick-actions button{padding:9px;min-height:34px;font-size:11px;white-space:nowrap}
+.play-panel .mainbtn{flex:0 0 auto;padding:9px}
+/* Field celebration overlay and fumble recovery */
+.field-announcement{position:absolute;inset:0;z-index:12;display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;pointer-events:none;background:#140b0b55;text-align:center;padding:14px}
+.field-announcement.visible{display:flex;animation:announce-in .22s ease-out}
+.field-announcement.success{background:#0c2c1466}
+.announcement-title{color:#fff;font-weight:1000;font-size:clamp(25px,4.6vw,66px);letter-spacing:-1.5px;text-transform:uppercase;text-shadow:0 3px 20px #000}
+.field-announcement.danger .announcement-title{color:#ffe7e7;text-shadow:0 0 20px #ff4646,0 3px 16px #220a0a}
+.field-announcement.success .announcement-title{color:#dbffd2;text-shadow:0 0 18px #65ff87,0 3px 16px #0a2212}
+.announcement-sub{font-size:clamp(12px,1.5vw,17px);font-weight:800;color:#f4fff1;text-shadow:0 1px 9px #000}
+.recovery-slot:empty{display:none}
+.recovery-slot .die{width:clamp(48px,8vh,75px);height:clamp(48px,8vh,75px);border-width:3px;box-shadow:0 0 25px #fff7}
+.recovery-slot .pips{transform:scale(1.5)}
+.fieldbox.red-glow{border-color:#ff5454;box-shadow:0 0 29px #f33a3a,inset 0 0 85px #fa29297a}
+.fieldbox.green-glow{border-color:#8dff9d;box-shadow:0 0 28px #52ff79,inset 0 0 82px #39e96980}
+@keyframes announce-in{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+@media(max-width:550px){.dice-caption{width:55px;flex-basis:55px;font-size:9px}.compact-dice .die{width:29px;height:29px}.compact-dice{gap:5px}.compact-dice .dice-total{font-size:19px}.compact-dice .compact-net{min-width:45px;font-size:18px}.play-head{flex-wrap:nowrap}.tiny-switch button{padding:5px}.announcement-title{font-size:clamp(25px,7vw,42px)}}
+.phone .dice-caption{width:57px;flex-basis:57px}.phone .compact-dice .die{width:30px;height:30px}.phone .play-panel{min-height:0}.phone .dice-stack{gap:10px}
+
+/* v2.6 Game feel, team context, and scoring celebrations */
+.card:after{content:none!important}.card:before{content:'PC'!important;color:#8e6507!important;font-size:10px!important;font-weight:1000!important;letter-spacing:.5px}.card{background:#fff3c2!important;color:#44310b!important;border-color:#d7b64e!important;box-shadow:inset 0 0 0 3px #fff8d7,0 4px 9px #0005!important}.card.chosen{border-color:#f8d64c!important;box-shadow:0 0 16px #f3d14c88!important}
+.compact-dice .compact-net{flex:1 1 auto;max-width:none;min-width:75px;font-size:clamp(22px,2.3vw,34px);padding:10px 12px}
+.dice-stack{position:relative;gap:8px}
+.dice-focus{position:absolute;top:0;left:0;right:0;height:calc((100% - 8px)/2);background:linear-gradient(90deg,#2a7740ad,#1c4d2e91);border:1px solid #80d68f;border-radius:12px;transition:transform .65s cubic-bezier(.2,.82,.22,1),background .4s;box-shadow:0 0 15px #39dc7340;pointer-events:none}
+.dice-focus.defending{transform:translateY(calc(100% + 8px))}
+.dice-stack .compact-dice{position:relative;z-index:1;padding:5px 7px;min-height:49px}
+.dice-stack .dice-caption{color:#ddffe4}
+.play-panel .tiny-switch button:disabled{opacity:.55}
+.field-announcement.gold{background:#6b430b76}
+.field-announcement.gold .announcement-title{color:#fff4b9;text-shadow:0 0 19px #ffdc57,0 3px 22px #68420c}
+.fieldbox.gold-glow{border-color:#ffd45c;box-shadow:0 0 30px #ffd149,inset 0 0 90px #eebd328c}
+.cpu-card-count{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:14px 10px;margin:10px 0;background:#692f2f;border:2px solid #ff9999;border-radius:15px;color:white;box-shadow:0 0 22px #ff55553d}
+.cpu-card-count span{font-size:12px;font-weight:900;letter-spacing:1.5px}
+.cpu-card-count strong{font-size:clamp(52px,12vw,92px);line-height:1;font-weight:1000}
+@media(max-width:550px){.compact-dice .compact-net{font-size:22px;min-width:51px;padding:7px}.dice-stack .compact-dice{padding:4px;gap:3px}.dice-focus{height:calc((100% - 8px)/2)}}
+
+/* DieBall app entry and full-height, bordered net result */
+.dice-stack{display:grid;grid-template-columns:minmax(0,1fr) minmax(92px,.27fr);grid-template-rows:1fr 1fr;gap:7px 8px}
+.dice-stack .compact-dice{grid-column:1;min-width:0}
+.dice-stack .compact-dice:first-of-type{grid-row:1}
+.dice-stack .compact-dice:nth-of-type(2){grid-row:2}
+.dice-focus{width:calc(100% - 100px);right:auto}
+.net-across{grid-column:2;grid-row:1 / span 2;align-self:stretch;width:100%;height:100%;max-width:none!important;min-width:0!important;display:flex;align-items:center;justify-content:center;border:2px solid #5d956f!important;border-radius:13px;font-size:clamp(28px,3vw,47px)!important;font-weight:1000!important;box-shadow:inset 0 0 18px #0003}
+.net-across.pos{border-color:#8ceba3!important}.net-across.neg{border-color:#ff8585!important}
+.dice-stack .dice-focus{width:calc(100% - 102px)}
+.home-screen{min-height:100dvh;padding:clamp(18px,3vw,38px);background:radial-gradient(circle at 13% 67%,#1c563342,transparent 45%),radial-gradient(circle at 90% 14%,#2d71322b,transparent 38%),#09170f;display:flex;flex-direction:column;gap:30px}
+.home-top,.home-foot{display:flex;justify-content:space-between;align-items:center;gap:20px;max-width:1420px;width:100%;margin:0 auto}
+.home-logo{font-weight:1000;font-size:clamp(30px,4vw,43px);letter-spacing:-2px}.home-logo span{color:#adf176}
+.home-account-btn{border-radius:10px;background:#1e3e29;color:#e9fce5;border:1px solid #4c8054;font-weight:800;padding:12px 20px}.home-account-btn span{margin-left:12px}
+.home-body{flex:1;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(340px,.95fr);gap:clamp(20px,5vw,90px);align-items:center;max-width:1420px;width:100%;margin:auto}
+.home-hero .eyebrow{color:#bbfa87;letter-spacing:2.4px;font-size:11px;font-weight:900}
+.home-hero h1{font-weight:1000;line-height:.98;letter-spacing:-5px;font-size:clamp(53px,6.2vw,102px);margin:18px 0 22px}
+.home-hero h1 em{font-style:normal;color:#b4f180}
+.home-hero p{color:#bbd5c1;font-size:clamp(15px,1.4vw,20px);max-width:440px;line-height:1.6}
+.home-tags{display:flex;flex-wrap:wrap;gap:9px;margin-top:30px}
+.home-tags span{font-size:10px;letter-spacing:1px;font-weight:900;color:#d3e9d6;background:#193b25;border:1px solid #386947;border-radius:6px;padding:9px 11px}
+.mode-select{background:#102719;border:1px solid #345a3c;border-radius:22px;padding:clamp(20px,2.3vw,34px);box-shadow:0 20px 60px #0003}
+.mode-select h2{font-size:13px;letter-spacing:2px;color:#b4d9ba;margin:0 0 20px}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.mode-tile{text-align:left;min-height:178px;display:flex;flex-direction:column;align-items:flex-start;gap:7px;border:1px solid #427750;border-radius:14px;padding:17px;background:linear-gradient(135deg,#1f482c,#14331f);color:white;transition:transform .2s,box-shadow .2s,border-color .2s}
+.mode-tile.active:hover{transform:translateY(-4px);border-color:#c2fa88;box-shadow:0 9px 28px #8fd4702e}
+.mode-tile .mode-icon{font-size:27px;margin-bottom:7px}.mode-tile strong{font-size:16px;letter-spacing:.2px}.mode-tile small{color:#b6cfba;font-size:12px}.mode-arrow{margin-top:auto;color:#c3ff9b;font-size:11px;font-weight:900;letter-spacing:1px}.mode-pill{margin-top:auto;color:#cbd5a8;background:#37452a;padding:5px 7px;border-radius:5px;font-weight:900;font-size:9px;letter-spacing:1px}.mode-tile.unavailable{opacity:.73;border-color:#36533d;background:#162b1c}
+.home-foot{font-size:11px;letter-spacing:1px;font-weight:800;color:#719579}
+.account-overlay{position:fixed;z-index:40;inset:0;background:#030e08d9;backdrop-filter:blur(7px);display:flex;align-items:center;justify-content:center;padding:18px}
+.account-dialog{width:min(460px,100%);border-radius:19px;padding:28px;background:#153423;border:1px solid #61916a;position:relative;box-shadow:0 30px 100px #0009}
+.account-close{position:absolute;right:15px;top:13px;background:#284d32;color:white;border-radius:9px;padding:8px 11px}
+.account-dialog h2{font-size:23px;margin:22px 0 8px}.account-dialog p{color:#b7d1bb;font-size:14px;line-height:1.5}
+.account-dialog label{display:block;margin:18px 0 7px;font-size:11px;font-weight:900;letter-spacing:1px}
+.account-dialog input{width:100%;background:#092015;border:1px solid #608367;border-radius:9px;padding:14px;color:white;font-size:16px;margin-bottom:14px}
+.account-status{color:#caffac;margin:9px 0;font-size:13px}.account-disclaimer{color:#97b59d;font-size:11px;line-height:1.5;margin-top:13px}
+@media(max-width:850px){.home-body{grid-template-columns:1fr;align-content:center;gap:18px}.home-hero h1{font-size:clamp(49px,9vw,75px);letter-spacing:-3px}.home-tags{margin-top:16px}.mode-select{max-width:720px;width:100%}.home-screen{gap:30px}}
+@media(max-width:520px){.home-screen{padding:17px;gap:25px}.home-body{gap:20px}.home-hero h1{font-size:48px;letter-spacing:-2.6px}.home-hero p{font-size:14px}.mode-select{padding:14px}.mode-grid{gap:8px}.mode-tile{min-height:157px;padding:12px}.mode-tile strong{font-size:13px}.mode-tile small{font-size:11px}.home-tags span{font-size:9px}.home-foot{font-size:9px}.dice-stack{grid-template-columns:minmax(0,1fr) 72px}.dice-stack .dice-focus{width:calc(100% - 81px)}.net-across{font-size:25px!important}}
+
+.home-screen{overflow-y:auto;height:auto;min-height:100dvh}
+.home-hero .how-link{display:inline-flex;margin:22px 0 4px;background:#baf884;color:#0d2b19;padding:13px 20px;border-radius:10px;font-weight:1000;text-decoration:none;letter-spacing:.7px;font-size:12px}
+.help-question{display:grid;place-items:center;width:30px;height:30px;border:1px solid #a1db89;border-radius:50%;color:#c6ffac;font-weight:1000;text-decoration:none}
+.local-setup-screen,.walkthrough-overlay{position:fixed;z-index:45;inset:0;background:#06160fe8;backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:18px}
+.local-setup-box,.walkthrough-box{width:min(440px,100%);background:#143522;border:1px solid #75a573;border-radius:18px;padding:28px;position:relative;box-shadow:0 25px 70px #0009}
+.local-setup-box h2,.walkthrough-box h2{font-size:27px}.local-setup-box p,.walkthrough-box p{color:#bed3be;line-height:1.6}
+.local-setup-box label{font-size:11px;font-weight:900;letter-spacing:1.1px;display:block;margin:16px 0}
+.local-setup-box input{display:block;margin-top:7px;background:#092219;border:1px solid #568164;padding:13px;width:100%;border-radius:10px;color:#fff;font-size:16px}
+.walkthrough-step{color:#bbfc87;font-weight:900;letter-spacing:2px;font-size:12px}.walkthrough-box .buttons{margin-top:22px}
+.hidden-card-row{display:inline-flex;gap:4px;vertical-align:middle}
+.hidden-card-label{font-size:10px;font-weight:900;color:#bde3b8}
+.mini-card-back{display:inline-grid;place-items:center;background:#3b6137;border:2px solid #87aa68;color:#d2f5a3;border-radius:4px;width:22px;height:30px;font-size:9px;font-weight:1000;box-shadow:inset 0 0 0 2px #203b27}
+.local-player-panel{background:#133520;border:1px solid #55835b;border-radius:15px;padding:10px;min-height:135px;flex-direction:column;gap:6px}
+.lp-main{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.lp-dice,.lp-cards{background:#0b2616;border:1px solid #386c45;border-radius:11px;display:flex;flex-direction:column;gap:6px;min-width:0;padding:8px}
+.lp-heading{font-size:10px;font-weight:1000;letter-spacing:.7px;display:flex;justify-content:space-between;align-items:center;gap:3px;white-space:nowrap}
+.lp-heading span{color:#b9eba8;font-size:9px}
+.lp-rolls,.lp-card-row{display:flex;align-items:center;gap:3px;min-height:35px;flex-wrap:wrap}
+.lp-rolls .die{width:30px;height:30px;border-radius:7px}
+.lp-rolls .pips{transform:scale(.8)}
+.lp-total{font-size:12px;font-weight:900}
+.lp-card-row .card{width:29px;height:41px;font-size:16px;border-radius:5px}
+.lp-card-row .card:before{font-size:7px!important;top:3px;left:3px}
+.lp-card-row .card-back{background:#35603b!important;color:#e8ffc9!important;border-color:#87a85d!important;font-size:17px}
+.lp-card-row .card-back:before{display:none}
+.lp-ready,.lp-card-play{background:#b8f57d;color:#112b1a;border:0;border-radius:8px;padding:7px 4px;font-size:10px;font-weight:1000;white-space:nowrap}
+.lp-ready:disabled,.lp-card-play:disabled{opacity:.5}
+.eye-toggle{color:#baff97;background:#244b2e;border:1px solid #53835b;border-radius:6px;font-size:16px;line-height:1;padding:3px 6px}
+.local-game .local-player-panel{display:none}
+@media(max-width:600px){
+.local-game.phone .app{height:calc(100dvh - 10px);overflow-y:auto;gap:6px;padding:7px}
+.local-game.phone .local-player-panel{display:flex!important;flex:none}
+.local-game.phone .work{display:none}
+.local-game.phone .fieldbox{height:clamp(140px,27vh,215px);min-height:140px;max-height:none;flex:none}
+.local-game.phone .scorebar{padding:4px}
+.local-game.phone .header{gap:5px}
+.local-game.phone .header-right{gap:4px}
+.local-game.phone .smallbtn{padding:6px;font-size:10px}
+.local-game.phone .lp-rolls .die{width:clamp(25px,7vw,31px);height:clamp(25px,7vw,31px)}
+}
+.phone.local-game .app{height:calc(100dvh - 10px);overflow-y:auto;gap:6px;padding:7px}
+.phone.local-game .local-player-panel{display:flex!important;flex:none}
+.phone.local-game .work{display:none}
+.phone.local-game .fieldbox{height:clamp(150px,24vh,220px);min-height:150px;max-height:none;flex:none}
+
+/* offense stays above defense regardless of possession */
+.dice-stack .offense-dice-row{grid-column:1;grid-row:1}
+.dice-stack .defense-dice-row{grid-column:1;grid-row:2}
+.dice-stack .net-across{grid-column:2;grid-row:1/span 2}
+.dice-focus{grid-row:1;grid-column:1;height:calc((100% - 7px)/2);position:absolute;top:0;left:0;right:auto}
+.dice-focus.defending{transform:translateY(calc(100% + 7px))}
+.field-roll-btn{pointer-events:auto;background:#fff5d4;color:#1e2419;font-weight:1000;border:2px solid #ffdc7b;border-radius:11px;padding:14px 26px;font-size:18px;box-shadow:0 5px 28px #0008;z-index:2}
+.lp-footer{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.lp-footer button{border:1px solid #53885a;background:#204e2d;color:#f4fff0;border-radius:7px;font-size:9px;font-weight:900;padding:6px 7px}
+.lp-play-switch{display:flex;gap:3px}
+.lp-play-switch button.active{background:#c3f987;color:#193c20}
+
+.kickoff-meter-wrap{display:flex;justify-content:center;align-items:stretch;gap:14px;height:280px;margin:17px 0}
+.kickoff-meter{position:relative;width:65px;min-height:270px;border:3px solid #e6ffe1;border-radius:13px;overflow:hidden;background:linear-gradient(to bottom,#e34f50 0%,#e34f50 4%,#ffe678 4%,#ffe678 13%,#225c34 13%,#225c34 23%,#9ee88d 23%,#9ee88d 33%,#f5d759 33%,#f5d759 43%,#d84b4b 43%,#d84b4b 100%);box-shadow:0 0 20px #0009}
+.kickoff-mark{position:absolute;left:0;right:0;top:0;height:5px;background:#fff;box-shadow:0 0 11px #fff,0 0 4px #000;z-index:3;transform:translateY(-50%)}
+.kickoff-mark:after{content:'◀';position:absolute;right:-18px;top:-12px;color:white;font-size:21px}
+.kickoff-ticks{display:flex;flex-direction:column;justify-content:space-between;padding:0 0 1px;min-width:100px}
+.kickoff-ticks span{font-size:10px;font-weight:900;color:#dff2dd;letter-spacing:.45px}
+
+/* v2.10: strict placement fixes screenshot overlap and keeps highlight behind only the active row */
+.dice-stack{position:relative!important;display:grid!important;grid-template-columns:minmax(0,1fr) clamp(82px,24%,150px)!important;grid-template-rows:minmax(52px,1fr) minmax(52px,1fr)!important;gap:8px 10px!important;align-items:stretch!important;min-height:116px}
+.dice-stack > .offense-dice-row{grid-column:1!important;grid-row:1!important;align-self:center!important;min-width:0!important}
+.dice-stack > .defense-dice-row{grid-column:1!important;grid-row:2!important;align-self:center!important;min-width:0!important}
+.dice-stack > .net-across{grid-column:2!important;grid-row:1 / span 2!important;position:relative!important;align-self:stretch!important;margin:0!important;height:100%!important;max-width:none!important;display:grid!important;place-items:center!important;z-index:2}
+.dice-stack > .dice-focus{position:absolute!important;left:0!important;top:0!important;width:calc(76% - 8px)!important;height:calc(50% - 4px)!important;grid-column:auto!important;grid-row:auto!important;z-index:0!important;transform:translateY(0)!important;pointer-events:none}
+.dice-stack > .dice-focus.defending{transform:translateY(calc(100% + 8px))!important}
+.dice-stack > .compact-dice{position:relative!important;z-index:1!important;display:flex!important;flex-wrap:nowrap!important;gap:6px!important}
+.dice-stack .dice-caption{width:clamp(52px,18%,75px)!important;flex:0 0 clamp(52px,18%,75px)!important}
+.dice-stack .dicegroup{gap:3px!important}
+.dice-stack .equals{white-space:nowrap;flex:none}
+.dice-stack .dice-total{white-space:nowrap;flex:none}
+.home-account-btn{display:inline-flex;align-items:center;text-decoration:none}
+@media(max-width:650px){.dice-stack{grid-template-columns:minmax(0,1fr) 80px!important;gap:5px!important}.dice-stack .dice-caption{width:51px!important;flex-basis:51px!important;font-size:9px}.dice-stack .compact-dice .die{width:27px;height:27px}.dice-stack > .dice-focus{width:calc(100% - 86px)!important}}
+
+/* Local phone: each player reads toward the center of the phone */
+.phone.local-game #localTop{transform:rotate(180deg);transform-origin:center center}
+.phone.local-game .fieldbox .numbers:not(.bottomnums){transform:rotate(180deg)}
+.field-announcement .announcement-face{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-width:0}
+.field-announcement .announce-flipped{display:none}
+.phone.local-game .field-announcement.visible{justify-content:space-around;gap:4px;padding:6px 10px}
+.phone.local-game .field-announcement .announce-flipped{display:flex;transform:rotate(180deg)}
+.phone.local-game .field-announcement .announcement-face{flex:1;min-height:0;gap:4px}
+.phone.local-game .field-announcement .announcement-title{font-size:clamp(17px,4.1vw,28px);line-height:1.05;letter-spacing:-.3px}
+.phone.local-game .field-announcement .announcement-sub{font-size:10px;line-height:1.1}
+.phone.local-game .field-announcement .recovery-slot .die{width:34px;height:34px}
+.phone.local-game .field-announcement .recovery-slot .pips{transform:scale(.88)}
+.phone.local-game .field-announcement .field-roll-btn{font-size:11px;padding:7px 14px;border-radius:7px}
+
+/* Side-specific scoreboard: duplicated and rotated with home player */
+.local-score-strip{display:grid;grid-template-columns:minmax(0,.62fr) minmax(0,.62fr) minmax(0,1fr) minmax(0,1.1fr);gap:5px;background:#092619;border:1px solid #56895b;border-radius:10px;padding:6px}
+.local-score-team,.local-score-info{min-width:0;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:5px 7px;background:#183d27;border-radius:7px}
+.local-score-team span,.local-score-info span{font-size:8px;font-weight:900;letter-spacing:.25px;color:#bdd9bb;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.local-score-team strong{font-size:23px;line-height:1;font-weight:1000;color:#ebffe7}
+.local-score-info strong{font-size:clamp(12px,3.1vw,17px);line-height:1.15;font-weight:1000;white-space:nowrap}
+.local-score-info.down-info{border:1px solid #668d56;background:#21452b}
+.phone.local-game .scorebar.compact{display:none!important}
+.phone.local-game .local-player-panel{gap:5px!important;padding:6px!important;min-height:0!important}
+.phone.local-game .local-score-strip{flex:none}
+.phone.local-game .fieldbox{height:clamp(108px,19vh,155px)!important;min-height:108px!important;max-height:155px!important}
+.phone.local-game .field-announcement .announcement-title{font-size:clamp(14px,3.8vw,24px)!important}
+.phone.local-game .field-announcement .announcement-sub{font-size:9px!important}
+@media(max-width:380px){.local-score-strip{gap:3px;padding:4px}.local-score-team,.local-score-info{padding:4px}.local-score-team span,.local-score-info span{font-size:7px}.local-score-team strong{font-size:19px}.local-score-info strong{font-size:11px}}
+
+/* DieBall phone local: both players can read and operate every in-game popup */
+body:has(#bodymode.phone.local-game) #overlay.open{
+ display:flex;flex-direction:column;justify-content:space-between;gap:10px;
+ padding:8px 10px;overflow-y:auto;overscroll-behavior:contain
+}
+body:has(#bodymode.phone.local-game) #overlay .modal{
+ width:min(100%,460px);max-height:calc((100dvh - 30px)/2);overflow:auto;
+ flex:1 1 auto;min-height:0;padding:12px 15px;border-radius:15px;
+}
+body:has(#bodymode.phone.local-game) #overlay .modal-mirror{
+ transform:rotate(180deg);transform-origin:center center;flex-shrink:1
+}
+body:has(#bodymode.phone.local-game) #overlay .modal h2{font-size:clamp(15px,4vw,22px);margin:0 0 5px}
+body:has(#bodymode.phone.local-game) #overlay .modal p{font-size:11px;line-height:1.3;margin:6px 0}
+body:has(#bodymode.phone.local-game) #overlay .modal .cards{margin:8px 0;min-height:0}
+body:has(#bodymode.phone.local-game) #overlay .modal .card{width:39px;height:55px;font-size:21px}
+body:has(#bodymode.phone.local-game) #overlay .modal .buttons{margin-top:7px}
+body:has(#bodymode.phone.local-game) #overlay .modal .buttons button{padding:9px 8px}
+body:has(#bodymode.phone.local-game) #overlay .modal .kickoff-meter-wrap{height:clamp(110px,18vh,180px);margin:8px 0}
+body:has(#bodymode.phone.local-game) #overlay .modal .kickoff-meter{min-height:0;height:100%}
+body:has(#bodymode.phone.local-game) #overlay .modal .kickoff-ticks span{font-size:8px}
+body:has(#bodymode.phone.local-game) #overlay .modal .cpu-card-count{margin:5px 0;padding:8px}
+body:has(#bodymode.phone.local-game) #overlay .modal .cpu-card-count strong{font-size:45px}
+body:has(#bodymode.phone.local-game) #overlay .modal .card-reveal{margin:8px 0}
+body:has(#bodymode.phone.local-game) #overlay .modal .reveal-net{font-size:24px;padding:6px}
+
+/* Wider team score/name cells, label-free compact situational indicators (local phone only) */
+.phone.local-game .local-score-strip{grid-template-columns:minmax(0,1.25fr) minmax(0,1.25fr) minmax(0,.82fr) minmax(0,.9fr);padding:4px;gap:4px}
+.phone.local-game .local-score-team{padding:5px 6px;gap:3px;min-width:0}
+.phone.local-game .local-score-team span{font-size:clamp(9px,2.8vw,12px);line-height:1.15;white-space:normal;overflow-wrap:anywhere;overflow:visible;text-overflow:clip;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.phone.local-game .local-score-team strong{font-size:clamp(22px,6vw,29px)}
+.phone.local-game .local-score-info{padding:5px 3px;align-items:center;text-align:center}
+.phone.local-game .local-score-info strong{font-size:clamp(11px,3vw,15px);letter-spacing:-.3px}
+@media(max-width:380px){.phone.local-game .local-score-strip{grid-template-columns:minmax(0,1.15fr) minmax(0,1.15fr) minmax(0,.8fr) minmax(0,.9fr)}.phone.local-game .local-score-team span{font-size:9px}.phone.local-game .local-score-info strong{font-size:10px}}
+
+.drive-ribbon{display:flex;flex-direction:column;gap:4px;justify-content:center;min-width:210px}.drive-line{display:flex;align-items:center;gap:3px;justify-content:center}.drive-line>span{width:31px;text-align:right;font-weight:900;font-size:8px;color:#cde3cb;margin-right:3px}.drive-tile{width:20px;height:18px;background:#122b1b;border:1px solid #668369;border-radius:4px;display:grid;place-items:center;color:#fff;font-size:10px;font-style:normal;font-weight:1000}.drive-tile.empty{background:#0a1d12;border-color:#45654b}.drive-tile.td{background:#217f3b;border-color:#8ef7a2}.drive-tile.fg{background:#d7b136;border-color:#ffdb61;color:#2e2408}.drive-tile.no-score{background:#922c32;border-color:#f47e83}
+.flight-ball{display:none;position:absolute;z-index:30;top:50%;left:20%;transform:translate(-50%,-50%);font-size:24px;pointer-events:none;text-shadow:0 0 10px #fff9;transition:left 1.7s ease-in-out}.flight-ball.flying span{display:inline-block;animation:ball-arc 1.7s ease-in-out both}@keyframes ball-arc{0%{transform:translateY(0) rotate(0)}50%{transform:translateY(-48px) rotate(720deg)}100%{transform:translateY(0) rotate(1300deg)}}@media(max-width:650px){.drive-ribbon{min-width:163px}.drive-tile{width:14px;height:15px;font-size:8px}.drive-line>span{font-size:7px;width:26px}}
+
+/* Precisely aligned kickoff/punt color segments and centered labels */
+.vertical-kick-scale{width:min(325px,100%);height:300px;display:flex;align-items:stretch;gap:13px;margin:10px auto;position:relative}
+.vertical-kick-track{width:73px;flex:0 0 73px;min-height:0;height:100%;position:relative;border:3px solid #ebffe4;border-radius:10px;overflow:visible;box-shadow:0 0 20px #0009}
+.vertical-kick-bands{position:absolute;inset:0;border-radius:7px;overflow:hidden;display:flex;flex-direction:column}
+.vertical-kick-band{width:100%;flex:none}
+.vertical-kick-labels{height:100%;flex:1;display:flex;flex-direction:column;min-width:0}
+.vertical-kick-label{flex:none;display:flex;align-items:center;justify-content:center;text-align:center;font-size:clamp(9px,1.9vw,12px);font-weight:1000;line-height:1.05;letter-spacing:.3px;color:#eafbe6;padding:0 4px}
+.vertical-kick-track .kickoff-mark{left:-3px;right:-3px;position:absolute;height:5px;width:calc(100% + 6px);background:white;box-shadow:0 0 10px white,0 0 5px #222;z-index:4}
+.vertical-kick-hint{text-align:center;font-size:11px;color:#c4d9c0;line-height:1.4;margin:8px 0}
+.phone.local-game .modal .vertical-kick-scale{height:clamp(112px,20vh,185px);width:min(260px,100%);gap:7px}
+.phone.local-game .modal .vertical-kick-track{width:52px;flex-basis:52px}
+.phone.local-game .modal .vertical-kick-label{font-size:9px}
+
+/* Visible uprights in both end zones, animated kick toward target goal */
+.field .end{position:relative}
+.goalpost{position:absolute;top:50%;left:50%;width:clamp(16px,3.2vw,37px);height:clamp(50px,13vh,94px);transform:translate(-50%,-48%);writing-mode:horizontal-tb;z-index:4;pointer-events:none;opacity:.67;filter:drop-shadow(0 1px 2px #152518)}
+.goalpost:before{content:'';position:absolute;top:0;left:0;right:0;height:49%;border-left:clamp(3px,.55vw,5px) solid #fff8a7;border-right:clamp(3px,.55vw,5px) solid #fff8a7;border-bottom:clamp(3px,.55vw,5px) solid #fff8a7;border-radius:1px 1px 3px 3px}
+.goalpost:after{content:'';position:absolute;top:49%;bottom:0;left:50%;transform:translateX(-50%);width:clamp(3px,.55vw,5px);background:#fff8a7}
+.goalpost.active{opacity:1;filter:drop-shadow(0 0 10px #fffab3)}
+.kick-flight-ball{display:none;position:absolute;top:68%;left:50%;transform:translate(-50%,-50%) rotate(-20deg);z-index:19;font-size:clamp(20px,3.2vw,38px);pointer-events:none;text-shadow:0 0 10px #f5ffd5;will-change:left,top}
+.kick-flight-ball.kicking{animation:kick-spin 1.75s linear both}
+@keyframes kick-spin{from{transform:translate(-50%,-50%) rotate(-20deg) scale(1)}40%{transform:translate(-50%,-50%) rotate(440deg) scale(.79)}to{transform:translate(-50%,-50%) rotate(900deg) scale(.5)}}
+.phone.local-game .goalpost{height:clamp(38px,9vh,65px);width:20px}
+
+/* Top-down uprights: only a pair of gold dots at each end zone */
+.goalpost{width:100%;height:78px;max-height:72%;opacity:1;filter:none}
+.goalpost:before,.goalpost:after{content:'';position:absolute;left:50%;width:clamp(6px,1.25vw,10px);height:clamp(6px,1.25vw,10px);border:0!important;border-radius:50%;background:#ffd94b;transform:translate(-50%,-50%);box-shadow:0 0 5px #ffd94b8c;bottom:auto}
+.goalpost:before{top:20%}.goalpost:after{top:80%}
+.goalpost.active{filter:drop-shadow(0 0 6px #ffe971)}
+.final-score-sub{white-space:pre-line!important;font-size:clamp(14px,2.6vw,29px)!important;font-weight:1000!important;line-height:1.55!important;letter-spacing:.4px}
+.die-multiplier{display:inline-flex;align-items:center;background:#16381e;border:1px solid #80ec9e;border-radius:5px;color:#a5ffb0;font-size:10px;font-weight:1000;line-height:1;padding:3px 4px;margin-left:3px;white-space:nowrap;vertical-align:middle;box-shadow:0 0 6px #4fdb8e63}
+.lp-total .die-multiplier{font-size:9px}
+@media(max-width:390px){.die-multiplier{font-size:8px;padding:2px 3px;margin-left:2px}}
+
+/* Decorative overhead goalpost markers sit at each end zone's back boundary. */
+.field .end:first-child .goalpost{left:max(7px,14%)}
+.field > .end ~ .end .goalpost{left:calc(100% - max(7px,14%))}
+.goalpost:before{top:15%}
+.goalpost:after{top:85%}
+.phone.local-game .goalpost{height:clamp(46px,12vh,74px)}
+
+
+/* Featured upcoming DieBowl mode has a soft neon-green halo while remaining disabled. */
+.mode-tile.diebowl-featured{opacity:1;border:1.5px solid #a6fb87;background:linear-gradient(135deg,#265a31 0%,#14371f 72%);box-shadow:0 0 15px #71ee684c,0 0 32px #5bea4b24,inset 0 0 25px #6bf64b12;position:relative;isolation:isolate}
+.mode-tile.diebowl-featured::before{content:'';position:absolute;inset:-3px;z-index:-1;pointer-events:none;border-radius:16px;box-shadow:0 0 25px #79f05c48}
+.mode-tile.diebowl-featured .mode-pill,.mode-tile.diebowl-featured .mode-arrow{background:#baff8e;color:#17301d;border-radius:6px;padding:5px 8px}
+.mode-tile.diebowl-featured strong{color:#e6ffde;text-shadow:0 0 9px #a7f57b65}
+.game-length-fieldset{border:0;min-width:0;margin:12px 0 17px;padding:0;display:grid;gap:10px}
+.game-length-fieldset legend{font-size:11px;font-weight:1000;letter-spacing:1.3px;color:#c2f8a8;padding:0 0 8px}
+.length-choice{display:flex!important;align-items:center!important;gap:12px!important;text-align:left;background:#163822;border:1px solid #4b8058;border-radius:11px;padding:11px!important;margin:0!important;cursor:pointer}
+.length-choice:has(input:checked){border-color:#b8f790;background:#254b2a;box-shadow:0 0 12px #81e6641c}
+.length-choice input{accent-color:#baf68a;flex:none;width:20px!important;height:20px!important;margin:0!important;padding:0!important}
+.length-choice span{display:flex;flex-direction:column;gap:4px;min-width:0}
+.length-choice strong{font-size:13px;font-weight:950;color:#f2ffe8;letter-spacing:.3px}
+.length-choice small{font-size:11px;color:#b8d6b6;line-height:1.35}
+.length-setup{width:min(440px,100%)}
+
+
+/* Phone-only vs CPU scoreboard: situational boxes move above the shortened field.
+   Hide the original duplicated cards, but retain the action buttons in the work area. */
+.mobile-cpu-situation{display:none}
+@media(max-width:650px){
+ #bodymode:not(.local-game) .mobile-cpu-situation{grid-column:1/-1;grid-row:3;display:grid;grid-template-columns:1fr 1fr;gap:6px;min-width:0}
+ #bodymode:not(.local-game) .scorebar.compact{grid-template-columns:minmax(0,1fr) minmax(0,1fr);row-gap:6px;padding:7px 8px}
+ #bodymode:not(.local-game) .scorebar.compact .center{grid-column:1/-1;grid-row:1}
+ #bodymode:not(.local-game) .scorebar.compact .mini-team{grid-row:2;min-width:0}
+ #bodymode:not(.local-game) .scorebar.compact .mini-team.opponent{grid-column:2}
+ #bodymode:not(.local-game) .mobile-cpu-card{display:flex;flex-direction:column;justify-content:center;gap:3px;min-width:0;
+  border:1px solid #488258;border-radius:9px;background:linear-gradient(135deg,#153d29,#0b281b);padding:7px 9px}
+ #bodymode:not(.local-game) .mobile-cpu-card span{font-size:9px;font-weight:900;letter-spacing:.6px;color:#c1d7be}
+ #bodymode:not(.local-game) .mobile-cpu-card strong{font-size:clamp(17px,4.6vw,21px);font-weight:1000;line-height:1.15;white-space:nowrap}
+ #bodymode:not(.local-game) .mobile-cpu-down.down-2{background:linear-gradient(135deg,#69bb71,#a6e68a);color:#102f1a;border-color:#bdf5a5}
+ #bodymode:not(.local-game) .mobile-cpu-down.down-3{background:linear-gradient(135deg,#e2b735,#ffe37a);color:#342900;border-color:#ffefaf}
+ #bodymode:not(.local-game) .mobile-cpu-down.down-4{background:linear-gradient(135deg,#a92f32,#e55748);color:#fff4ef;border-color:#f68678}
+ #bodymode:not(.local-game) .mobile-cpu-down.down-2 span,
+ #bodymode:not(.local-game) .mobile-cpu-down.down-3 span,
+ #bodymode:not(.local-game) .mobile-cpu-down.down-4 span{color:inherit;opacity:.8}
+ #bodymode:not(.local-game) .situation-stack>.situation-card{display:none}
+ #bodymode:not(.local-game) .situation-stack{min-height:0;gap:5px}
+ #bodymode:not(.local-game) .fieldbox{height:clamp(118px,17dvh,158px);min-height:118px;max-height:158px;flex:none}
+ #bodymode:not(.local-game) .fieldbox .field{min-height:0}
+ #bodymode:not(.local-game) .fieldlabels{padding-top:3px;padding-bottom:3px}
+ #bodymode:not(.local-game) .work{gap:7px}
+}
+@media(max-width:380px){
+ #bodymode:not(.local-game) .mobile-cpu-card{padding:5px 7px}
+ #bodymode:not(.local-game) .mobile-cpu-card span{font-size:8px}
+ #bodymode:not(.local-game) .mobile-cpu-card strong{font-size:16px}
+}
+
+/* Compact CPU phone game: scoreboard + field above a full-width penalty tray.
+   Local two-player and desktop layouts remain unchanged. */
+@media(max-width:650px){
+ #bodymode.cpu-game .scorebar.compact{
+   padding:4px 7px!important;gap:3px 6px!important;border-radius:10px!important
+ }
+ #bodymode.cpu-game .scorebar.compact .center{
+   padding:1px 3px!important;min-height:16px;gap:4px
+ }
+ #bodymode.cpu-game .scorebar.compact .center small{font-size:9px}
+ #bodymode.cpu-game .scorebar.compact .drive-ribbon{gap:2px}
+ #bodymode.cpu-game .scorebar.compact .mini-team{
+   min-height:22px;gap:5px!important
+ }
+ #bodymode.cpu-game .scorebar.compact .mini-team span{font-size:10px!important}
+ #bodymode.cpu-game .scorebar.compact .mini-team strong{font-size:21px!important}
+ #bodymode.cpu-game .mobile-cpu-situation{gap:5px}
+ #bodymode.cpu-game .mobile-cpu-card{
+   padding:4px 7px!important;gap:1px!important;min-height:35px;border-radius:7px
+ }
+ #bodymode.cpu-game .mobile-cpu-card span{font-size:8px}
+ #bodymode.cpu-game .mobile-cpu-card strong{font-size:16px!important}
+ #bodymode.cpu-game .fieldlabels{display:none!important}
+ #bodymode.cpu-game .fieldbox{
+   height:clamp(105px,15dvh,145px)!important;
+   min-height:105px!important;max-height:145px!important;
+ }
+ #bodymode.cpu-game .work{
+   display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:7px!important;
+ }
+ #bodymode.cpu-game .work>.play-panel{
+   grid-column:1!important;grid-row:1!important;min-width:0
+ }
+ #bodymode.cpu-game .work>.panel:nth-child(2){
+   grid-column:1!important;grid-row:2!important;width:100%;min-width:0;
+   display:grid;grid-template-columns:1fr auto;align-items:start;gap:5px 9px;
+   padding:10px 12px!important
+ }
+ #bodymode.cpu-game .work>.panel:nth-child(2)>h3{
+   grid-column:1/-1;margin:0;padding-bottom:4px;font-size:12px
+ }
+ #bodymode.cpu-game .work>.panel:nth-child(2) .cards{
+   grid-column:1/-1;display:flex;flex-wrap:wrap;gap:5px;min-width:0;
+   min-height:0;margin:0
+ }
+ #bodymode.cpu-game .work>.panel:nth-child(2) .card{
+   width:clamp(36px,10vw,46px);height:clamp(46px,12vw,59px);font-size:21px
+ }
+ #bodymode.cpu-game .work>.panel:nth-child(2) .extra{grid-column:1;min-width:0;gap:6px;align-self:center}
+ #bodymode.cpu-game .work>.panel:nth-child(2) #cardbutton{
+   grid-column:2;align-self:center;margin:0;min-width:110px;padding:9px 8px;font-size:10px
+ }
+ #bodymode.cpu-game .work>.panel:nth-child(2) #status{
+   grid-column:1/-1;margin:0;padding:3px 0 0;min-height:0
+ }
+ #bodymode.cpu-game .situation-stack{
+   grid-column:1!important;grid-row:3!important;min-width:0;min-height:0;
+   padding:0;margin:0;gap:0
+ }
+ #bodymode.cpu-game .situation-stack>.situation-card{display:none!important}
+ #bodymode.cpu-game .situational-actions{gap:6px}
+}
+
+/* Dedicated Season match: same DieBall CPU engine, with explicit home/away teams. */
+.season-scoreboard .mini-team{position:relative;gap:5px;flex-wrap:wrap}
+.season-scoreboard .mini-team span{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.12;font-size:clamp(10px,1.9vw,13px)}
+.season-scoreboard .season-side-label{display:block;color:#a3cdaa;font-size:8px;font-weight:950;letter-spacing:.6px;width:100%;line-height:1;text-align:left}
+.season-scoreboard .mini-team.opponent .season-side-label{text-align:right}
+.season-scoreboard.season-away .mini-team.opponent .season-side-label{text-align:left}
+.season-scoreboard.season-away .mini-team:not(.opponent) .season-side-label{text-align:right}
+.season-scoreboard.season-away .mini-team.opponent{grid-column:1!important;justify-content:flex-start!important}
+.season-scoreboard.season-away .mini-team:not(.opponent){grid-column:3!important;justify-content:flex-end!important}
+#seasonLaunching{position:fixed;inset:0;z-index:9999;background:#091c11;color:#c5ffad;display:grid;place-items:center;font-weight:950;font-size:17px;text-align:center;padding:22px}
+#seasonLaunching small{display:block;margin-top:12px;color:#95b9a1;font-size:12px;font-weight:500}
+body:has(#seasonMatchInfo) .header-right button[onclick="reset()"]{display:none}
+@media(max-width:650px){
+ .season-scoreboard .mini-team span{font-size:clamp(9px,2.55vw,11px)!important;max-width:100%;min-width:0}
+ .season-scoreboard.season-away .mini-team:not(.opponent){grid-column:2!important}
+ .season-scoreboard.season-away .mini-team.opponent{grid-column:1!important}
+ .season-scoreboard .mini-team strong{font-size:21px!important}
+ .season-scoreboard .season-side-label{font-size:8px!important}
+}
+</style></head><body><div id="seasonLaunching"><div>LOADING YOUR DIEBALL SEASON GAME…<small>Checking your account, opponent, and saved schedule</small></div></div><main id="homeScreen" class="home-screen"><div class="home-top"><div class="home-logo">Die<span>Ball.</span></div><a class="home-account-btn" href="/account">ACCOUNT <span>↗</span></a></div><div class="home-body"><div class="home-hero"><div class="eyebrow">THE DICE DECIDE. YOU CALL THE PLAY.</div><h1>FOOTBALL.<br><em>SIMPLIFIED.</em></h1><a class="how-link" href="/how-to-play">? &nbsp; HOW TO PLAY</a></div><section class="mode-select"><h2>CHOOSE YOUR GAME</h2><div class="mode-grid"><button class="mode-tile active" onclick="launchGame('cpu')"><span class="mode-icon">⚡</span><strong>YOU vs. CPU</strong><small>Challenge DieBall Don</small><span class="mode-arrow">PLAY →</span></button><button class="mode-tile active" onclick="launchGame('local')"><span class="mode-icon">🎮</span><strong>1v1 LOCAL</strong><small>Two players · one device</small><span class="mode-arrow">PLAY →</span></button><button class="mode-tile unavailable" onclick="showComingSoon('1v1 Online','Online matches need matchmaking, accounts, and a synchronized game server.')"><span class="mode-icon">🌐</span><strong>1v1 ONLINE</strong><small>Play someone anywhere</small><span class="mode-pill">COMING SOON</span></button><button class="mode-tile active" onclick="window.location.href='/tv'"><span class="mode-icon">📺</span><strong>DIEBALL TV</strong><small>Host a game · Phones as controllers</small><span class="mode-arrow">HOST OR JOIN →</span></button><button class="mode-tile active diebowl-featured" onclick="window.location.href='/diebowl'"><span class="mode-icon">🏈</span><strong>DIEBOWL</strong><small>Fictional player draft · OL/DL buffs · Advanced strategy</small><span class="mode-arrow">IN TESTING →</span></button><button class="mode-tile active" onclick="location.href='/season.html'"><span class="mode-icon">🏆</span><strong>SEASON</strong><small>32 teams · East vs West · Saved progress</small><span class="mode-arrow">PLAY →</span></button></div></section></div><div class="home-foot"><span>DieBall / EARLY ACCESS</span><span>Playable offline · Local matches in beta</span></div></main><div class="local-setup-screen" id="cpuLengthSetup" style="display:none"><form onsubmit="event.preventDefault();startCpuMatch()" class="local-setup-box length-setup"><button type="button" class="account-close" onclick="closeCpuLengthSetup()">✕</button><div class="home-logo">Die<span>Ball.</span></div><h2>YOU vs. CPU</h2><p>Choose your game length before facing DieBall Don.</p><fieldset class="game-length-fieldset"><legend>HOW LONG DO YOU WANT TO PLAY?</legend><label class="length-choice"><input type="radio" name="cpuGameLength" value="4" id="cpuShort"><span><strong>SHORT GAME</strong><small>4 drives per team · 8 total drives</small></span></label><label class="length-choice"><input type="radio" name="cpuGameLength" value="8" id="cpuFull" checked><span><strong>FULL GAME</strong><small>8 drives per team · 16 total drives</small></span></label></fieldset><button class="mainbtn" type="submit">START GAME</button></form></div><div class="local-setup-screen" id="localSetup" style="display:none"><form onsubmit="event.preventDefault();startLocalMatch()" class="local-setup-box"><button type="button" class="account-close" onclick="closeLocalSetup()">✕</button><div class="home-logo">Die<span>Ball.</span></div><h2>LOCAL 1v1</h2><p>Both players use this device. Enter your teams before kickoff.</p><label>HOME TEAM NAME<input required id="homeTeamName" maxlength="20" placeholder="Enter home team name"></label><label>AWAY TEAM NAME<input required id="awayTeamName" maxlength="20" placeholder="Enter away team name"></label><fieldset class="game-length-fieldset"><legend>HOW LONG DO YOU WANT TO PLAY?</legend><label class="length-choice"><input type="radio" name="localGameLength" value="4" id="localShort"><span><strong>SHORT GAME</strong><small>4 drives per team · 8 total drives</small></span></label><label class="length-choice"><input type="radio" name="localGameLength" value="8" id="localFull" checked><span><strong>FULL GAME</strong><small>8 drives per team · 16 total drives</small></span></label></fieldset><button class="mainbtn" type="submit">START GAME</button></form></div><div id="bodymode" style="display:none"><div class="app"><header class="header"><div><div class="logo">Die<span>Ball.</span></div><div class="tag">DICE • STRATEGY • FOOTBALL</div></div><div class="header-right"><button class="smallbtn back-home" onclick="goHome()">← MENU</button><a class="help-question" title="How to play" href="/how-to-play" aria-label="How to play">?</a><div class="mode"><button class="on" id="desktop" onclick="setMode('desktop')">▣ Desktop</button><button id="phone" onclick="setMode('phone')">▯ Phone</button></div><button class="smallbtn" onclick="reset()">↻ New</button></div></header><div class="scorebar compact"><div class="mini-team"><span id="playerOneLabel">YOU</span><strong id="s0">0</strong></div><div class="center"><div id="driveRibbon" class="drive-ribbon"></div><b id="period" hidden>Q1 · DRIVE 1</b><small id="poss">YOUR BALL</small></div><div class="mini-team opponent"><span id="cpuLabel">DIEBALL DON</span><strong id="s1">0</strong></div><span id="down" hidden></span><div class="mobile-cpu-situation" aria-label="Field position and down and distance"><div class="mobile-cpu-card mobile-cpu-position"><span>FIELD POSITION</span><strong id="scoreSpot">OWN 35</strong></div><div id="scoreDownCard" class="mobile-cpu-card mobile-cpu-down down-1"><span>DOWN &amp; DISTANCE</span><strong id="scoreDown">1st &amp; 10</strong></div></div></div><div id="localTop" class="local-player-panel" style="display:none"></div><section class="fieldbox" id="fieldbox"><div id="fieldAnnouncement" class="field-announcement" aria-live="assertive"><div class="announcement-face announce-flipped" aria-hidden="true"><div class="announcement-title" id="flippedAnnouncementTitle"></div><div class="recovery-slot" id="flippedRecoverySlot"></div><button id="flippedFumbleBtn" class="field-roll-btn" style="display:none" onclick="rollRecovery()" aria-label="Roll fumble recovery die">ROLL DIE</button><div class="announcement-sub" id="flippedAnnouncementSub"></div></div><div class="announcement-face announce-normal"><div class="announcement-title" id="announcementTitle"></div><div class="recovery-slot" id="recoverySlot"></div><button id="fumbleRollBtn" class="field-roll-btn" style="display:none" onclick="rollRecovery()">ROLL DIE</button><div class="announcement-sub" id="announcementSub"></div></div></div><div class="field"><div class="end">HOME<div class="goalpost" aria-hidden="true"></div></div><div class="turf"><div class="numbers"><span>10</span><span>20</span><span>30</span><span>40</span><span>50</span><span>40</span><span>30</span><span>20</span><span>10</span></div><div class="numbers bottomnums"><span>10</span><span>20</span><span>30</span><span>40</span><span>50</span><span>40</span><span>30</span><span>20</span><span>10</span></div><div class="marker first" id="first"></div><div id="lastMove" class="last-move" style="display:none"><div id="priorLine" class="prior-line"></div><div id="moveArrow" class="move-arrow"><span id="movementLabel"></span></div></div><div class="marker los" id="los"></div><div class="football" id="ball"></div><div id="flightBall" class="flight-ball" aria-hidden="true"><span>🏈</span></div></div><div class="end">AWAY<div class="goalpost" aria-hidden="true"></div></div><div class="kick-flight-ball" id="kickFlightBall" aria-hidden="true">🏈</div></div><div class="fieldlabels"><span>🟦 LINE OF PLAY</span><span id="spot">BALL · OWN 35</span><span id="fieldDown">1st & 10</span></div></section><div id="localBottom" class="local-player-panel" style="display:none"></div><div class="work"><section class="panel play-panel"><div class="play-head"><h3>DICE</h3><div class="switch tiny-switch"><button id="run" class="active" onclick="choose('run')">RUN</button><button id="pass" onclick="choose('pass')">PASS <span class="bubble" id="passes">2</span></button></div></div><div class="dice-stack" id="diceStack"><div class="dice-focus" id="diceFocus"></div><div class="dicearea compact-dice offense-dice-row"><span class="dice-caption">OFFENSE</span><div class="dicegroup" id="odice"></div><span class="equals">=</span><strong class="dice-total" id="ototal">—</strong></div><div class="dicearea compact-dice defense-dice-row"><span class="dice-caption">DEFENSE</span><div class="dicegroup" id="ddice"></div><span class="equals">=</span><strong class="dice-total" id="dtotal">—</strong></div><div class="net compact-net net-across" id="net">—</div></div><button class="mainbtn" id="roll" onclick="roll()">ROLL DICE</button><div class="actions kick-actions"><button id="fgbutton" onclick="kick('fg')">FIELD GOAL</button><button id="puntbutton" onclick="kick('punt')">PUNT</button></div></section><section class="panel"><h3>PENALTY CARDS</h3><div class="cards" id="cards"></div><div class="extra"><span class="muted" id="handInfo">CPU: 3 hidden</span><span class="muted">DECK: <b id="deck">46</b></span></div><button class="mainbtn" id="cardbutton" onclick="openCards()">PLAY PENALTY CARDS</button><div class="status" id="status">Choose a play to begin.</div></section><section class="situation-stack" aria-label="Field position and down"><div class="situation-card field-position-card"><span>FIELD POSITION</span><strong id="bottomSpot">OWN 35</strong></div><div id="downCard" class="situation-card down-card down-1"><span>DOWN & DISTANCE</span><strong id="bottomDown">1st & 10</strong></div><div class="situational-actions"><button id="kickoffbtn" onclick="kick('kickoff')" style="display:none">KICKOFF</button><button id="convertbtn" onclick="conversionMenu()" style="display:none">CONVERSION</button></div><span id="cpuName" hidden>DieBall Don</span><div id="details" hidden></div><div id="log" hidden></div></section></div><div class="account-overlay" id="accountOverlay" style="display:none"><div class="account-dialog"><button class="account-close" onclick="closeAccount()">✕</button><div class="home-logo">Die<span>Ball.</span></div><h2 id="accountHeading">Your DieBall account</h2><p>Online accounts and cloud saves will need a secure sign-in service. For now, you can create a profile saved on this device.</p><label for="profileName">YOUR DISPLAY NAME</label><input id="profileName" maxlength="22" autocomplete="nickname" placeholder="Enter your name"><button class="mainbtn" onclick="saveLocalProfile()">SAVE LOCAL PROFILE</button><div id="accountStatus" role="status" class="account-status"></div><div class="account-disclaimer">This is a local profile, not an online account. It is not password-protected and won't sync across devices.</div></div></div><div id="walkthrough" class="walkthrough-overlay" style="display:none"><div class="walkthrough-box"><div class="walkthrough-step" id="walkStep"></div><h2 id="walkHeading"></h2><p id="walkText"></p><div class="buttons"><button onclick="skipWalkthrough()">SKIP</button><button class="strong" onclick="nextWalkthrough()" id="walkNext">NEXT →</button></div></div></div><div class="overlay" id="overlay"><div id="modalMirror" class="modal modal-mirror" aria-label="Opposite player view" style="display:none"></div><div class="modal modal-primary"><h2 id="modalTitle">Penalty cards</h2><p id="modalIntro"></p><div id="modalInner"></div><div class="buttons"><button id="modalCancel" onclick="closeModal()">CANCEL</button><button class="strong" id="modalCommit" onclick="commitModal()">COMMIT</button></div></div></div><script>
+const E=id=>document.getElementById(id);const rng=n=>1+Math.floor(Math.random()*n),sum=a=>a.reduce((x,y)=>x+y,0),limit=(x,a,b)=>Math.max(a,Math.min(b,x));let announcementTimer=null,fumbleTimer=null,phaseTimer=null,diceCycleTimer=null,animationSeq=0;let gameDrivesPerTeam=8;
+let g,choice='run',selection=[],pending=null,rolling=false,kickTimer=null,kpos=0,kdir=1;
+const PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+function die(n,anim=false){return '<div class="die '+(anim?'roll':'')+'"><div class="pips">'+Array.from({length:9},(_,i)=>'<div class="pip '+(PIPS[n].includes(i)?'':'off')+'"></div>').join('')+'</div></div>'}
+function makeDeck(){let a=[];for(let n=2;n<=9;n++)for(let i=0;i<4;i++)a.push(n);for(let i=0;i<16;i++)a.push(10);for(let i=0;i<4;i++)a.push(11);for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function freshCards(){
+ if(g.deck.length<6)g.deck=makeDeck();
+ const home=g.deck.splice(0,3),away=[];
+ // Draw independently from one shuffled deck; opposing teams have distinct face values.
+ for(let i=g.deck.length-1;i>=0&&away.length<3;i--)if(!home.includes(g.deck[i]))away.push(g.deck.splice(i,1)[0]);
+ while(away.length<3&&g.deck.length)away.push(g.deck.shift());
+ if(away.length<3)away.push(...makeDeck().slice(0,3-away.length));
+ g.hands=[home,away];
+ g.passes=2;g.down=1;g.cardUsed=[false,false];g.triple=false;g.passDouble=false;
+ g.driveStartScore=g.score[g.off];
+ g.goal=limit(g.pos+(g.off===0?10:-10),0,100);
+}
+function reset(){localReady=[false,false];localEyes=[false,false];localDice=[null,null];pendingFumble=null;clearInterval(kickTimer);clearInterval(diceCycleTimer);clearTimeout(announcementTimer);clearTimeout(fumbleTimer);clearTimeout(phaseTimer);pendingFumble=null;E('fumbleRollBtn').style.display='none';E('kickFlightBall').style.display='none';E('announcementSub').classList.remove('final-score-sub');E('flippedAnnouncementSub').classList.remove('final-score-sub');animationSeq++;rolling=false;E("fieldAnnouncement").className="field-announcement";E("fieldbox").classList.remove("red-glow","green-glow","gold-glow");g={score:[0,0],off:0,pos:35,goal:45,down:1,passes:2,quarter:1,drives:[0,0],drivesPerTeam:gameDrivesPerTeam,deck:makeDeck(),hands:[[],[]],state:'play',logs:[],msg:'Choose a play and roll the dice.',od:[1,1,1],dd:[1,1],net:null,called:0,conversion:false,lastMove:null,cardUsed:[false,false],driveHistory:[[],[]],driveStartScore:0,lastDriveAnnounced:[false,false],triple:false,passDouble:false,localXpReady:[false,false],localXpStart:false};selection=[];choice='run';freshCards();render()}
+function say(s){g.msg=s;g.logs.unshift(s);g.logs=g.logs.slice(0,25)}
+function own(){let p=g.off===0?g.pos:100-g.pos;return p<=50?'Own '+p:'Opp '+(100-p)}
+
+function sideName(side){return currentMode==='local'?teamNames[side]:(side===0?'You':'DieBall Don')}
+function recordDrive(side){if(!g.driveHistory)return;const earned=Math.max(0,g.score[side]-(g.driveStartScore??g.score[side]));if(g.driveHistory[side].length<g.drivesPerTeam)g.driveHistory[side].push(earned)}
+function announceLastDrive(){const side=g.off;if(g.driveHistory&&g.driveHistory[side].length===g.drivesPerTeam-1&&!g.lastDriveAnnounced[side]){g.lastDriveAnnounced[side]=true;showFieldAnnouncement(sideName(side)+"'s last drive",side===0?'green':'red',2700,'Final possession for '+sideName(side))}}
+function announceWinner(){
+ const lead=g.score[0]===g.score[1]?-1:g.score[0]>g.score[1]?0:1;
+ const line=lead<0?'GAME TIED':currentMode==='cpu'?(lead===0?'YOU WIN!':'YOU LOSE!'):sideName(lead).toUpperCase()+' WINS!';
+ const scoreline=sideName(0).toUpperCase()+' '+g.score[0]+' — '+g.score[1]+' '+sideName(1).toUpperCase();
+ rolling=false;showFieldAnnouncement('GAME OVER',lead<0?'gold':currentMode==='cpu'?(lead===0?'green':'red'):'gold',0,line+'\n'+scoreline);
+ E('announcementSub').classList.add('final-score-sub');E('flippedAnnouncementSub').classList.add('final-score-sub');
+ if(currentMode==='cpu'&&window.finishSeasonGame)window.finishSeasonGame();
+}
+function announceFirstDown(y,viaCards=false){showFieldAnnouncement('First Down',g.off===0?'green':'red',2050,sideName(g.off)+' · '+(viaCards?'Cards':'Dice')+' · '+(y>=0?'+':'')+y+' yards')}
+function cycleDice(duration,done){const token=animationSeq;clearInterval(diceCycleTimer);const show=()=>{E('odice').innerHTML=Array.from({length:3},()=>die(rng(6),true)).join('');E('ddice').innerHTML=Array.from({length:2},()=>die(rng(6),true)).join('')};show();diceCycleTimer=setInterval(show,95);setTimeout(()=>{clearInterval(diceCycleTimer);if(token===animationSeq)done()},duration)}
+
+function animateScoringKick(good,side,kind,after){
+ const token=++animationSeq;g.lastMove=null;
+ const ball=E('kickFlightBall'),startX=8+.84*g.pos;
+ const targetX=side===0?95:5;
+ const targetY=good?48:(Math.random()<.5?10:86);
+ rolling=true;g.state='flight';
+ ball.className='kick-flight-ball';
+ ball.style.transition='none';
+ ball.style.display='block';
+ ball.style.left=startX+'%';ball.style.top='68%';
+ const posts=E('fieldbox').querySelectorAll('.goalpost');
+ posts.forEach((p,i)=>p.classList.toggle('active',i===1-side));
+ render();void ball.offsetWidth;
+ ball.classList.add('kicking');
+ ball.style.transition='left 1.75s cubic-bezier(.3,.68,.8,1),top 1.75s cubic-bezier(.3,-.12,.8,1.1)';
+ requestAnimationFrame(()=>{ball.style.left=targetX+'%';ball.style.top=targetY+'%'});
+ setTimeout(()=>{
+  if(token!==animationSeq)return;
+  ball.style.display='none';ball.classList.remove('kicking');
+  posts.forEach(p=>p.classList.remove('active'));
+  rolling=false;after();
+  render();
+ },1800);
+}
+
+function animateBallFlight(from,to,after,landingType='normal'){
+ const token=animationSeq,ball=E('flightBall');
+ rolling=true;g.state='flight';g.lastMove=null;
+ ball.style.display='block';ball.style.transition='none';
+ ball.style.left=(8+.84*from)+'%';ball.style.top='53%';
+ ball.classList.remove('flying');render();void ball.offsetWidth;
+ ball.classList.add('flying');
+ ball.style.transition='left 1.7s ease-in-out,top 1.7s cubic-bezier(.4,.25,.8,.9)';
+ requestAnimationFrame(()=>{
+  ball.style.left=(8+.84*to)+'%';
+  ball.style.top=landingType==='out'?(token%2===0?'-12%':'111%'):'53%';
+ });
+ setTimeout(()=>{
+  if(token!==animationSeq)return;
+  ball.classList.remove('flying');ball.style.display='none';rolling=false;
+  after();render();
+ },1750);
+}
+function advanceQuarterIfReady(){
+ if(g.drives[0]<g.drivesPerTeam/4||g.drives[1]<g.drivesPerTeam/4)return;
+ const completed=g.quarter;
+ g.quarter++;g.drives=[0,0];
+ if(completed<=3){
+  const headline=completed===1?'End of First Quarter':completed===2?'Halftime':'End of Third Quarter';
+  const details=completed===2?'Halftime · '+sideName(0)+' '+g.score[0]+' – '+g.score[1]+' '+sideName(1):'Score · '+g.score[0]+' – '+g.score[1];
+  g.periodNoticeUntil=Date.now()+3800;
+  showFieldAnnouncement(headline,'gold',3800,details);
+ }
+}
+
+function finishDrive(text){localReady=[false,false];localEyes=[false,false];if(text.toLowerCase().includes("turnover on downs"))showFieldAnnouncement("Turnover on Downs","red",1900);let previous=g.off;recordDrive(previous);g.drives[previous]++;g.off=1-previous;advanceQuarterIfReady();if(g.quarter>4){g.state='over';say('FINAL · '+g.score.join(' – '));announceWinner();return}g.pos=limit(g.pos,1,99);freshCards();g.state='play';say(text+' · '+sideName(g.off)+' possession.');announceLastDrive()}
+function rememberMovement(from,to,off){if(Math.abs(to-from)<.01){g.lastMove=null;return}g.lastMove={from:limit(from,0,100),to:limit(to,0,100),forward:(to-from)*(off===0?1:-1)>0,off:off,delta:Math.abs(to-from)};}
+
+
+function syncFieldAnnouncement(){
+ E('flippedAnnouncementTitle').textContent=E('announcementTitle').textContent;
+ E('flippedAnnouncementSub').textContent=E('announcementSub').textContent;
+ E('flippedRecoverySlot').innerHTML=E('recoverySlot').innerHTML;
+ E('flippedFumbleBtn').style.display=E('fumbleRollBtn').style.display;
+}
+const announcementWatcher=new MutationObserver(syncFieldAnnouncement);
+for(const id of ['announcementTitle','announcementSub','recoverySlot','fumbleRollBtn'])
+ announcementWatcher.observe(E(id),{childList:true,subtree:true,characterData:true,attributes:id==='fumbleRollBtn',attributeFilter:id==='fumbleRollBtn'?['style']:undefined});
+
+function showFieldAnnouncement(title,tone,duration=1600,subtitle='',dieValue=null){
+ clearTimeout(announcementTimer);
+ const box=E('fieldbox'),surface=E('fieldAnnouncement');
+ surface.className='field-announcement visible '+(tone==='green'?'success':tone==='gold'?'gold':'danger');
+ box.classList.remove('red-glow','green-glow','gold-glow');void box.offsetWidth;
+ box.classList.add(tone==='gold'?'gold-glow':tone==='green'?'green-glow':'red-glow');
+ E('announcementTitle').textContent=title;
+ E('announcementSub').textContent=subtitle;
+ E('fumbleRollBtn').style.display='none';E('recoverySlot').innerHTML=dieValue===null?'':die(dieValue,false);
+ if(duration>0)announcementTimer=setTimeout(()=>{surface.className='field-announcement';box.classList.remove('red-glow','green-glow','gold-glow')},duration);
+}
+function startFumble(){
+ const token=++animationSeq;
+ pendingFumble={token,result:null,off:g.off};
+ g.state='fumble';rolling=true;
+ say('Fumble! Roll one die to determine possession.');
+ showFieldAnnouncement('Fumble!','red',600000,(g.net===-5?'Failed pass · −5 yards first. ':'')+'Roll recovery: 1–4 retained, 5–6 lost.');
+ E('fumbleRollBtn').style.display='block';
+ render();
+}
+function rollRecovery(){
+ if(!pendingFumble||g.state!=='fumble'||pendingFumble.started)return;
+ const f=pendingFumble;f.started=true;f.result=rng(6);E('fumbleRollBtn').style.display='none';
+ E('announcementTitle').textContent='Recovery Roll';
+ E('announcementSub').textContent='Rolling one die...';
+ E('recoverySlot').innerHTML=die(rng(6),true);
+ const fumbleCycle=setInterval(()=>{if(f.token!==animationSeq){clearInterval(fumbleCycle);return}E('recoverySlot').innerHTML=die(rng(6),true)},85);
+ phaseTimer=setTimeout(()=>{
+  clearInterval(fumbleCycle);
+  if(!pendingFumble||f.token!==animationSeq)return;
+  E('recoverySlot').innerHTML=die(f.result,false);
+  E('announcementTitle').textContent='Rolled '+f.result;
+  E('announcementSub').textContent='Die landed on '+f.result;
+  phaseTimer=setTimeout(()=>{
+   if(!pendingFumble||f.token!==animationSeq)return;
+   const lost=f.result>=5;pendingFumble=null;g.state='play';
+   if(lost)finishDrive('Fumble recovered by defense');
+   else{g.down++;say('Fumble · recovery '+f.result+' · Ball Retained. Down lost.');if(g.down>4)finishDrive('Turnover on downs')}
+   choice='run';rolling=false;render();
+   showFieldAnnouncement(lost?'Ball Lost':'Ball Retained',lost?'red':'green',2600,'Recovery die: '+f.result+' · '+(lost?'defense recovers':'offense retains'),f.result);
+  },1700);
+ },1700);
+}
+
+function scoreTouchdown(){
+ const side=g.off,token=animationSeq;
+ g.score[side]+=6;g.state='touchdown';g.pos=side===0?100:0;
+ say(sideName(side)+' TOUCHDOWN! +6 points. Conversion choices follow the touchdown announcement.');
+ render();
+ showFieldAnnouncement('Touchdown',currentMode==='cpu'?(side===0?'green':'red'):'gold',3200,sideName(side).toUpperCase()+' SCORED! +6');
+ setTimeout(()=>{if(token!==animationSeq||g.state!=='touchdown')return;g.state='conversion';render()},3350);
+}
+function awardSafety(conceding,reason){
+ g.score[1-conceding]+=2;
+ g.state='kickoff';g.pos=conceding===0?20:80;
+ g.lastMove=null;
+ say('SAFETY! '+sideName(1-conceding)+' gets 2 points. '+sideName(conceding)+' must kick off.');
+ render();
+ showFieldAnnouncement('Safety!',conceding===0?'red':'green',2900,reason+' · '+sideName(1-conceding)+' +2');
+}
+
+function move(y,card=false){let dir=g.off===0?1:-1,from=g.pos,to=from+dir*y;if(card){g.pos=limit(to,1,99);rememberMovement(from,g.pos,g.off);if((g.off===0&&g.pos>=g.goal)||(g.off===1&&g.pos<=g.goal)){g.down=1;g.goal=limit(g.pos+dir*10,0,100);say('FIRST DOWN from penalty cards! '+(y>=0?'+':'')+y+' yards.');g.replayFirstDownAfterCards=true;announceFirstDown(y,true)}else say('Penalty card net '+(y>=0?'+':'')+y+' yards.');return}if(to>=100||to<=0){rememberMovement(from,limit(to,0,100),g.off);if(y>0)scoreTouchdown();else awardSafety(g.off,'Ball crossed the offense’s own goal line');return}g.pos=to;rememberMovement(from,g.pos,g.off);g.down++;if((g.off===0&&g.pos>=g.goal)||(g.off===1&&g.pos<=g.goal)){g.down=1;g.goal=limit(g.pos+dir*10,0,100);say('FIRST DOWN! '+(y>=0?'+':'')+y+' yards.');announceFirstDown(y)}else if(g.down>4){finishDrive('Turnover on downs')}else say((y>=0?'+':'')+y+' yards gained.')}
+function choose(play){
+ if(play!=='run'&&play!=='pass')return;
+ if(rolling||!['play','two-ready'].includes(g.state))return;
+ if(currentMode==='cpu'&&g.off!==0)return;
+ if(currentMode==='local'&&localReady.some(Boolean))return;
+ if(play==='pass'&&g.passes<=0)return;
+ choice=play;
+ render();
+}
+
+function doPlay(type,offDice,defDice){
+ g.cardUsed=[false,false];g.od=offDice;g.dd=defDice;g.triple=false;g.passDouble=false;
+ const a=sum(offDice),b=sum(defDice),triple=offDice.every(n=>n===offDice[0]);
+ if(type==='pass'){
+  if(g.passes<=0){choice='run';say('No Pass plays remaining this drive.');render();return}
+  g.passes--;choice='run';
+ }
+ if(a===b){
+  if(type==='pass'){
+   const from=g.pos,to=from+(g.off===0?-5:5);
+   g.net=-5;rememberMovement(from,limit(to,0,100),g.off);
+   if(to<=0||to>=100){awardSafety(g.off,'Failed pass −5 yards into own end zone');return}
+   g.pos=to;say('Failed pass −5 yards, then fumble · Roll for recovery.');
+  }else{g.net=0;g.lastMove=null}
+  startFumble();return;
+ }
+ const advantage=(triple?2*a:a)-b;
+ const passSuccess=type==='pass'&&advantage>=4;
+ const y=type==='pass'?(passSuccess?advantage*2:-5):advantage;
+ g.net=y;
+ if(passSuccess&&y>=(g.off===0?110-g.pos:g.pos+10)){
+  g.lastMove=null;g.down++;say('INCOMPLETE! Pass sailed past the end zone.');
+  if(g.down>4)finishDrive('Turnover on downs');return;
+ }
+ g.triple=triple;g.passDouble=passSuccess;
+ say((type==='pass'?'PASS':'RUN')+(triple?' · TRIPLE DIE!':'')+(passSuccess?' · PASS ×2':'')+' · net '+(y>=0?'+':'')+y);
+ if(triple){
+  const token=animationSeq;
+  g.state='triple-animation';rolling=true;render();
+  showFieldAnnouncement('Triple die!',g.off===0?'green':'red',2000,'Three matching offensive dice · ×2');
+  setTimeout(()=>{
+   if(token!==animationSeq||g.state!=='triple-animation')return;
+   g.state='play';rolling=false;move(y);render();
+  },2000);
+ }else move(y);
+}
+function cpuExtraPointAfterUserRoll(){
+ if(g.state!=='xp-ready'||g.off!==1||currentMode!=='cpu')return;
+ const good=Math.random()<limit(.78+(g.kickBonus||0)*.012,.1,.97);
+ say('DieBall Don attempts the extra point…');
+ animateScoringKick(good,1,'xp',()=>{
+  if(good)g.score[1]++;
+  g.state='kickoff';g.pos=80;
+  say(good?'DieBall Don makes the extra point':'DieBall Don misses the extra point');
+  showFieldAnnouncement(good?'Extra point good':'extra point no good',good?'red':'green',2600,good?'DIEBALL DON +1':'NO POINTS');
+ });
+}
+function roll(){
+ if(rolling)return;
+ if(g.state==='conversion'){
+  if(g.off===1&&currentMode==='cpu'){cpuConversion();return}
+  conversionMenu();return;
+ }
+ if(g.state==='kickoff'||g.state==='safety'){
+  if(g.off===1&&currentMode==='cpu')cpuKick();else kick('kickoff');
+  return;
+ }
+ if(g.state==='xp-ready'){
+  if(g.off===1&&currentMode==='cpu')cpuExtraPointAfterUserRoll();
+  else kick('xp',true);
+  return;
+ }
+ if(g.state==='two-ready'){twoRoll();return}
+ if(g.state!=='play')return;
+ if(g.off===1&&currentMode!=='local'){cpuPlay();return}
+ if(choice==='pass'&&g.passes<=0){choice='run';say('No Pass plays remaining this drive.');render();return}
+ rolling=true;const selectedPlay=choice;
+ E('roll').disabled=true;E('status').textContent='Dice rolling…';
+ cycleDice(1400,()=>{
+  if(g.state!=='play')return;
+  doPlay(selectedPlay,[rng(6),rng(6),rng(6)],[rng(6),rng(6)]);
+  if(g.state!=='fumble'&&g.state!=='triple-animation')rolling=false;
+  render();
+ });
+}
+function cpuFourthDown(){
+ const toGo=Math.abs(g.goal-g.pos),dist=Math.round(g.pos+17);
+ const trailing=g.score[1]<g.score[0],late=g.quarter>=3,veryLate=g.quarter===4;
+ const nearGoal=g.pos<=35;
+ const push=toGo<=1?.77:toGo<=2?.62:toGo<=3?.45:toGo<=5?.22:.04;
+ const urgency=trailing&&late?(veryLate?.30:.14):0;
+ const goChance=Math.min(.95,push+urgency+(nearGoal&&toGo<=4?.12:0));
+ const kickChance=dist<=58?Math.max(.08,.94-(dist-23)*.018):0;
+ if(Math.random()<goChance){say('DieBall Don decides to go for it on fourth down!');showFieldAnnouncement('Don goes for it','red',1100,toGo+' yards to gain');cpuFourthRoll();return}
+ if(dist<=58&&kickChance>.41&&(!veryLate||!trailing||g.score[0]-g.score[1]<=3)&&Math.random()<.84){
+   const good=Math.random()<kickChance,side=1;
+   say('Don attempts a '+dist+'-yard field goal…');
+   animateScoringKick(good,side,'fg',()=>{
+    if(good){g.score[side]+=3;g.state='kickoff';g.pos=80;say('Don made a '+dist+'-yard field goal')}
+    else{finishDrive('Missed field goal');say('Don missed a '+dist+'-yard field goal')}
+    if(g.state!=='over')showFieldAnnouncement(good?'Field Goal Good':'Missed Field Goal',good?'red':'green',2500,good?'DIEBALL DON +3':'YOUR BALL');
+   });
+   return;
+ }
+ const from=g.pos,landing=from-(36+rng(24)),touchback=landing<=0;
+ say('DieBall Don decides to punt');
+ animateBallFlight(from,touchback?-5:Math.max(0,landing),()=>{g.pos=touchback?35:limit(landing,1,99);finishDrive(touchback?'Punt touchback':'Don punted');say('DieBall Don punted');showFieldAnnouncement('Don punts','green',1800,touchback?'Touchback':'New possession')},touchback?'endzone':'normal');
+}
+function cpuFourthRoll(){
+ rolling=true;const type=g.passes>0&&Math.random()<.36?'pass':'run';
+ if(type==='pass')showFieldAnnouncement('Don calls a Pass','red',1250,'DieBall Don attempts a pass');
+ cycleDice(1400,()=>{doPlay(type,[rng(6),rng(6),rng(6)],[rng(6),rng(6)]);if(g.state!=='fumble'&&g.state!=='triple-animation')rolling=false;if(g.state==='conversion'&&g.off===1)cpuConversion();render()});
+}
+function cpuPlay(){
+ if(g.off!==1||g.state!=='play'||rolling)return;
+ if(g.down===4){cpuFourthDown();return}
+ if(g.hands[1].length&&!g.cardUsed[1]&&Math.random()<.23){
+  pending={side:1,count:Math.min(g.hands[1].length,rng(2))};
+  showCardModal();return;
+ }
+ rolling=true;
+ const planned=g.passes>0&&Math.random()<.29?'pass':'run';
+ if(planned==='pass')showFieldAnnouncement('Don calls a Pass','red',1360,'DieBall Don attempts a pass');
+ cycleDice(1430,()=>{
+  doPlay(planned,[rng(6),rng(6),rng(6)],[rng(6),rng(6)]);
+  if(g.state!=='fumble'&&g.state!=='triple-animation')rolling=false;
+  if(g.state==='conversion'&&g.off===1)cpuConversion();
+  render();
+ });
+}
+function openCards(){const side=currentMode==='local'?localActor:0;if(g.state!=='play'||rolling||g.cardUsed[side]||g.hands[side].length===0)return;pending={side:currentMode==='local'?3:0,actor:side,count:0};selection=[];showCardModal()}
+function showCardModal(){E('modalCommit').onclick=commitModal;E('modalCancel').style.display='';selection=[];E('overlay').classList.add('open');E('modalTitle').textContent=pending.side===1?'Opponent played penalty cards':'Play penalty cards';E('modalIntro').textContent=pending.side===1?'Select cards to counter, or commit zero.':'Select any number of cards. DieBall Don may counter.';let values=g.hands[currentMode==='local'?pending.actor:0];E('modalInner').innerHTML=(pending.side===1?'<div class="cpu-card-count"><span>OPPONENT PLAYED</span><strong>'+pending.count+'</strong><span>'+ (pending.count===1?'CARD':'CARDS') +'</span></div>':'')+'<div class="cards" id="pickcards">'+values.map((v,i)=>'<button class="card" id="pick'+i+'" onclick="selectCard('+i+')">'+v+'</button>').join('')+'</div><div class="muted" id="pickInfo">0 cards selected</div>';E('modalCommit').textContent='COMMIT (0)'}
+function selectCard(i){if(selection.includes(i))selection=selection.filter(x=>x!==i);else selection.push(i);g.hands[currentMode==='local'?pending.actor:0].forEach((_,j)=>E('pick'+j).classList.toggle('chosen',selection.includes(j)));E('pickInfo').textContent=selection.length+' cards selected';E('modalCommit').textContent='COMMIT ('+selection.length+')'}
+
+/* Keep every game popup readable and interactive from either end of a shared phone. */
+const primaryPopup=E('overlay').querySelector('.modal-primary');
+const mirrorPopup=E('modalMirror');
+let mirrorQueued=false;
+function isLocalPhone(){return currentMode==='local'&&E('bodymode').classList.contains('phone')}
+function syncMirrorPopup(){
+ if(!isLocalPhone()||!E('overlay').classList.contains('open')){
+  mirrorPopup.style.display='none';return;
+ }
+ const snapshot=primaryPopup.cloneNode(true);
+ const all=[snapshot,...snapshot.querySelectorAll('*')];
+ for(const element of all){
+  element.removeAttribute('id');
+  for(const att of [...element.attributes])if(att.name.toLowerCase().startsWith('on'))element.removeAttribute(att.name);
+ }
+ snapshot.querySelectorAll('button').forEach((button,i)=>button.dataset.mirrorButton=i);
+ snapshot.querySelectorAll('input').forEach((input,i)=>input.dataset.mirrorInput=i);
+ mirrorPopup.replaceChildren(...Array.from(snapshot.childNodes));
+ mirrorPopup.style.display='block';
+}
+function queueMirrorPopup(){
+ if(mirrorQueued)return;mirrorQueued=true;
+ requestAnimationFrame(()=>{mirrorQueued=false;syncMirrorPopup()});
+}
+new MutationObserver(queueMirrorPopup).observe(primaryPopup,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class','style','disabled','value']});
+mirrorPopup.addEventListener('click',e=>{
+ const button=e.target.closest('button[data-mirror-button]');
+ if(!button)return;
+ const original=primaryPopup.querySelectorAll('button')[Number(button.dataset.mirrorButton)];
+ if(original&&!original.disabled)original.click();
+});
+mirrorPopup.addEventListener('input',e=>{
+ const input=e.target.closest('input[data-mirror-input]');
+ if(!input)return;
+ const original=primaryPopup.querySelectorAll('input')[Number(input.dataset.mirrorInput)];
+ if(original){original.value=input.value;original.dispatchEvent(new Event('input',{bubbles:true}))}
+});
+new MutationObserver(queueMirrorPopup).observe(E('overlay'),{attributes:true,attributeFilter:['class']});
+
+function closeModal(){if(pending&&pending.side===8){commitConversionCards(true);return}E('overlay').classList.remove('open');pending=null;selection=[];render()}
+function commitModal(){if(!pending)return;let my=selection.map(i=>g.hands[0][i]),cpu=[];g.hands[0]=g.hands[0].filter((_,i)=>!selection.includes(i));if(pending.side===1){cpu=g.hands[1].splice(0,pending.count)}else{let n=Math.min(g.hands[1].length,Math.random()<.4?0:rng(2));cpu=g.hands[1].splice(0,n)}let value=sum(my)-sum(cpu);E('overlay').classList.remove('open');pending=null;selection=[];say('CARDS REVEALED · You ['+(my.join(', ')||'none')+'] vs '+E('cpuName').textContent+' ['+(cpu.join(', ')||'none')+']');move(value,true);render()}
+
+function openConversionCards(side){
+ pending={side:8,actor:side};selection=[];
+ E('overlay').classList.add('open');
+ E('modalTitle').textContent=sideName(side)+' · conversion cards';
+ E('modalIntro').textContent='Optional: play remaining cards on this conversion. You may skip. Commit cards first, then roll the dice yourself.';
+ E('modalInner').innerHTML='<div class="cards">'+g.hands[side].map((v,i)=>'<button class="card" id="pick'+i+'" onclick="selectCard('+i+')">'+v+'</button>').join('')+'</div><div class="muted" id="pickInfo">0 cards selected</div>';
+ E('modalCancel').style.display='';E('modalCancel').textContent='SKIP CARDS';
+ E('modalCommit').style.display='';E('modalCommit').textContent='COMMIT CARDS';E('modalCommit').onclick=commitModal;
+}
+function chooseCpuConversionCards(){
+ const deck=g.hands[1],declaredCount=g.conversionChoices[0].length;
+ if(!deck.length)return [];
+ const count=g.off===1?Math.min(deck.length,declaredCount>=2?2:1+Math.floor(Math.random()*2)):Math.random()<.85?Math.min(deck.length,declaredCount>=3?3:declaredCount>=2?2:1):0;
+ deck.sort((a,b)=>b-a);return deck.splice(0,count);
+}
+function commitConversionCards(skip=false){
+ if(!pending||pending.side!==8)return;
+ const side=pending.actor,picked=skip?[]:selection;
+ g.conversionChoices[side]=picked.map(i=>g.hands[side][i]);
+ g.hands[side]=g.hands[side].filter((_,i)=>!picked.includes(i));
+ pending=null;selection=[];
+ E('overlay').classList.remove('open');E('modalCancel').textContent='CANCEL';
+ if(currentMode==='local'&&side===g.off){openConversionCards(1-g.off);return}
+ if(currentMode==='cpu')g.conversionChoices[1]=chooseCpuConversionCards();
+ finishConversionCards();
+}
+function finishConversionCards(){
+ const delta=sum(g.conversionChoices[g.off])-sum(g.conversionChoices[1-g.off]);
+ g.kickBonus=delta;g.localXpReady=[false,false];g.localXpStart=false;
+ if(g.conversionType===2){
+  g.pos=limit(g.pos+(g.off===0?1:-1)*delta,1,99);
+  choice='run';
+  if(g.off===1&&currentMode==='cpu'&&g.passes>0)choice=Math.random()<.32?'pass':'run';
+  g.state='two-ready';say('Conversion cards committed: '+(delta>=0?'+':'')+delta+' yards. Choose RUN or PASS (if a pass remains), then press ROLL DICE to try for two.');render();
+  // The defending user starts the conversion by pressing ROLL DICE.
+ }else{
+  g.state='xp-ready';say('Conversion cards committed. Extra point kick next.');
+  if(g.off===1&&currentMode==='cpu'){
+   // Don has chosen an extra point; the defending user must trigger the kick.
+   say('Cards committed. Press ROLL DICE to begin Don’s extra-point kick.');
+   render();
+  }else{say('Cards committed. Press KICK EXTRA POINT to begin.');render();}
+ }
+}
+
+function conversionMenu(){if(g.state!=='conversion'||(g.off!==0&&currentMode!=='local'))return;g.state='convert-menu';E('overlay').classList.add('open');E('modalTitle').textContent='Touchdown! Choose conversion';E('modalIntro').textContent='Kick for 1 from the 25 or go for 2 from the 5.';E('modalInner').innerHTML='<div class="buttons"><button class="strong" onclick="startConversion(1)">KICK FOR 1</button><button class="strong" onclick="startConversion(2)">GO FOR 2</button></div>';E('modalCommit').style.display='none';E('modalCancel').style.display='none'}
+function startConversion(n){
+ if(g.state!=='convert-menu'&&g.state!=='conversion')return;
+ E('overlay').classList.remove('open');
+ g.conversionType=n;g.conversionChoices=[[],[]];g.kickBonus=0;g.state='convert-cards';
+ if(n===2)g.pos=g.off===0?95:5;
+ openConversionCards(g.off===0||currentMode==='local'?g.off:0);
+}
+function twoRoll(){
+ if(g.state!=='two-ready'||rolling)return;
+ const token=animationSeq,type=choice==='pass'&&g.passes>0?'pass':'run';
+ if(type==='pass')g.passes--;
+ choice='run';g.state='two-rolling';rolling=true;
+ say('Two-point '+type+' play · dice rolling...');
+ if(type==='pass')showFieldAnnouncement('Pass for 2',g.off===0?'green':'red',1350,'Passes left: '+g.passes);
+ cycleDice(1500,()=>{
+  if(token!==animationSeq)return;
+  const a=[rng(6),rng(6),rng(6)],b=[rng(6),rng(6)],raw=sum(a),def=sum(b),triple=a.every(v=>v===a[0]);
+  g.od=a;g.dd=b;
+  const advantage=(triple?2*raw:raw)-def;
+  const passSuccess=type==='pass'&&advantage>=4, yards=type==='pass'?(passSuccess?advantage*2:-5):advantage;
+  const needed=g.off===0?100-g.pos:g.pos,good=raw!==def&&yards>=needed;
+  g.net=yards;g.triple=triple&&raw!==def;g.passDouble=passSuccess&&raw!==def;
+  render();
+  const finish=()=>{
+   if(token!==animationSeq||g.state!=='two-rolling')return;
+   if(good)g.score[g.off]+=2;
+   g.state='kickoff';g.pos=g.off===0?20:80;rolling=false;
+   say(good?'TWO POINTS GOOD!':'Two-point attempt failed.');render();
+   showFieldAnnouncement(good?'2 points converted':'2 points not converted',good?(g.off===0?'green':'red'):(g.off===0?'red':'green'),2900,(type==='pass'?'PASS':'RUN')+' · '+(good?'+2 POINTS':'NO POINTS'));
+  };
+  if(g.triple){showFieldAnnouncement('Triple die!',g.off===0?'green':'red',2000,'Three matching dice · ×2');setTimeout(finish,2000)}
+  else finish();
+ });
+}
+function cpuConversion(){
+ if(g.state!=='conversion'||g.off!==1||currentMode!=='cpu')return;
+ g.conversionType=Math.random()<.8?1:2;
+ g.conversionChoices=[[],[]];g.kickBonus=0;g.state='convert-cards';
+ if(g.conversionType===2)g.pos=5;
+ openConversionCards(0);
+}
+
+const kickoffBands=[
+ {portion:8,color:'#df4749',label:'OUT OF BOUNDS'},
+ {portion:10,color:'#f4d767',label:'END ZONE'},
+ {portion:14,color:'#215c36',label:'1–10 YD'},
+ {portion:14,color:'#9bdc87',label:'11–20 YD'},
+ {portion:14,color:'#f0d45a',label:'21–30 YD'},
+ {portion:40,color:'#d44950',label:'31–OPP 1'}
+];
+const puntBands=[
+ {portion:7,color:'#d44950',label:'OUT OF BOUNDS'},
+ {portion:11,color:'#d44950',label:'10–25 YD'},
+ {portion:18,color:'#f0d45a',label:'26–40 YD'},
+ {portion:18,color:'#91d882',label:'41–55 YD'},
+ {portion:18,color:'#215c36',label:'56–70 YD'},
+ {portion:17,color:'#eeca57',label:'71–85 YD'},
+ {portion:11,color:'#d44950',label:'86–95 YD'}
+];
+function verticalKickScale(kind){
+ const bands=kind==='punt'?puntBands:kickoffBands;
+ return '<div class="vertical-kick-scale"><div class="vertical-kick-track"><div class="vertical-kick-bands">'+
+ bands.map(b=>'<div class="vertical-kick-band" style="height:'+b.portion+'%;background:'+b.color+'"></div>').join('')+
+ '</div><div class="kickoff-mark" id="kickoffMark"></div></div><div class="vertical-kick-labels">'+
+ bands.map(b=>'<div class="vertical-kick-label" style="height:'+b.portion+'%">'+b.label+'</div>').join('')+
+ '</div></div><p class="vertical-kick-hint">'+(kind==='punt'?'Stop to set punt distance. Longer punts can become touchbacks.':'Aim near the receiving team’s own 1-yard line.')+'</p>';
+}
+function kickoffYard(marker){
+ if(marker<8)return 50;
+ if(marker<18)return 35;
+ if(marker<32)return 1+Math.min(9,Math.floor((marker-18)/14*10));
+ if(marker<46)return 11+Math.min(9,Math.floor((marker-32)/14*10));
+ if(marker<60)return 21+Math.min(9,Math.floor((marker-46)/14*10));
+ return 31+Math.min(68,Math.floor((marker-60)/40*69));
+}
+function cancelFieldGoal(){
+ if(g.state!=='kick'||g.kickType!=='fg')return;
+ clearInterval(kickTimer);
+ E('overlay').classList.remove('open');
+ E('modalCancel').onclick=closeModal;E('modalCancel').style.display='';
+ E('modalCancel').textContent='CANCEL';
+ E('modalCommit').onclick=commitModal;
+ g.state=g.kickPreviousState||'play';g.kickType=null;
+ say('Field goal canceled. The down and possession are unchanged.');
+ render();
+}
+
+function cancelPunt(){
+ if(g.state!=='kick'||g.kickType!=='punt')return;
+ clearInterval(kickTimer);
+ E('overlay').classList.remove('open');
+ E('modalCancel').onclick=closeModal;E('modalCancel').style.display='';
+ E('modalCancel').textContent='CANCEL';
+ E('modalCommit').onclick=commitModal;
+ g.state=g.kickPreviousState||'play';g.kickType=null;
+ say('Punt canceled. Choose your next play.');render();
+}
+
+function kick(kind,force=false){if(rolling||(!force&&g.off!==0&&currentMode!=='local'))return;if(!force&&g.state!=='play'&&g.state!=='kickoff'&&g.state!=='safety')return;clearInterval(kickTimer);g.kickPreviousState=g.state;g.kickType=kind;g.state='kick';kpos=0;kdir=1;g.power=65;g.aim=0;E('overlay').classList.add('open');E('modalTitle').textContent=kind==='fg'?'Field goal':kind==='xp'?'Extra point':kind==='punt'?'Punt':'Kickoff';let dist=kind==='xp'?42:Math.round((g.off===0?100-g.pos:g.pos)+17);g.kickDist=dist;if(kind==='kickoff'){
+ E('modalIntro').textContent='Stop the fast-moving marker to set the landing spot.';
+ E('modalInner').innerHTML=verticalKickScale('kickoff');
+ E('modalCommit').onclick=commitModal;E('modalCommit').textContent='STOP KICKOFF';
+ kickTimer=setInterval(()=>{kpos+=kdir*3.3;if(kpos>=100||kpos<=0){kdir*=-1;kpos=limit(kpos,0,100)}if(E('kickoffMark'))E('kickoffMark').style.top=kpos+'%'},20);
+ }else if(kind==='punt'){
+ E('modalIntro').textContent='Stop the fast-moving marker to choose punt distance. You may cancel before punting.';
+ E('modalInner').innerHTML=verticalKickScale('punt');
+ E('modalCommit').onclick=commitModal;E('modalCommit').textContent='STOP PUNT';
+ E('modalCancel').onclick=cancelPunt;E('modalCancel').textContent='CANCEL PUNT';E('modalCancel').style.display='';
+ kickTimer=setInterval(()=>{kpos+=kdir*3.3;if(kpos>=100||kpos<=0){kdir*=-1;kpos=limit(kpos,0,100)}const marker=E('kickoffMark');if(marker)marker.style.top=kpos+'%'},20);
+ }else if(kind==='fg'||kind==='xp'){let w=Math.max(.5,Math.min(55,55*Math.exp(-.045*(dist-20))+(kind==='xp'?(g.kickBonus||0)*.7:0)));E('modalIntro').textContent=dist+'-yard kick. Stop the marker inside the green window.';E('modalInner').innerHTML='<div class="meter"><div class="zone" style="width:'+w+'%"></div><div class="needle" id="needle"></div></div>';kickTimer=setInterval(()=>{kpos+=kdir*2.4;if(kpos>100||kpos<0){kdir*=-1;kpos=limit(kpos,0,100)}if(E('needle'))E('needle').style.left=kpos+'%'},20);E('modalCommit').onclick=commitModal;E('modalCommit').textContent='STOP THE KICK';if(kind==='fg'){E('modalCancel').onclick=cancelFieldGoal;E('modalCancel').textContent='CANCEL FIELD GOAL';E('modalCancel').style.display=''}}else{E('modalIntro').textContent=kind==='punt'?'Choose punt power. Random drift affects landing location.':'Choose kickoff power and aim. No returns.';E('modalInner').innerHTML='<label>POWER <b id="pval">65</b>%</label><input type="range" min="0" max="100" value="65" oninput="g.power=+this.value;E(\'pval\').textContent=this.value">'+(kind==='kickoff'?'<label>AIM <b id="aval">0</b></label><input type="range" min="-100" max="100" value="0" oninput="g.aim=+this.value;E(\'aval\').textContent=this.value">':'');E('modalCommit').onclick=commitModal;E('modalCommit').textContent='KICK BALL'}if(kind!=='punt'&&kind!=='fg')E('modalCancel').style.display='none'}
+function executeKick(){
+ clearInterval(kickTimer);
+ const kind=g.kickType,side=g.off,start=g.pos;g.lastMove=null;
+ E('overlay').classList.remove('open');E('modalCancel').style.display='';E('modalCancel').onclick=closeModal;E('modalCancel').textContent='CANCEL';
+ if(kind==='kickoff'){
+  const receivingYard=kickoffYard(kpos);
+  const outOfBounds=kpos<8,endzone=kpos>=8&&kpos<18;
+  const description=outOfBounds?'OUT OF BOUNDS · MIDFIELD':endzone?'TOUCHBACK · OWN 35':'BALL LANDED AT OWN '+receivingYard;
+  const landing=side===0?100-receivingYard:receivingYard;
+  const visualTarget=endzone?(side===0?105:-5):outOfBounds?(side===0?95:5):landing;
+  say('Kickoff in the air...');
+  animateBallFlight(start,visualTarget,()=>{
+   recordDrive(side);g.drives[side]++;g.off=1-side;g.pos=landing;
+   newPossessionAfterKick(description);
+   if(g.state!=='over'&&!(g.periodNoticeUntil>Date.now()))showFieldAnnouncement('Kickoff',receivingYard<=20?'green':'red',1900,description);
+  },outOfBounds?'out':endzone?'endzone':'normal');
+  return;
+ }
+ if(kind==='fg'||kind==='xp'){
+  const width=Math.max(.5,Math.min(55,55*Math.exp(-.045*(g.kickDist-20))+(kind==='xp'?(g.kickBonus||0)*.7:0)));
+  const good=Math.abs(kpos-50)<width/2;
+  say(kind==='xp'?'Extra point in the air…':'Field goal in the air…');
+  animateScoringKick(good,side,kind,()=>{
+   if(good)g.score[side]+=kind==='xp'?1:3;
+   if(kind==='xp'||good){g.pos=side===0?20:80;g.state='kickoff'}
+   else finishDrive('Missed field goal');
+   say((kind==='xp'?'EXTRA POINT':'FIELD GOAL')+(good?' GOOD!':' MISSED!'));
+   if(g.state!=='over')showFieldAnnouncement(kind==='xp'?(good?'Extra point good':'extra point no good'):(good?'Field Goal Good':'Missed Field Goal'),good?(side===0?'green':'red'):(side===0?'red':'green'),2600,good?'BALL THROUGH THE UPRIGHTS':'KICK MISSED THE UPRIGHTS');
+  });
+  return;
+ }
+ if(kind==='punt'){
+  const outOfBounds=kpos<7;
+  const length=outOfBounds?48+Math.floor(kpos):Math.round(10+kpos*.85);
+  const landing=start+(side===0?1:-1)*length;
+  const touchback=!outOfBounds&&(landing>=100||landing<=0);
+  const finalSpot=touchback?(side===0?65:35):limit(landing,1,99);
+  const visualTarget=touchback?(side===0?105:-5):limit(landing,0,100);
+  say('Punt in the air...');
+  animateBallFlight(start,visualTarget,()=>{
+   g.pos=finalSpot;
+   finishDrive(touchback?'Punt touchback':outOfBounds?'Punt out of bounds':'Punt landed');
+   if(g.state!=='over')showFieldAnnouncement(touchback?'Punt Touchback':outOfBounds?'Punt Out of Bounds':'Punt',side===0?'green':'red',1800,touchback?'Receiving team starts at own 35':outOfBounds?'Ball placed where it crossed the sideline':'Ball downed');
+  },outOfBounds?'out':touchback?'endzone':'normal');
+  return;
+ }
+
+ render();
+}
+function newPossessionAfterKick(msg){localReady=[false,false];localEyes=[false,false];advanceQuarterIfReady();if(g.quarter>4){g.state='over';say('FINAL SCORE: '+g.score.join(' – '));announceWinner();return}freshCards();g.state='play';say(msg);announceLastDrive()}
+function cpuKick(){if(g.off!==1||(g.state!=='kickoff'&&g.state!=='safety')||rolling)return;const from=g.pos,to=limit(80-(45+rng(20)),1,99);say('DieBall Don kicks off...');animateBallFlight(from,to,()=>{recordDrive(1);g.drives[1]++;g.off=0;g.pos=to;newPossessionAfterKick(E('cpuName').textContent+' kicked off');if(g.state!=='over'&&!(g.periodNoticeUntil>Date.now()))showFieldAnnouncement('Kickoff','green',1800,'Ball lands at own '+to)})}
+function setMode(v){E('bodymode').className=(currentMode==='local'?'local-game ':currentMode==='cpu'?'cpu-game ':'')+(v==='phone'?'phone':'');E('desktop').classList.toggle('on',v==='desktop');E('phone').classList.toggle('on',v==='phone');renderLocal();queueMirrorPopup()}
+function render(){E('playerOneLabel').textContent=currentMode==='local'?teamNames[0].toUpperCase():window.seasonTeamName?window.seasonTeamName.toUpperCase():'YOU';E('s0').textContent=g.score[0];E('s1').textContent=g.score[1];E('cpuLabel').textContent=currentMode==='local'?teamNames[1].toUpperCase():E('cpuName').textContent.toUpperCase();E('period').textContent=g.quarter>4?'FINAL':'Q'+g.quarter+' · DRIVE '+(Math.max(...g.drives)+1);E('driveRibbon').innerHTML=[0,1].map(side=>'<div class="drive-line"><span>'+(currentMode==='local'?teamNames[side].slice(0,5).toUpperCase():side===0?'YOU':'DON')+'</span>'+Array.from({length:g.drivesPerTeam},(_,i)=>{const v=g.driveHistory[side][i],cl=v===undefined?'empty':v>=6?'td':v===3?'fg':'no-score';return '<i class="drive-tile '+cl+'" title="'+(v===undefined?'Drive '+(i+1):v+' points')+'">'+(v===undefined?'':v>0?v:'×')+'</i>'}).join('')+'</div>').join('');const ordinal=n=>n===1?'1st':n===2?'2nd':n===3?'3rd':n+'th';let dist=Math.abs(g.goal-g.pos);let downText=g.state==='over'?'Final':ordinal(g.down)+' & '+(dist===0?'Goal':dist);E('down').textContent=downText;E('bottomSpot').textContent=own().toUpperCase();E('bottomDown').textContent=downText;E('scoreSpot').textContent=own().toUpperCase();E('scoreDown').textContent=downText;E('fieldDown').textContent=downText;let statusDown=E('downCard');statusDown.className='situation-card down-card '+(g.state==='play'?'down-'+Math.min(4,Math.max(1,g.down)):'down-neutral');E('scoreDownCard').className='mobile-cpu-card mobile-cpu-down '+(g.state==='play'?'down-'+Math.min(4,Math.max(1,g.down)):'down-neutral');E('poss').textContent=(currentMode==='local'?teamNames[g.off]:g.off===0?'YOUR':'CPU')+' BALL';E('los').style.left=g.pos+'%';E('ball').style.left=g.pos+'%';E('first').style.left=g.goal+'%';E('spot').textContent='BALL · '+own().toUpperCase();let lm=g.lastMove,layer=E('lastMove');if(lm){layer.style.display='block';E('priorLine').style.left=lm.from+'%';let arrow=E('moveArrow'),left=Math.min(lm.from,lm.to),width=Math.abs(lm.to-lm.from);arrow.style.left=left+'%';arrow.style.width=width+'%';arrow.className='move-arrow '+(lm.forward?'forward':'backward')+' '+(lm.to>=lm.from?'rightward':'leftward');E('movementLabel').textContent=(lm.forward?'+':'-')+lm.delta+' yd';arrow.classList.toggle('backward',lm.off===0? !lm.forward:lm.forward);arrow.classList.toggle('forward',lm.off===0? lm.forward:!lm.forward);}else layer.style.display='none';E('diceFocus').classList.toggle('defending',g.off===1);E('diceStack').classList.toggle('player-defense',g.off===1);E('passes').textContent=g.passes;E('run').disabled=(g.state!=='play'&&g.state!=='two-ready')||(g.off!==0&&currentMode!=='local');E('pass').disabled=(g.state!=='play'&&g.state!=='two-ready')||(g.off!==0&&currentMode!=='local')||g.passes<=0;E('run').classList.toggle('active',choice==='run');E('pass').classList.toggle('active',choice==='pass');E('odice').innerHTML=g.od.map(n=>die(n)).join('');E('ddice').innerHTML=g.dd.map(n=>die(n)).join('');E('ototal').innerHTML=sum(g.od)+(g.triple?'<span class="die-multiplier" title="Triple die bonus">×2</span>':'')+(g.passDouble?'<span class="die-multiplier" title="Successful pass">×2</span>':'');E('dtotal').textContent=sum(g.dd);let net=E('net');net.className='net compact-net net-across'+(g.net>0?(g.off===0?' pos':' neg'):g.net<0?(g.off===0?' neg':' pos'):'');net.textContent=g.net===null?'—':(g.net>0?'+':'')+g.net;E('roll').disabled=rolling||!['play','two-ready','conversion','kickoff','xp-ready'].includes(g.state);E('roll').textContent=g.state==='conversion'?'CHOOSE CONVERSION':g.state==='kickoff'?(g.off===1&&currentMode==='cpu'?'RECEIVE KICKOFF':'KICKOFF'):g.state==='xp-ready'?(g.off===1&&currentMode==='cpu'?'ROLL DICE · EXTRA POINT':'KICK EXTRA POINT'):g.state==='two-ready'?'ROLL 2-POINT PLAY':g.off===0?'ROLL DICE':currentMode==='local'?'ROLL DICE · PLAYER 2':'ROLL DICE · DON';E('cards').innerHTML=g.hands[currentMode==='local'?g.off:0].map(v=>'<div class="card">'+v+'</div>').join('')||'<span class="muted">NO CARDS REMAINING</span>';E('handInfo').innerHTML='<span class="hidden-card-label">'+(currentMode==='local'?'OPPONENT':E('cpuName').textContent)+':</span> <span class="hidden-card-row">'+Array.from({length:g.hands[currentMode==='local'?1-g.off:1].length},()=>'<span class="mini-card-back">PC</span>').join('')+'</span>';E('deck').textContent=g.deck.length;E('status').textContent=g.msg;E('cardbutton').disabled=g.state!=='play'||rolling||(currentMode==='local'?g.hands[g.off].length===0||g.cardUsed[g.off]:g.hands[0].length===0||g.cardUsed[0]);E('fgbutton').disabled=g.state!=='play'||(g.off!==0&&currentMode!=='local')||rolling;E('puntbutton').disabled=g.state!=='play'||(g.off!==0&&currentMode!=='local')||rolling;E('details').textContent='Ball · '+own()+' | Passes remaining · '+g.passes;E('log').innerHTML=g.logs.map(x=>'<div>'+x+'</div>').join('');E('kickoffbtn').style.display='none';E('convertbtn').style.display='none';E('roll').onclick=roll;if(g.state==='conversion'&&g.off===1&&currentMode==='cpu'){cpuConversion()}if(g.state==='two'){}renderLocal();}
+function commitModal(){if(pending&&pending.side===8){commitConversionCards(false);return}if(pending){let activeSide=currentMode==='local'?pending.actor:0;let my=selection.map(i=>g.hands[activeSide][i]);g.hands[activeSide]=g.hands[activeSide].filter((_,i)=>!selection.includes(i));let n=pending.side===1?Math.min(pending.count,g.hands[1].length):0;if(pending.side!==1&&currentMode==='cpu'&&my.length&&!g.cardUsed[1]&&g.hands[1].length){const declared=my.length;n=Math.min(g.hands[1].length,declared+(g.down===4&&Math.random()<.55?1:0));g.hands[1].sort((a,b)=>b-a)}else if(pending.side!==1&&currentMode==='local')n=Math.min(g.hands[1-activeSide].length,Math.random()<.5?0:rng(2));let cpu=g.hands[1-activeSide].splice(0,n);if(cpu.length)g.cardUsed[1-activeSide]=true;let value=currentMode==='local'?(activeSide===g.off?sum(my)-sum(cpu):sum(cpu)-sum(my)):g.off===0?sum(my)-sum(cpu):sum(cpu)-sum(my);g.cardUsed[activeSide]=true;if(currentMode==='cpu'&&pending.side===1)g.cardUsed[1]=true;pending=null;selection=[];say('CARDS REVEALED · YOU ['+(my.join(', ')||'none')+'] vs DIEBALL DON ['+(cpu.join(', ')||'none')+']');move(value,true);render();E('modalTitle').textContent='Penalty cards revealed';E('modalIntro').textContent='Both sets of cards are now visible. Here is the movement result.';E('modalInner').innerHTML='<div class="card-reveal"><div><b>YOU</b><div class="cards">'+(my.length?my.map(v=>'<div class="card">'+v+'</div>').join(''):'<span class="muted">No cards</span>')+'</div><span>Total: '+sum(my)+'</span></div><div><b>DIEBALL DON</b><div class="cards">'+(cpu.length?cpu.map(v=>'<div class="card">'+v+'</div>').join(''):'<span class="muted">No cards</span>')+'</div><span>Total: '+sum(cpu)+'</span></div></div><div class="reveal-net '+((g.off===0?value:-value)>=0?'gain':'loss')+'">'+(value>=0?'+':'')+value+' yards <small>'+(value>0?'Offense forward':value<0?'Offense backward':'No movement')+'</small></div>';E('modalCancel').style.display='none';E('modalCommit').textContent='CONTINUE';E('modalCommit').onclick=()=>{E('overlay').classList.remove('open');E('modalCommit').onclick=commitModal;E('modalCancel').style.display='';E('modalCommit').textContent='COMMIT';if(g.replayFirstDownAfterCards){g.replayFirstDownAfterCards=false;showFieldAnnouncement('First Down',g.off===0?'green':'red',2200,sideName(g.off)+' · Penalty cards')}};return}if(g.state==='kick')executeKick()}
+
+
+let currentMode='cpu',teamNames=['YOU','DIEBALL DON'],localReady=[false,false],localEyes=[false,false],localDice=[null,null],localActor=0,walkIndex=0,pendingFumble=null;
+
+function enterGame(){E('homeScreen').style.display='none';E('bodymode').style.display='block';E('bodymode').classList.toggle('local-game',currentMode==='local');E('bodymode').classList.toggle('cpu-game',currentMode==='cpu');if(window.innerWidth<=700)setMode('phone');reset();render();if(!localStorage.getItem('dieball-walkthrough-seen')){walkIndex=0;showWalkthrough()}}
+function closeLocalSetup(){E('localSetup').style.display='none'}
+function startLocalMatch(){const home=E('homeTeamName').value.trim(),away=E('awayTeamName').value.trim();if(!home||!away)return;gameDrivesPerTeam=Number(document.querySelector('input[name="localGameLength"]:checked')?.value)===4?4:8;teamNames=[home,away];currentMode='local';E('localSetup').style.display='none';enterGame()}
+const walkthroughSteps=[
+ ['Welcome to DieBall','Call a run or pass, then roll the dice. The offense uses three dice; the defense uses two.'],
+ ['Move the ball','Example: offense rolls 5, 4, 3 (total 12), defense rolls 4, 2 (total 6). A run gains +6 yards. The field arrow shows +6 and the ball moves from the 35 to the 41.'],
+ ['Take your chances','Example: offense 14 − defense 8 = +6, so a pass gains 12 yards. If the difference were +3, the pass would lose 5 yards. You get two passes per drive.'],
+ ['Play penalty cards','Example: you play an 8 and a 4, Don counters with a 5: net +7 yards for your offense. Cards can earn a first down, but cannot score. You can only commit once before the next dice play.'],
+ ['Fumbles and scoring','Equal raw dice totals cause a fumble. Roll the recovery die manually: 1–4 retained, 5–6 lost. Touchdowns earn 6 plus a conversion try.'],
+ ['Ready for kickoff','On fourth down, choose to go for it, punt, or attempt a field goal. Use the How to Play ? button anytime.']
+];
+function showWalkthrough(){const v=walkthroughSteps[walkIndex];E('walkthrough').style.display='flex';E('walkStep').textContent='STEP '+(walkIndex+1)+' / '+walkthroughSteps.length;E('walkHeading').textContent=v[0];E('walkText').textContent=v[1];E('walkNext').textContent=walkIndex===walkthroughSteps.length-1?'START PLAYING':'NEXT →'}
+function nextWalkthrough(){if(++walkIndex>=walkthroughSteps.length){skipWalkthrough();return}showWalkthrough()}
+function skipWalkthrough(){E('walkthrough').style.display='none';localStorage.setItem('dieball-walkthrough-seen','yes')}
+function localCardMarkup(side){const values=g.hands[side]||[];return values.length?values.map(v=>localEyes[side]?'<div class="card">'+v+'</div>':'<div class="card card-back">?</div>').join(''):'<span class="muted">No cards left</span>'}
+function drawLocalPlayer(side){
+ const pane=E(side===0?'localTop':'localBottom');
+ const offensive=g.off===side,values=offensive?g.od:g.dd;
+ const rolled=localDice[side]||values;
+ const ready=g.state==='xp-ready'&&!g.localXpStart?g.localXpReady[side]:localReady[side],title=teamNames[side]||'Player '+(side+1);const canAction=g.state==='play'||g.state==='two-ready'||g.state==='xp-ready'&&(!g.localXpStart||offensive)||offensive&&['conversion','kickoff'].includes(g.state);
+ const yard=own().toUpperCase(),distance=Math.abs(g.goal-g.pos),ord=n=>n===1?'1st':n===2?'2nd':n===3?'3rd':n+'th';
+ const down=g.state==='over'?'FINAL':ord(g.down)+' & '+(distance===0?'Goal':distance);
+ const scoreStrip='<div class="local-score-strip"><div class="local-score-team"><span>'+teamNames[0].toUpperCase()+'</span><strong>'+g.score[0]+'</strong></div><div class="local-score-team"><span>'+teamNames[1].toUpperCase()+'</span><strong>'+g.score[1]+'</strong></div><div class="local-score-info" aria-label="Field position"><strong>'+yard+'</strong></div><div class="local-score-info down-info" aria-label="Down and distance"><strong>'+down+'</strong></div></div>';
+ pane.innerHTML=(side===0?scoreStrip:'')+'<div class="lp-main"><div class="lp-dice"><div class="lp-heading">'+title.toUpperCase()+' <span>'+(offensive?'OFFENSE':'DEFENSE')+'</span></div><div class="lp-rolls">'+rolled.map(v=>die(v)).join('')+'</div><div class="lp-total">= '+sum(rolled)+(offensive&&g.triple?'<span class="die-multiplier" title="Triple die">×2</span>':'')+(offensive&&g.passDouble?'<span class="die-multiplier" title="Successful pass">×2</span>':'')+'</div><button class="lp-ready" '+(ready||rolling||!canAction?'disabled':'')+' onclick="localRollPress('+side+')">'+(ready?'READY ✓':g.state==='two-ready'?'ROLL FOR 2':g.state==='conversion'?'CHOOSE CONVERSION':g.state==='kickoff'?'KICKOFF':g.state==='xp-ready'?(g.localXpStart?'KICK EXTRA POINT':'ROLL DICE · XP'):'ROLL DICE')+'</button></div><div class="lp-cards"><div class="lp-heading">PENALTY CARDS <button class="eye-toggle" aria-label="'+(localEyes[side]?'Hide':'Show')+' cards" onclick="toggleLocalEye('+side+')">'+(localEyes[side]?'◉':'◎')+'</button></div><div class="lp-card-row">'+localCardMarkup(side)+'</div><button class="lp-card-play" onclick="openLocalCards('+side+')" '+(g.state!=='play'||g.cardUsed[side]||g.hands[side].length===0?'disabled':'')+'>PLAY CARDS</button></div></div><div class="lp-footer">'+(offensive?'<div class="lp-play-switch"><button onclick="choose(\'run\')" class="'+(choice==='run'?'active':'')+'">RUN</button><button onclick="choose(\'pass\')" class="'+(choice==='pass'?'active':'')+'">PASS ('+g.passes+')</button></div>':'')+(offensive&&g.state==='play'?'<button onclick="kick(\'fg\')">FG</button><button onclick="kick(\'punt\')">PUNT</button>':'')+'</div>'+(side===1?scoreStrip:'');
+}
+function toggleLocalEye(side){localEyes[side]=!localEyes[side];renderLocal()}
+function renderLocal(){const visible=currentMode==='local'&&E('bodymode').classList.contains('phone');if(!visible){E('localTop').style.display='none';E('localBottom').style.display='none';return}drawLocalPlayer(0);drawLocalPlayer(1);E('localTop').style.display='flex';E('localBottom').style.display='flex'}
+function localRollPress(side){
+ if(currentMode!=='local'||rolling||localReady[side])return;
+ if(g.state==='xp-ready'){
+  if(g.localXpStart){if(side===g.off)kick('xp',true);return}
+  if(!g.localXpReady[side])g.localXpReady[side]=true;
+  if(g.localXpReady.every(Boolean)){g.localXpStart=true;say('Both players ready. Offense can kick the extra point.')}
+  renderLocal();return;
+ }
+ if(['conversion','kickoff'].includes(g.state)){
+  if(side!==g.off)return;
+  if(g.state==='conversion')conversionMenu();else kick('kickoff');
+  return;
+ }
+ if(g.state!=='play'&&g.state!=='two-ready')return;
+ if(g.state==='two-ready'){
+  localReady[side]=true;renderLocal();
+  if(localReady.every(Boolean)){
+   localReady=[false,false];twoRoll();
+   const token=animationSeq;
+   const spin=setInterval(()=>{
+    if(token!==animationSeq||g.state!=='two-rolling'){clearInterval(spin);return}
+    for(let k=0;k<2;k++){let d=E(k===0?'localTop':'localBottom').querySelector('.lp-rolls');
+      if(d)d.innerHTML=Array.from({length:k===g.off?3:2},()=>die(rng(6),true)).join('')}
+   },95);
+   setTimeout(()=>clearInterval(spin),1700);
+  }
+  return;
+ }
+ if(side===g.off&&choice==='pass'&&g.passes<=0){choice='run';renderLocal();return}
+ localReady[side]=true;
+ renderLocal();
+ if(!localReady[0]||!localReady[1])return;
+ rolling=true;
+ const turn=g.off,token=++animationSeq,chosen=choice;
+ const offDice=[rng(6),rng(6),rng(6)],defDice=[rng(6),rng(6)];
+ localDice[turn]=offDice;localDice[1-turn]=defDice;
+ const spin=setInterval(()=>{if(token!==animationSeq){clearInterval(spin);return}for(let side=0;side<2;side++){const d=E(side===0?'localTop':'localBottom').querySelector('.lp-rolls');if(d)d.innerHTML=Array.from({length:side===turn?3:2},()=>die(rng(6),true)).join('')}},95);
+ setTimeout(()=>{clearInterval(spin);if(token!==animationSeq)return;g.cardUsed=[false,false];doPlay(chosen,offDice,defDice);localReady=[false,false];localDice=[null,null];if(g.state!=='fumble'&&g.state!=='triple-animation')rolling=false;render()},1400);
+}
+function openLocalCards(side){if(currentMode!=='local'||rolling||g.state!=='play'||g.cardUsed[side])return;localActor=side;pending={side:3,actor:side};selection=[];showCardModal()}
+
+function goHome(){if(window.seasonTeamName){location.href='/season.html';return}E('localTop').style.display='none';E('localBottom').style.display='none';animationSeq++;clearTimeout(fumbleTimer);E('homeScreen').style.display='flex';E('bodymode').style.display='none';E('overlay').classList.remove('open');queueMirrorPopup();clearInterval(kickTimer);clearTimeout(phaseTimer);clearTimeout(announcementTimer);}
+function closeCpuLengthSetup(){E('cpuLengthSetup').style.display='none'}
+function startCpuMatch(){gameDrivesPerTeam=Number(document.querySelector('input[name="cpuGameLength"]:checked')?.value)===4?4:8;currentMode='cpu';teamNames=['YOU','DIEBALL DON'];closeCpuLengthSetup();enterGame()}
+function launchGame(mode){if(mode==='local'){E('localSetup').style.display='flex';return}if(mode!=='cpu')return;E('cpuLengthSetup').style.display='flex';}
+function showComingSoon(title,description){E('accountOverlay').style.display='flex';E('accountHeading').textContent=title;E('accountOverlay').querySelector('p').textContent=description;E('profileName').style.display='none';E('profileName').previousElementSibling.style.display='none';E('accountOverlay').querySelector('.mainbtn').style.display='none';E('accountStatus').textContent='This mode is not active yet.';E('accountOverlay').querySelector('.account-disclaimer').style.display='none';}
+function openAccount(){E('accountOverlay').style.display='flex';E('accountHeading').textContent='Your DieBall profile';E('accountOverlay').querySelector('p').textContent='Create a profile saved on this device. Secure online accounts and sign-in will be added with the online service.';E('profileName').style.display='block';E('profileName').previousElementSibling.style.display='block';E('accountOverlay').querySelector('.mainbtn').style.display='block';E('accountOverlay').querySelector('.account-disclaimer').style.display='block';E('profileName').value=localStorage.getItem('dieball-profile')||'';E('accountStatus').textContent='';}
+function closeAccount(){E('accountOverlay').style.display='none';}
+function saveLocalProfile(){const n=E('profileName').value.trim();if(n.length<2){E('accountStatus').textContent='Enter at least 2 characters.';return}localStorage.setItem('dieball-profile',n);E('accountStatus').textContent='Saved on this device as '+n+'.';E('homeScreen').querySelector('.home-account-btn').textContent=n+' ↗';}
+
+reset();if(localStorage.getItem("dieball-profile"))E("homeScreen").querySelector(".home-account-btn").textContent=localStorage.getItem("dieball-profile")+" ↗";if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));</script><script defer src="/auth.js"></script><script defer src="/season-game.js"></script></body></html>
