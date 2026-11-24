@@ -235,7 +235,21 @@ function updateMap(){
 }
 window.previewTrip=function(week){
  if(!season||!Number.isInteger(week)||week<0||week>=16)return;
- shownTripWeek=week;selectedLeagueFixture=null;updateMap();
+ shownTripWeek=week;selectedLeagueFixture=null;selectedTeamId=null;updateMap();
+ const match=season.weeks[week].find(g=>g.home===season.userTeamId||g.away===season.userTeamId);
+ const result=season.results[String(week)]?.find(g=>g.home===match.home&&g.away===match.away);
+ if(result){
+  const ownHome=match.home===season.userTeamId;
+  const opponent=season.teams[ownHome?match.away:match.home];
+  const ownPoints=ownHome?result.hs:result.as,otherPoints=ownHome?result.as:result.hs;
+  const ownStats=result.stats?.[0],theirStats=result.stats?.[1];
+  const extra=ownStats&&theirStats?
+   '<small>OFFENSE: '+(ownStats.rushYards+ownStats.passYards)+' yds · RUSH '+ownStats.rushYards+' · PASS '+ownStats.passYards+
+   ' · DEFENSE ALLOWED '+(theirStats.rushYards+theirStats.passYards)+' yds</small>':'<small>Detailed statistics were not captured for this older game.</small>';
+  const detail=el('teamMapDetail');detail.hidden=false;
+  detail.innerHTML='<div><strong>WEEK '+(week+1)+' · '+htmlSafe(name(opponent))+'</strong>'+extra+'</div><b>'+ownPoints+' – '+otherPoints+'</b>';
+ }
+ el('map').scrollIntoView({behavior:'smooth',block:'center'});
 };
 function handleMapSelection(event){
  const pin=event.target.closest?.('[data-team-id]');
