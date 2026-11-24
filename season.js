@@ -129,7 +129,7 @@ function balanceHomeAway(weeks,results={}){
 }
 
 function createSeason(city,nickname,length){
- const userCity=CITIES.find(c=>c[0].toLowerCase()===city.trim().toLowerCase());
+ const userCity=selectedCity()||CITIES.find(c=>c[0].toLowerCase()===city.trim().toLowerCase());
  if(!userCity)throw Error('Please select a city from the dropdown suggestions.');
  const nick=nickname.trim().replace(/\s+/g,' ');
  if(!/^[a-zA-Z][a-zA-Z0-9 '\-]{1,27}$/.test(nick))throw Error('Enter a team nickname (2–28 letters, numbers, spaces or hyphens).');
@@ -503,7 +503,7 @@ async function init(){
    division=season.teams[season.userTeamId].division;render();
   }
   else{
-   el('cityChoices').innerHTML=CITIES.map(c=>'<option value="'+htmlSafe(c[0])+'"></option>').join('');
+   
    show('create');
   }
  }catch(err){show('auth');el('authError').textContent=err.message||String(err)}
@@ -512,6 +512,57 @@ el('previousWeek').addEventListener('click',()=>{scoresViewingWeek=Math.max(0,(s
 el('nextWeek').addEventListener('click',()=>{scoresViewingWeek=Math.min(15,(scoresViewingWeek??0)+1);renderScores()});
 el('showPlayoffs').addEventListener('click',()=>{const p=el('playoffPanel');p.hidden=false;renderPlayoffs();p.scrollIntoView({behavior:'smooth',block:'start'})});
 el('hidePlayoffs').addEventListener('click',()=>{el('playoffPanel').hidden=true});
+
+function installCityPicker(){
+ const input=el('city'), list=document.createElement('div');
+ input.removeAttribute('list'); input.setAttribute('role','combobox');input.setAttribute('aria-autocomplete','list');input.setAttribute('aria-controls','cityResults');input.setAttribute('aria-expanded','false');
+ list.id='cityResults';list.setAttribute('role','listbox');list.hidden=true;
+ list.style.cssText='max-height:240px;overflow-y:auto;overscroll-behavior:contain;background:#102a1c;border:1px solid #65946c;border-radius:9px;margin:4px 0 8px;position:relative;z-index:3';
+ input.after(list);
+ const note=document.createElement('small');note.textContent='Additional locations: GeoNames via Open-Meteo';note.style.cssText='display:block;color:#a5c1a9;font-size:11px';list.after(note);
+ let timer, seq=0, active=-1, rows=[], selected=null;
+ const close=()=>{list.hidden=true;input.setAttribute('aria-expanded','false');input.removeAttribute('aria-activedescendant');active=-1};
+ function choose(row){selected=row;input.value=row[3]||row[0];close();seq++;clearTimeout(timer);}
+ function draw(items,message){
+  rows=items;active=-1;list.replaceChildren();input.removeAttribute('aria-activedescendant');
+  for(const [i,row] of items.entries()){
+   const b=document.createElement('div');b.id='city-option-'+i;b.setAttribute('role','option');b.setAttribute('aria-selected','false');b.textContent=row[3]||row[0];b.style.cssText='padding:12px 14px;min-height:44px;border-bottom:1px solid #396448;cursor:pointer;color:#eaffea';
+   b.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse')e.preventDefault()});b.addEventListener('click',()=>choose(row));list.append(b);
+  }
+  if(message){const p=document.createElement('div');p.textContent=message;p.style.cssText='padding:12px;color:#a5c1a9';list.append(p)}
+  list.hidden=false;input.setAttribute('aria-expanded','true');
+ }
+ function search(){
+  clearTimeout(timer);const token=++seq,q=input.value.trim();
+  if(!q){close();return}
+  const local=CITIES.filter(c=>c[0].toLowerCase().startsWith(q.toLowerCase())).slice(0,12);
+  if(q.length<3){draw(local,local.length?'':'Type at least 3 letters.');return}
+  draw(local,'Searching additional cities…');
+  timer=setTimeout(async()=>{
+   try{
+    const url='https://geocoding-api.open-meteo.com/v1/search?'+new URLSearchParams({name:q,countryCode:'US',count:'40',language:'en'});
+    const response=await fetch(url);if(!response.ok)throw Error('Search unavailable');
+    const data=await response.json();if(token!==seq)return;
+    const remote=(data.results||[]).filter(x=>x.country_code==='US'&&/^PPL/.test(x.feature_code||'')&&Number.isFinite(x.latitude)&&Number.isFinite(x.longitude)).map(x=>[x.name,x.latitude,x.longitude,x.name+', '+(x.admin1||'United States')]);
+    const unique=[...new Map(remote.map(c=>[c[3].toLowerCase(),c])).values()];
+    const combined=[...unique,...local.filter(c=>!unique.some(u=>u[0].toLowerCase()===c[0].toLowerCase()&&Math.abs(u[1]-c[1])<0.15&&Math.abs(u[2]-c[2])<0.15))].slice(0,20);
+    draw(combined,combined.length?'':'No matching cities. Try another spelling or city name.');
+   }catch(e){if(token===seq)draw(local,'Additional city search is unavailable. Try again.')}
+  },300);
+ }
+ input.addEventListener('input',()=>{selected=null;search()});
+ input.addEventListener('focus',()=>{if(!selected)search()});
+ input.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){seq++;clearTimeout(timer);close();return}
+  if(list.hidden||!rows.length)return;
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();active=(active+(e.key==='ArrowDown'?1:active<0?0:-1)+rows.length)%rows.length;Array.from(list.children).forEach((b,i)=>{b.style.background=i===active?'#396448':'';b.setAttribute('aria-selected',String(i===active))});input.setAttribute('aria-activedescendant','city-option-'+active);list.children[active].scrollIntoView({block:'nearest'});}
+  if(e.key==='Enter'&&active>=0){e.preventDefault();choose(rows[active])}
+ });
+ document.addEventListener('pointerdown',e=>{if(e.target!==input&&!list.contains(e.target)){seq++;clearTimeout(timer);close()}});
+ return ()=>selected&&input.value===(selected[3]||selected[0])?selected:null;
+}
+const selectedCity=installCityPicker();
+
 el('createForm').addEventListener('submit',submitCreate);
 el('playNext').addEventListener('click',()=>{if(season&&playedWeeks()<16)location.href='/season-play'});
 init();
