@@ -71,6 +71,42 @@
 .season-dashboard-row .map-note{margin-top:auto;padding-top:10px}
 @media(max-width:850px){.season-dashboard-row{grid-template-columns:minmax(0,1fr)}.season-dashboard-row>.season-panel>.card{height:auto}.season-dashboard-row .weekly-games{max-height:360px;flex:none}.season-dashboard-row .games{max-height:390px}}
 @media(max-width:430px){.season-dashboard-row .weekly-games{gap:6px}.season-dashboard-row .weekly-games .week-game{padding:8px 5px}.season-dashboard-row .week-buttons{gap:4px}.season-dashboard-row .week-buttons button{padding:7px 6px;font-size:10px}}
+
+/* Weekly fixtures fill the entire left panel rather than appearing as small tiles. */
+.season-scores-row .weekly-games{
+ display:flex;
+ flex-direction:column;
+ gap:8px;
+ width:100%;
+ min-height:470px;
+ height:clamp(470px,62vh,690px);
+ max-height:690px;
+ flex:1 1 auto;
+ padding:6px 10px 8px 3px;
+ overflow-y:auto;
+ overflow-x:hidden;
+ align-content:normal;
+}
+.season-scores-row .weekly-games .week-game{
+ display:flex;
+ flex-direction:column;
+ justify-content:center;
+ flex:0 0 auto;
+ width:100%;
+ min-height:99px;
+ padding:13px 16px;
+ border-radius:10px;
+}
+.season-scores-row .week-game small{font-size:10px;margin-bottom:8px}
+.season-scores-row .week-game .match-row{font-size:13px;padding:4px 0;gap:12px}
+.season-scores-row .week-game .match-row b{font-size:14px}
+@media(max-width:850px){
+ .season-scores-row .weekly-games{height:420px;min-height:340px;max-height:420px}
+}
+@media(max-width:430px){
+ .season-scores-row .weekly-games .week-game{min-height:90px;padding:11px 12px}
+ .season-scores-row .week-game .match-row{font-size:12px}
+}
 </style><script defer src="/auth.js"></script><script defer src="/us-state-paths.js"></script><script defer src="/season.js"></script></head>
 <body><div class="page"><header class="top"><a class="logo" href="/">Die<em>Ball.</em><small>DFL · SEASON MODE</small></a><a href="/">← MAIN MENU</a></header>
 <section id="auth" class="card" hidden><div class="eyebrow">SIGN IN REQUIRED</div><h1>Your season. Your legacy.</h1><p class="muted">You need a DieBall account to create a team and save your season progress across devices.</p><a class="button" href="/account">SIGN IN / CREATE ACCOUNT</a><p id="authError" class="status"></p></section>
