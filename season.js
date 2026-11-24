@@ -338,20 +338,30 @@ function playoffSeeds(div){
 }
 function renderPlayoffs(){
  if(!season)return;
- el('playoffDivisions').innerHTML=['E','W'].map(div=>{
+ const buildSide=div=>{
   const seeds=playoffSeeds(div);
   const slot=i=>'<span><b class="seed">#'+(i+1)+'</b> '+htmlSafe(name(seeds[i]))+' <small>('+seeds[i].w+'–'+seeds[i].l+')</small></span>';
-  const wc=[[1,6],[2,5],[3,4]].map(([a,b])=>'<div class="playoff-match">'+slot(a)+slot(b)+'</div>').join('');
-  const bye='<div class="playoff-match playoff-bye"><span>'+slot(0)+'</span><span>FIRST ROUND BYE ✓</span></div>';
-  const divisionRound='<div class="playoff-match">'+slot(0)+'<span>vs lowest remaining seed</span></div>'+
-    '<div class="playoff-match"><span>Other wild-card winners</span><span>TBD</span></div>';
-  const championship='<div class="playoff-match"><span>Division semifinal winners</span><span>TBD</span></div>';
-  return '<section class="playoff-side"><h3>'+(div==='E'?'EASTERN':'WESTERN')+' DIVISION · 7 SEEDS</h3>'+
-  '<div class="playoff-rounds"><div class="playoff-round"><h4>Wild Card</h4>'+bye+wc+'</div>'+
-  '<div class="playoff-round"><h4>Divisional</h4>'+divisionRound+'</div>'+
-  '<div class="playoff-round"><h4>Championship</h4>'+championship+'</div></div></section>';
- }).join('')+'<section style="grid-column:1/-1;text-align:center;background:#183a26;padding:15px;border-radius:10px"><div class="eyebrow">DFL CHAMPIONSHIP</div><strong>East Champion vs West Champion</strong><p class="hint">Matchup to be determined</p></section>';
+  const wildCard=[
+   '<div class="playoff-match playoff-bye">'+slot(0)+'<span>FIRST-ROUND BYE</span></div>',
+   ...[[1,6],[2,5],[3,4]].map(([a,b])=>'<div class="playoff-match">'+slot(a)+slot(b)+'</div>')
+  ].join('');
+  const divisional='<div class="playoff-match">'+slot(0)+'<span>vs lowest remaining seed</span></div>'+
+   '<div class="playoff-match"><span>Other advancing seeds</span><span>TBD vs TBD</span></div>';
+  const conference='<div class="playoff-match"><span>Divisional winners</span><span>Conference final</span></div>';
+  const round=(title,markup,kind)=>'<div class="playoff-round '+kind+'"><h4>'+title+'</h4><div class="bracket-matches">'+markup+'</div></div>';
+  // West round order is reversed: outer wild-card round is the far right column.
+  const rounds=div==='E'?
+   round('Wild Card',wildCard,'round-wild')+round('Divisional',divisional,'round-div')+round('East Final',conference,'round-final'):
+   round('West Final',conference,'round-final')+round('Divisional',divisional,'round-div')+round('Wild Card',wildCard,'round-wild');
+  return '<section class="playoff-side '+(div==='E'?'east':'west')+'"><h3>'+
+   (div==='E'?'EASTERN':'WESTERN')+' DIVISION</h3><div class="playoff-rounds">'+rounds+'</div></section>';
+ };
+ el('playoffDivisions').innerHTML='<div class="playoff-bracket">'+
+  buildSide('E')+
+  '<div class="playoff-final"><span class="trophy">🏆</span><div class="eyebrow">DFL CHAMPIONSHIP</div><strong>EAST CHAMPION</strong><small>vs</small><strong>WEST CHAMPION</strong><small>To be decided</small></div>'+
+  buildSide('W')+'</div>';
 }
+
 function render(){
  if(!season)return;
  show('dashboard');
