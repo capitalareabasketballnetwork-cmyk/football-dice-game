@@ -100,7 +100,7 @@
   '<h3>TEAM STATISTICS</h3><table class="dbs-table"><thead><tr><th>'+safe(box.names[0])+'</th><th>STATISTIC</th><th>'+safe(box.names[1])+'</th></tr></thead><tbody>'+table+'</tbody></table>'+
   '<h3>DRIVE-BY-DRIVE POINTS</h3><div class="dbs-drives">'+drives+'</div>'+
   '<p style="color:#a7c8af;font-size:11px">Yardage includes positive and negative rushing/pass plays. Conversion and defensive rates are based on dice-play attempts.</p>'+
-  '<div class="dbs-actions">'+(over?'<a class="dbs-action" style="text-align:center;text-decoration:none" href="'+returnTo+'">← BACK TO '+(window.seasonTeamName?'SEASON':'HOME')+'</a>':'<button class="dbs-secondary" type="button" id="dbsClose">RETURN TO GAME</button>')+'</div>';
+  '<div class="dbs-actions">'+(over?'<a class="dbs-action" style="text-align:center;text-decoration:none" href="'+returnTo+'">← BACK TO '+(window.seasonTeamName?'SEASON':'HOME')+'</a>'+(window.seasonTeamName?'<a class="dbs-secondary" style="text-align:center;text-decoration:none" href="/">MAIN MENU</a>':''):'<button class="dbs-secondary" type="button" id="dbsClose">RETURN TO GAME</button>')+'</div>';
   const close=document.getElementById('dbsClose');if(close)close.onclick=hide;
   document.getElementById('dieballBoxScore').hidden=false;
  }
