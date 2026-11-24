@@ -149,11 +149,42 @@ function standings(){
   const h=scores[game.home],a=scores[game.away];h.pf+=game.hs;h.pa+=game.as;a.pf+=game.as;a.pa+=game.hs;
   if(game.hs>game.as){h.w++;a.l++}else if(game.hs<game.as){a.w++;h.l++}else{h.t++;a.t++}
  }}
- return scores.sort((a,b)=>a.division.localeCompare(b.division)||b.w-a.w||a.l-b.l||(b.pf-b.pa)-(a.pf-a.pa)||name(a).localeCompare(name(b)));
+ for(const team of scores){
+  const played=team.w+team.l+team.t;
+  team.pct=played?(team.w+team.t*.5)/played:0;
+ }
+ return scores.sort((a,b)=>b.pct-a.pct||b.w-a.w||(b.pf-b.pa)-(a.pf-a.pa)||name(a).localeCompare(name(b)));
 }
-function selectDivision(next){division=next;el('tabE').classList.toggle('active',next==='E');el('tabW').classList.toggle('active',next==='W');
+let standingsSort='pct',standingsSortDir='desc';
+function sortStandings(key){
+ if(!['name','pct','w','l','t','pf','pa'].includes(key))return;
+ if(standingsSort===key)standingsSortDir=standingsSortDir==='desc'?'asc':'desc';
+ else{
+  standingsSort=key;
+  standingsSortDir=key==='name'||key==='l'||key==='pa'?'asc':'desc';
+ }
+ selectDivision(division);
+}
+window.sortStandings=sortStandings;
+function selectDivision(next){
+ division=next;
+ el('tabE').classList.toggle('active',next==='E');
+ el('tabW').classList.toggle('active',next==='W');
+ const direction=standingsSortDir==='desc'?-1:1;
  const clubs=standings().filter(t=>t.division===division);
- el('standings').innerHTML=clubs.map((t,i)=>'<tr class="'+(t.user?'mine':'')+'"><td>'+(i+1)+'</td><td>'+htmlSafe(name(t))+(t.user?' ★':'')+'</td><td class="num">'+t.w+'</td><td class="num">'+t.l+'</td><td class="num">'+t.t+'</td><td class="num">'+t.pf+'</td><td class="num">'+t.pa+'</td></tr>').join('');
+ clubs.sort((a,b)=>{
+  let primary;
+  if(standingsSort==='name')primary=name(a).localeCompare(name(b));
+  else primary=a[standingsSort]-b[standingsSort];
+  return primary*direction||b.pct-a.pct||b.w-a.w||(b.pf-b.pa)-(a.pf-a.pa)||name(a).localeCompare(name(b));
+ });
+ el('standings').innerHTML=clubs.map((t,i)=>'<tr class="'+(t.user?'mine':'')+'"><td>'+(i+1)+'</td><td>'+htmlSafe(name(t))+(t.user?' ★':'')+'</td><td class="num">'+(t.pct*100).toFixed(1)+'%</td><td class="num">'+t.w+'</td><td class="num">'+t.l+'</td><td class="num">'+t.t+'</td><td class="num">'+t.pf+'</td><td class="num">'+t.pa+'</td></tr>').join('');
+ el('dashboard').querySelectorAll('[data-sort]').forEach(btn=>{
+  const active=btn.dataset.sort===standingsSort;
+  btn.classList.toggle('active',active);
+  btn.setAttribute('aria-sort',active?(standingsSortDir==='desc'?'descending':'ascending'):'none');
+  btn.querySelector('.sort-arrow').textContent=active?(standingsSortDir==='desc'?'↓':'↑'):'';
+ });
 }
 window.setDivision=selectDivision;
 
@@ -295,7 +326,8 @@ function renderScores(){
   const as=result?(result.away===g.away?result.as:result.hs):'—';
   const focused=selectedLeagueFixture&&shownTripWeek===scoresViewingWeek&&
     (selectedLeagueFixture.home===g.home&&selectedLeagueFixture.away===g.away);
-  return '<button type="button" class="week-game '+(focused?'selected':'')+'" onclick="viewLeagueGame('+scoresViewingWeek+','+i+')">'+
+  const isUserMatch=g.home===season.userTeamId||g.away===season.userTeamId;
+  return '<button type="button" class="week-game '+(focused?'selected ':'')+(isUserMatch?'user-game':'')+'" onclick="viewLeagueGame('+scoresViewingWeek+','+i+')">'+
   '<small>WEEK '+(scoresViewingWeek+1)+' · '+(result?'FINAL':'SCHEDULED')+'</small>'+
   '<div class="match-row"><span>'+htmlSafe(name(a))+'</span><b>'+as+'</b></div>'+
   '<div class="match-row home"><span>'+htmlSafe(name(h))+' ⌂</span><b>'+hs+'</b></div></button>';
@@ -334,8 +366,14 @@ function render(){
  el('schedule').innerHTML=fixtures.map(({i,game})=>{
   const isHome=game.home===me.id,other=season.teams[isHome?game.away:game.home];
   const result=season.results[String(i)]?.find(g=>g.home===me.id||g.away===me.id);
-  const score=result?(isHome?result.hs+'–'+result.as:result.as+'–'+result.hs):'';
-  return '<button type="button" class="game '+(i===week?'current':'')+'" data-week="'+i+'" onclick="previewTrip('+i+')"><div><small>WEEK '+(i+1)+' · '+(isHome?'HOME':'AWAY')+'</small><strong>'+(isHome?'vs ':'@ ')+htmlSafe(name(other))+'</strong></div><b>'+(result?htmlSafe(score):i===week?'NEXT':'')+'</b><span class="game-map-label">VIEW ROUTE ↗</span></button>';
+  const ownScore=result?(isHome?result.hs:result.as):null;
+  const otherScore=result?(isHome?result.as:result.hs):null;
+  const outcome=result?(ownScore>otherScore?'W':ownScore<otherScore?'L':'T'):'';
+  const color=outcome==='W'?'result-win':outcome==='L'?'result-loss':outcome==='T'?'result-tie':'';
+  const score=result?ownScore+'–'+otherScore:'';
+  return '<button type="button" class="game '+(i===week?'current ':'')+color+'" data-week="'+i+'" onclick="previewTrip('+i+')">'+
+    '<div><small>WEEK '+(i+1)+' · '+(isHome?'HOME':'AWAY')+'</small><strong>'+(isHome?'vs ':'@ ')+htmlSafe(name(other))+'</strong></div>'+
+    '<b>'+(result?'<span class="result-badge">'+outcome+'</span>'+htmlSafe(score):i===week?'NEXT':'')+'</b><span class="game-map-label">VIEW ROUTE ↗</span></button>';
  }).join('');
  if(week===16){el('nextTitle').textContent='SEASON COMPLETE';el('nextSubtitle').textContent='Your final record: '+record.w+'–'+record.l+(record.t?'–'+record.t:'');el('playNext').hidden=true}
  else{
