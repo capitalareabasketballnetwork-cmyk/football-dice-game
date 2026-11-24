@@ -160,6 +160,8 @@ window.setDivision=selectDivision;
 /* Static map with accurate state borders; dots and schedule paths are interactive, not draggable. */
 let shownTripWeek=null;
 let selectedTeamId=null;
+let selectedLeagueFixture=null;
+let scoresViewingWeek=null;
 function mapPoint(t){return {x:35+(Number(t.lng)+125)*13.6,y:440-(Number(t.lat)-24)*15.5}}
 function recordFor(id){
  const t=standings().find(x=>x.id===id);
@@ -177,11 +179,12 @@ window.showTeamMapDetail=showTeamMapDetail;
 function updateMap(){
  const current=playedWeeks();
  if(shownTripWeek===null||shownTripWeek<current)shownTripWeek=current<16?current:null;
- const pair=shownTripWeek===null?null:season.weeks[shownTripWeek].find(g=>g.home===season.userTeamId||g.away===season.userTeamId);
+ const pair=selectedLeagueFixture||(shownTripWeek===null?null:season.weeks[shownTripWeek].find(g=>g.home===season.userTeamId||g.away===season.userTeamId));
  const me=season.teams[season.userTeamId];
  const op=pair?season.teams[pair.home===season.userTeamId?pair.away:pair.home]:null;
  const isAway=!!pair&&pair.away===season.userTeamId;
- const here=mapPoint(me),there=op?mapPoint(op):null;
+ const gameOwner=selectedLeagueFixture?season.teams[pair.away]:me;
+ const here=mapPoint(gameOwner),there=op?mapPoint(op):null;
  // The arc always travels AWAY -> HOME, regardless of which is the user's club.
  let arch='';
  if(pair){
@@ -207,7 +210,7 @@ function updateMap(){
  }
  const borders=(window.DFL_US_STATES||[]).map(([nm,path])=>'<path d="'+path+'" fill="#24573b" stroke="#73b687" stroke-width="1.15" stroke-linejoin="round" aria-hidden="true"><title>'+htmlSafe(nm)+'</title></path>').join('');
  const points=season.teams.map(t=>{
-  const p=mapPoint(t),highlight=op?.id===t.id;
+  const p=mapPoint(t),highlight=pair&&(pair.home===t.id||pair.away===t.id);
   const color=t.user?'#ffc34d':highlight?'#ff8570':'#8fcca1',r=t.user?8:highlight?7:5;
   const title=htmlSafe(name(t)),rec=recordFor(t.id);
   return '<g class="team-map-pin" role="button" tabindex="0" data-team-id="'+t.id+'" aria-label="'+title+' record '+rec.w+' wins '+rec.l+' losses" style="cursor:pointer">'+
@@ -221,7 +224,8 @@ function updateMap(){
  '<rect width="900" height="480" rx="14" fill="#0a2418"/><rect width="900" height="480" fill="url(#mapGrid)"/>'+
  borders+arch+points+
  '<text x="38" y="469" fill="#97bba0" font-size="13" font-weight="700" letter-spacing="1.6">DIEBALL FOOTBALL LEAGUE · 48 STATES</text></svg>';
- el('mapHint').textContent=op?
+ el('mapHint').textContent=selectedLeagueFixture?
+  'Week '+(shownTripWeek+1)+' · '+name(season.teams[pair.away])+' travel to '+name(season.teams[pair.home])+'. Route arrows point toward the home team.':op?
   'Week '+(shownTripWeek+1)+' · '+(isAway?'AWAY at ':'HOME vs ')+name(op)+'. '+(isAway?'Dotted':'Dashed')+' arc arrows point toward the HOME team. Select a team dot to view its record.':
   'Season complete · select any team dot to see its record.';
  if(selectedTeamId!==null)showTeamMapDetail(selectedTeamId);
@@ -231,7 +235,7 @@ function updateMap(){
 }
 window.previewTrip=function(week){
  if(!season||!Number.isInteger(week)||week<0||week>=16)return;
- shownTripWeek=week;updateMap();
+ shownTripWeek=week;selectedLeagueFixture=null;updateMap();
 };
 function handleMapSelection(event){
  const pin=event.target.closest?.('[data-team-id]');
@@ -243,6 +247,65 @@ el('map').addEventListener('keydown',event=>{
  if(event.key!=='Enter'&&event.key!==' ')return;
  if(event.target.closest?.('[data-team-id]')){event.preventDefault();handleMapSelection(event)}
 });
+
+function viewLeagueGame(week,gameIndex){
+ const game=season?.weeks[week]?.[gameIndex];if(!game)return;
+ scoresViewingWeek=week;
+ shownTripWeek=week;selectedLeagueFixture=game;
+ const res=season.results[String(week)]?.find(g=>g.home===game.home&&g.away===game.away||
+   g.home===game.away&&g.away===game.home);
+ const home=season.teams[game.home],away=season.teams[game.away];
+ const detail=el('teamMapDetail');detail.hidden=false;
+ detail.innerHTML='<div><strong>'+htmlSafe(name(away))+' @ '+htmlSafe(name(home))+'</strong><small>WEEK '+(week+1)+' · AWAY → HOME</small></div><b>'+(res?res.as+' – '+res.hs:'UPCOMING')+'</b>';
+ selectedTeamId=null;
+ updateMap();
+ const mapContainer=el('map');
+ mapContainer.scrollIntoView({behavior:'smooth',block:'center'});
+ renderScores();
+}
+window.viewLeagueGame=viewLeagueGame;
+function renderScores(){
+ if(!season)return;
+ const completed=playedWeeks();
+ if(scoresViewingWeek===null)scoresViewingWeek=Math.min(completed,15);
+ scoresViewingWeek=Math.max(0,Math.min(15,scoresViewingWeek));
+ el('scoresWeekLabel').textContent='WEEK '+(scoresViewingWeek+1);
+ el('previousWeek').disabled=scoresViewingWeek===0;
+ el('nextWeek').disabled=scoresViewingWeek===15;
+ const fixtures=season.weeks[scoresViewingWeek];
+ const completedGames=season.results[String(scoresViewingWeek)]||[];
+ el('weeklyScores').innerHTML=fixtures.map((g,i)=>{
+  const h=season.teams[g.home],a=season.teams[g.away];
+  const result=completedGames.find(x=>(x.home===g.home&&x.away===g.away)||(x.home===g.away&&x.away===g.home));
+  const hs=result?(result.home===g.home?result.hs:result.as):'—';
+  const as=result?(result.away===g.away?result.as:result.hs):'—';
+  const focused=selectedLeagueFixture&&shownTripWeek===scoresViewingWeek&&
+    (selectedLeagueFixture.home===g.home&&selectedLeagueFixture.away===g.away);
+  return '<button type="button" class="week-game '+(focused?'selected':'')+'" onclick="viewLeagueGame('+scoresViewingWeek+','+i+')">'+
+  '<small>WEEK '+(scoresViewingWeek+1)+' · '+(result?'FINAL':'SCHEDULED')+'</small>'+
+  '<div class="match-row"><span>'+htmlSafe(name(a))+'</span><b>'+as+'</b></div>'+
+  '<div class="match-row home"><span>'+htmlSafe(name(h))+' ⌂</span><b>'+hs+'</b></div></button>';
+ }).join('');
+}
+function playoffSeeds(div){
+ return standings().filter(t=>t.division===div).slice(0,7);
+}
+function renderPlayoffs(){
+ if(!season)return;
+ el('playoffDivisions').innerHTML=['E','W'].map(div=>{
+  const seeds=playoffSeeds(div);
+  const slot=i=>'<span><b class="seed">#'+(i+1)+'</b> '+htmlSafe(name(seeds[i]))+' <small>('+seeds[i].w+'–'+seeds[i].l+')</small></span>';
+  const wc=[[1,6],[2,5],[3,4]].map(([a,b])=>'<div class="playoff-match">'+slot(a)+slot(b)+'</div>').join('');
+  const bye='<div class="playoff-match playoff-bye"><span>'+slot(0)+'</span><span>FIRST ROUND BYE ✓</span></div>';
+  const divisionRound='<div class="playoff-match">'+slot(0)+'<span>vs lowest remaining seed</span></div>'+
+    '<div class="playoff-match"><span>Other wild-card winners</span><span>TBD</span></div>';
+  const championship='<div class="playoff-match"><span>Division semifinal winners</span><span>TBD</span></div>';
+  return '<section class="playoff-side"><h3>'+(div==='E'?'EASTERN':'WESTERN')+' DIVISION · 7 SEEDS</h3>'+
+  '<div class="playoff-rounds"><div class="playoff-round"><h4>Wild Card</h4>'+bye+wc+'</div>'+
+  '<div class="playoff-round"><h4>Divisional</h4>'+divisionRound+'</div>'+
+  '<div class="playoff-round"><h4>Championship</h4>'+championship+'</div></div></section>';
+ }).join('')+'<section style="grid-column:1/-1;text-align:center;background:#183a26;padding:15px;border-radius:10px"><div class="eyebrow">DFL CHAMPIONSHIP</div><strong>East Champion vs West Champion</strong><p class="hint">Matchup to be determined</p></section>';
+}
 function render(){
  if(!season)return;
  show('dashboard');
@@ -267,7 +330,7 @@ function render(){
   el('nextSubtitle').textContent='Week '+(week+1)+' · '+(isHome?'Home game':'Away game')+' · '+season.drives+' drives per team';
   el('playNext').hidden=false;
  }
- selectDivision(division);updateMap();
+ selectDivision(division);updateMap();renderScores();renderPlayoffs();
 }
 async function submitCreate(e){
  e.preventDefault();const status=el('createStatus');status.textContent='Creating and saving your league…';
@@ -295,6 +358,10 @@ async function init(){
   }
  }catch(err){show('auth');el('authError').textContent=err.message||String(err)}
 }
+el('previousWeek').addEventListener('click',()=>{scoresViewingWeek=Math.max(0,(scoresViewingWeek??0)-1);renderScores()});
+el('nextWeek').addEventListener('click',()=>{scoresViewingWeek=Math.min(15,(scoresViewingWeek??0)+1);renderScores()});
+el('showPlayoffs').addEventListener('click',()=>{const p=el('playoffPanel');p.hidden=false;renderPlayoffs();p.scrollIntoView({behavior:'smooth',block:'start'})});
+el('hidePlayoffs').addEventListener('click',()=>{el('playoffPanel').hidden=true});
 el('createForm').addEventListener('submit',submitCreate);
 el('playNext').addEventListener('click',()=>{if(season&&playedWeeks()<16)location.href='/season-play'});
 init();
