@@ -81,5 +81,18 @@
   const {data,error}=await c.from('diebowl_online_xp').select('earned,games').eq('user_id',user.id).maybeSingle();
   if(error)throw error;return data||{earned:0,games:0};
  }
- window.DieBallAccount={init,currentUser,signUp,signIn,signOut,sendReset,saveRoster,loadRoster,updateName,onlineAction,onlineXP,isConfigured:()=>!!config?.available};
+ async function loadSeason(){
+  const c=await init(),user=await currentUser();if(!c||!user)return null;
+  const {data,error}=await c.from('dieball_seasons').select('season').eq('user_id',user.id).maybeSingle();
+  if(error)throw error;return data?.season||null;
+ }
+ async function saveSeason(season){
+  const c=await init(),user=await currentUser();
+  if(!c||!user)throw Error('You must sign in to save Season progress.');
+  const {error}=await c.from('dieball_seasons').upsert({
+   user_id:user.id,season,updated_at:new Date().toISOString()
+  },{onConflict:'user_id'});
+  if(error)throw error;return true;
+ }
+ window.DieBallAccount={init,currentUser,signUp,signIn,signOut,sendReset,saveRoster,loadRoster,updateName,onlineAction,onlineXP,loadSeason,saveSeason,isConfigured:()=>!!config?.available};
 })();
