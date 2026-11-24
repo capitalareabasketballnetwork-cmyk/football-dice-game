@@ -62,14 +62,72 @@ function makeFixtures(){
   const pairings=[];
   for(let j=0;j<16;j++){
    const a=ids[j],b=ids[31-j];
-   const host=(week+j)%2===0?a:b;
-   pairings.push({home:host,away:host===a?b:a});
+   pairings.push({home:a,away:b});
   }
   weeks.push(pairings);
   ids=[ids[0],ids[31],...ids.slice(1,31)];
  }
- return weeks;
+ // Every team plays 16 games: 8 home, 8 away.
+ return balanceHomeAway(weeks,{}).weeks;
 }
+/* Use max flow to assign exactly eight home fixtures to each club.
+   Completed game weeks are locked to protect previously recorded results. */
+function balanceHomeAway(weeks,results={}){
+ const copy=weeks.map(games=>games.map(g=>({home:g.home,away:g.away})));
+ const locked=Array(32).fill(0),unknown=[];
+ for(let week=0;week<copy.length;week++){
+  for(let j=0;j<copy[week].length;j++){
+   const g=copy[week][j];
+   if(Object.prototype.hasOwnProperty.call(results,String(week)))locked[g.home]++;
+   else unknown.push({week,j,a:g.home,b:g.away});
+  }
+ }
+ if(locked.some(x=>x>8))return {weeks:copy,balanced:false,reason:'Previously completed weeks include more than eight home games for a team.'};
+ const required=locked.map(x=>8-x);
+ if(required.reduce((a,b)=>a+b,0)!==unknown.length)return {weeks:copy,balanced:false,reason:'Inconsistent remaining schedule.'};
+ const n=unknown.length,source=0,gameStart=1,teamStart=gameStart+n,sink=teamStart+32;
+ const graph=Array.from({length:sink+1},()=>[]);
+ function add(from,to,cap){
+  const forward={to,cap,rev:graph[to].length};
+  const backward={to:from,cap:0,rev:graph[from].length};
+  graph[from].push(forward);graph[to].push(backward);
+  return forward;
+ }
+ const choices=[];
+ for(let i=0;i<n;i++){
+  const edge=unknown[i];
+  add(source,gameStart+i,1);
+  const a=add(gameStart+i,teamStart+edge.a,1);
+  add(gameStart+i,teamStart+edge.b,1);
+  choices.push(a);
+ }
+ for(let i=0;i<32;i++)add(teamStart+i,sink,required[i]);
+ let matched=0;
+ while(matched<n){
+  const prev=Array(sink+1).fill(null),q=[source];prev[source]={from:-1};
+  for(let qi=0;qi<q.length&&!prev[sink];qi++){
+   const from=q[qi];
+   for(let ei=0;ei<graph[from].length;ei++){
+    const edge=graph[from][ei];
+    if(edge.cap>0&&!prev[edge.to]){prev[edge.to]={from,ei};q.push(edge.to)}
+   }
+  }
+  if(!prev[sink])break;
+  for(let node=sink;node!==source;){
+   const {from,ei}=prev[node],edge=graph[from][ei];
+   edge.cap--;graph[node][edge.rev].cap++;
+   node=from;
+  }
+  matched++;
+ }
+ if(matched!==n)return {weeks:copy,balanced:false,reason:'Unable to balance remaining games without changing completed results.'};
+ for(let i=0;i<n;i++){
+  const {week,j,a,b}=unknown[i],home=choices[i].cap===0?a:b;
+  copy[week][j]={home,away:home===a?b:a};
+ }
+ return {weeks:copy,balanced:true};
+}
+
 function createSeason(city,nickname,length){
  const userCity=CITIES.find(c=>c[0].toLowerCase()===city.trim().toLowerCase());
  if(!userCity)throw Error('Please select a city from the dropdown suggestions.');
@@ -209,7 +267,14 @@ async function init(){
   await window.DieBallAccount.init();
   if(!await window.DieBallAccount.currentUser()){show('auth');return}
   season=await window.DieBallAccount.loadSeason();
-  if(season){division=season.teams[season.userTeamId].division;render()}
+  if(season){
+   const corrected=balanceHomeAway(season.weeks,season.results||{});
+   if(corrected.balanced){
+    const changed=JSON.stringify(season.weeks)!==JSON.stringify(corrected.weeks);
+    if(changed){season.weeks=corrected.weeks;await window.DieBallAccount.saveSeason(season)}
+   }else console.warn('Existing completed fixtures prevent exact 8/8 home-away balance:',corrected.reason);
+   division=season.teams[season.userTeamId].division;render();
+  }
   else{
    el('cityChoices').innerHTML=CITIES.map(c=>'<option value="'+htmlSafe(c[0])+'"></option>').join('');
    show('create');
