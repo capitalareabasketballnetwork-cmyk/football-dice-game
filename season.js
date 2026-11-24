@@ -182,14 +182,28 @@ function updateMap(){
  const op=pair?season.teams[pair.home===season.userTeamId?pair.away:pair.home]:null;
  const isAway=!!pair&&pair.away===season.userTeamId;
  const here=mapPoint(me),there=op?mapPoint(op):null;
- // Quadratic Bezier arch across the US, even for games played at home.
+ // The arc always travels AWAY -> HOME, regardless of which is the user's club.
  let arch='';
- if(there){
-  const mx=(here.x+there.x)/2,my=(here.y+there.y)/2;
-  const lift=Math.min(100,Math.max(22,Math.hypot(here.x-there.x,here.y-there.y)*.23));
-  const cx=mx,cy=Math.max(15,my-lift);
-  arch='<path d="M'+here.x.toFixed(1)+','+here.y.toFixed(1)+' Q'+cx.toFixed(1)+','+cy.toFixed(1)+' '+there.x.toFixed(1)+','+there.y.toFixed(1)+'" fill="none" stroke="#ffdf8c" stroke-width="3.2" stroke-dasharray="'+(isAway?'3 9':'7 5')+'" stroke-linecap="round" opacity=".98"/>'+
-    '<circle cx="'+there.x.toFixed(1)+'" cy="'+there.y.toFixed(1)+'" r="11.5" fill="none" stroke="#ffbd72" stroke-width="1.7" opacity=".75"/>';
+ if(pair){
+  const awayTeam=season.teams[pair.away],homeTeam=season.teams[pair.home];
+  const from=mapPoint(awayTeam),to=mapPoint(homeTeam);
+  const midX=(from.x+to.x)/2,midY=(from.y+to.y)/2;
+  const distance=Math.hypot(from.x-to.x,from.y-to.y);
+  const lift=Math.min(100,Math.max(22,distance*.23));
+  const cx=midX,cy=Math.max(15,midY-lift);
+  const line='M'+from.x.toFixed(1)+','+from.y.toFixed(1)+' Q'+cx.toFixed(1)+','+cy.toFixed(1)+' '+to.x.toFixed(1)+','+to.y.toFixed(1);
+  // Draw two chevrons tangent to the curve, with tips toward the home club.
+  const arrows=[.43,.74].map(t=>{
+   const x=(1-t)*(1-t)*from.x+2*(1-t)*t*cx+t*t*to.x;
+   const y=(1-t)*(1-t)*from.y+2*(1-t)*t*cy+t*t*to.y;
+   const dx=2*(1-t)*(cx-from.x)+2*t*(to.x-cx);
+   const dy=2*(1-t)*(cy-from.y)+2*t*(to.y-cy);
+   const angle=Math.atan2(dy,dx)*180/Math.PI;
+   return '<path d="M-8,-5 L0,0 L-8,5" fill="none" stroke="#ffe8a6" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" transform="translate('+x.toFixed(1)+' '+y.toFixed(1)+') rotate('+angle.toFixed(1)+')"/>';
+  }).join('');
+  arch='<path d="'+line+'" fill="none" stroke="#ffdf8c" stroke-width="3.2" stroke-dasharray="'+(isAway?'3 9':'7 5')+'" stroke-linecap="round" opacity=".98"/>'+
+    arrows+
+    '<circle cx="'+to.x.toFixed(1)+'" cy="'+to.y.toFixed(1)+'" r="11.5" fill="none" stroke="#ffbd72" stroke-width="1.7" opacity=".75"/>';
  }
  const borders=(window.DFL_US_STATES||[]).map(([nm,path])=>'<path d="'+path+'" fill="#24573b" stroke="#73b687" stroke-width="1.15" stroke-linejoin="round" aria-hidden="true"><title>'+htmlSafe(nm)+'</title></path>').join('');
  const points=season.teams.map(t=>{
@@ -208,7 +222,7 @@ function updateMap(){
  borders+arch+points+
  '<text x="38" y="469" fill="#97bba0" font-size="13" font-weight="700" letter-spacing="1.6">DIEBALL FOOTBALL LEAGUE · 48 STATES</text></svg>';
  el('mapHint').textContent=op?
-  'Week '+(shownTripWeek+1)+' · '+(isAway?'AWAY at ':'HOME vs ')+name(op)+'. '+(isAway?'Dotted':'Dashed')+' arc shows the matchup. Select a team dot to view its record.':
+  'Week '+(shownTripWeek+1)+' · '+(isAway?'AWAY at ':'HOME vs ')+name(op)+'. '+(isAway?'Dotted':'Dashed')+' arc arrows point toward the HOME team. Select a team dot to view its record.':
   'Season complete · select any team dot to see its record.';
  if(selectedTeamId!==null)showTeamMapDetail(selectedTeamId);
  for(const row of el('schedule').querySelectorAll('[data-week]')){
