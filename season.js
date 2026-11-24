@@ -375,6 +375,74 @@ function renderPlayoffs(){
   buildSide('W')+'</div>';
 }
 
+function renderSeasonStats(){
+ if(!season)return;
+ const userId=season.userTeamId;
+ const completed=Object.values(season.results||{}).flat().filter(game=>game.home===userId||game.away===userId);
+ const games=completed.length;
+ const supported=completed.filter(game=>Array.isArray(game.stats)&&game.stats.length===2&&game.stats[0]&&game.stats[1]);
+ const measured=supported.length;
+ const pf=completed.reduce((v,game)=>v+(game.home===userId?game.hs:game.as),0);
+ const pa=completed.reduce((v,game)=>v+(game.home===userId?game.as:game.hs),0);
+ const total=x=>x.rushYards+x.passYards;
+ const keys=['rushYards','passYards','rushAttempts','passAttempts','passCompletions','thirdAtt','thirdMade','fourthAtt','fourthMade','firstDowns','turnoversOnDowns'];
+ const sumStats=(side)=>{
+  const acc=Object.fromEntries(keys.map(k=>[k,0]));
+  for(const game of supported){
+   const st=game.stats[side];
+   for(const key of keys)acc[key]+=Number(st[key])||0;
+  }
+  return acc;
+ };
+ const offense=sumStats(0),opponent=sumStats(1);
+ const fmt=n=>Number.isFinite(n)?Number(n).toLocaleString('en-US'):'—';
+ const avg=(n,den,places=1)=>den?(n/den).toFixed(places):'—';
+ const ratio=(made,attempts)=>attempts?made+' / '+attempts+' ('+Math.round(made/attempts*100)+'%)':'—';
+ const big=(label,value,detail)=>'<div class="season-stat-big"><span>'+label+'</span><strong>'+value+'</strong><small>'+detail+'</small></div>';
+ const card=(label,value)=>'<div class="season-stat-card"><span>'+label+'</span><strong>'+value+'</strong></div>';
+ const group=(name,items)=>'<section class="season-stats-group"><h3>'+name+'</h3><div class="season-stats-cells">'+items.map(([label,value])=>card(label,value)).join('')+'</div></section>';
+ el('seasonStatsThrough').textContent='THROUGH '+games+' '+(games===1?'GAME':'GAMES');
+ el('seasonStatsHighlights').innerHTML=[
+  big('Points scored',fmt(pf),avg(pf,games)+' per game'),
+  big('Points allowed',fmt(pa),avg(pa,games)+' per game'),
+  big('Total offense',measured?fmt(total(offense))+' YDS':'—',measured?avg(total(offense),measured)+' yds / tracked game':'No detailed games yet'),
+  big('Yards allowed',measured?fmt(total(opponent))+' YDS':'—',measured?avg(total(opponent),measured)+' yds / tracked game':'No detailed games yet')
+ ].join('');
+ const tracked=v=>measured?fmt(v):'—';
+ el('seasonStatsGroups').innerHTML=[
+  group('OFFENSE',[
+   ['Rushing yards',tracked(offense.rushYards)],
+   ['Passing yards',tracked(offense.passYards)],
+   ['Rushing yards / game',avg(offense.rushYards,measured)],
+   ['Passing yards / game',avg(offense.passYards,measured)],
+   ['Rush attempts',tracked(offense.rushAttempts)],
+   ['Pass completions',measured?offense.passCompletions+' / '+offense.passAttempts:'—'],
+   ['Completion percentage',offense.passAttempts?Math.round(offense.passCompletions/offense.passAttempts*100)+'%':'—'],
+   ['First downs',tracked(offense.firstDowns)]
+  ]),
+  group('CONVERSIONS',[
+   ['3rd down',measured?ratio(offense.thirdMade,offense.thirdAtt):'—'],
+   ['4th down',measured?ratio(offense.fourthMade,offense.fourthAtt):'—'],
+   ['3rd down defense',measured?ratio(opponent.thirdAtt-opponent.thirdMade,opponent.thirdAtt):'—'],
+   ['4th down defense',measured?ratio(opponent.fourthAtt-opponent.fourthMade,opponent.fourthAtt):'—'],
+   ['Offensive turnovers on downs',tracked(offense.turnoversOnDowns)],
+   ['Opponent turnovers on downs',tracked(opponent.turnoversOnDowns)]
+  ]),
+  group('DEFENSE',[
+   ['Rushing yards allowed',tracked(opponent.rushYards)],
+   ['Passing yards allowed',tracked(opponent.passYards)],
+   ['Rushing yards allowed / game',avg(opponent.rushYards,measured)],
+   ['Passing yards allowed / game',avg(opponent.passYards,measured)],
+   ['Opponent completions',measured?opponent.passCompletions+' / '+opponent.passAttempts:'—'],
+   ['Opponent first downs',tracked(opponent.firstDowns)]
+  ])
+ ].join('');
+ el('seasonStatsNote').textContent=games===0?
+  'Play your first Season game to begin collecting statistics.':
+  measured<games?
+   'Scoring statistics cover all '+games+' completed '+(games===1?'game':'games')+'. Detailed offensive, defensive and conversion figures cover '+measured+' '+(measured===1?'game':'games')+' with saved box scores; '+(games-measured)+' older '+(games-measured===1?'game has':'games have')+' no detailed statistics. Averages for yards use only tracked games.':
+   'All '+measured+' completed '+(measured===1?'game has':'games have')+' saved detailed statistics. Scoring averages use all completed games. Yardage averages use games with detailed statistics.';
+}
 function render(){
  if(!season)return;
  show('dashboard');
@@ -412,7 +480,7 @@ function render(){
    el('nextSubtitle').textContent+=' · Saved Q'+Math.min(checkpoint.quarter,4)+' · '+checkpoint.score[0]+'–'+checkpoint.score[1];
   }
  }
- selectDivision(division);updateMap();renderScores();renderPlayoffs();
+ selectDivision(division);updateMap();renderScores();renderPlayoffs();renderSeasonStats();
 }
 async function submitCreate(e){
  e.preventDefault();const status=el('createStatus');status.textContent='Creating and saving your league…';
