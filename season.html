@@ -20,6 +20,38 @@
 .playoff-match span{display:block;margin:4px 0}.playoff-match .seed{color:#f7db8e;font-weight:900}
 .playoff-bye{border-color:#a88d4e;background:#403820}
 @media(max-width:930px){.weekly-games{grid-template-columns:repeat(2,minmax(0,1fr))}.playoff-divisions{grid-template-columns:1fr}}@media(max-width:540px){.weekly-games{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.week-game{padding:8px 6px}.playoff-rounds{gap:5px}.playoff-match{font-size:9px;padding:6px 4px}.playoff-panel{padding:10px}}
+
+.standings-wrap table{min-width:420px}.standings-wrap th{white-space:nowrap}
+.standings-sort{font:inherit;font-size:10px;letter-spacing:.4px;font-weight:850;color:#a7c8ab;background:none;border:0;padding:7px 1px;cursor:pointer;white-space:nowrap}
+.standings-sort:hover,.standings-sort.active{color:#d8ffb4}.standings-sort .sort-arrow{font-weight:1000;color:#baff89}
+.standings-wrap td:nth-child(3){font-weight:1000;color:#c8f4a5}
+.week-game.user-game{border:2px solid #7eff9d;background:#1e5231;box-shadow:0 0 13px 2px #4eff8b66,inset 0 0 12px #43d16f22}
+.week-game.user-game:hover,.week-game.user-game.selected{background:#286d3e;box-shadow:0 0 19px 3px #5dffa68a}
+.week-game.user-game small{color:#dcffc9;font-weight:1000}
+.game.result-win{background:#173d29;border-left:4px solid #66f58b;color:#eaffeb}
+.game.result-tie{background:#453c1f;border-left:4px solid #f5c957;color:#fff3c8}
+.game.result-loss{background:#432725;border-left:4px solid #f3817c;color:#ffe4df}
+.game.result-win:hover,.game.result-win.selected{background:#236943}
+.game.result-tie:hover,.game.result-tie.selected{background:#695823}
+.game.result-loss:hover,.game.result-loss.selected{background:#67322e}
+.result-badge{display:inline-block;min-width:22px;text-align:center;font-weight:1000;border-radius:5px;padding:3px 5px;margin-right:5px}
+.result-win .result-badge{background:#339259;color:#fff}.result-tie .result-badge{background:#b38b28;color:#fff}.result-loss .result-badge{background:#b44b4b;color:#fff}
+.playoff-panel{overflow:hidden}
+.playoff-bracket{display:grid;grid-template-columns:minmax(0,1fr) minmax(130px,.27fr) minmax(0,1fr);gap:12px;align-items:stretch;margin-top:18px}
+.playoff-side h3{text-align:center;color:#e4ffc9;margin:0 0 14px;font-size:14px}
+.playoff-rounds{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:stretch;min-height:410px}
+.playoff-round{display:flex;flex-direction:column;gap:9px;min-width:0}
+.playoff-round h4{font-size:9px;text-align:center;color:#a8c6ad;margin:0;min-height:30px;line-height:1.2}
+.playoff-round .bracket-matches{display:flex;flex-direction:column;justify-content:space-around;flex:1;gap:10px;min-height:0}
+.playoff-round .playoff-match{position:relative;display:flex;flex-direction:column;justify-content:center;min-height:64px;font-size:10px;padding:8px 6px;background:#183924;border:1px solid #527958;border-radius:8px}
+.playoff-round .playoff-match span{display:block;margin:2px 0}
+.playoff-round .playoff-match .seed{color:#ffd88b}
+.playoff-round .playoff-match.playoff-bye{background:#3f361d;border-color:#d3ac56}
+.playoff-side.east .playoff-round:not(:last-child) .playoff-match:after{content:"";position:absolute;width:11px;right:-12px;top:50%;border-top:2px solid #84be8a}
+.playoff-side.west .playoff-round:not(:first-child) .playoff-match:before{content:"";position:absolute;width:11px;left:-12px;top:50%;border-top:2px solid #84be8a}
+.playoff-final{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:9px;text-align:center;padding:9px;border-radius:12px;border:1px solid #a98c50;background:linear-gradient(145deg,#3a3420,#163523);align-self:center;min-height:135px}
+.playoff-final .trophy{font-size:31px}.playoff-final strong{font-size:12px}.playoff-final small{font-size:10px;color:#b8caad}
+@media(max-width:1000px){.playoff-bracket{min-width:790px}.playoff-panel{overflow-x:auto}.playoff-rounds{min-height:390px}}
 </style><script defer src="/auth.js"></script><script defer src="/us-state-paths.js"></script><script defer src="/season.js"></script></head>
 <body><div class="page"><header class="top"><a class="logo" href="/">Die<em>Ball.</em><small>DFL · SEASON MODE</small></a><a href="/">← MAIN MENU</a></header>
 <section id="auth" class="card" hidden><div class="eyebrow">SIGN IN REQUIRED</div><h1>Your season. Your legacy.</h1><p class="muted">You need a DieBall account to create a team and save your season progress across devices.</p><a class="button" href="/account">SIGN IN / CREATE ACCOUNT</a><p id="authError" class="status"></p></section>
@@ -36,4 +68,4 @@
 <section id="playoffPanel" class="playoff-panel" hidden><div class="playoff-head"><div><div class="eyebrow">DFL POSTSEASON</div><h2>14-TEAM PLAYOFF PICTURE</h2></div><button type="button" class="secondary" id="hidePlayoffs">CLOSE ✕</button></div>
 <p class="hint">Seven teams qualify from each division. The No. 1 seed in each division has a first-round bye. Seeding updates with the standings.</p><div id="playoffDivisions" class="playoff-divisions"></div></section>
 <div class="columns"><div><section class="card"><h2>DFL · UNITED STATES</h2><div id="map" class="map" aria-label="Map of the United States with DFL team locations"></div><div id="teamMapDetail" class="team-map-detail" aria-live="polite" hidden></div><div class="legend"><span><i class="dot mine"></i>Your team</span><span><i class="dot"></i>Other DFL teams</span><span><i class="dot away"></i>Selected opponent</span></div><p class="map-note" id="mapHint"></p></section><section class="card" style="margin-top:14px"><h2>YOUR 16-GAME SCHEDULE</h2><div id="schedule" class="games"></div></section></div>
-<div><section class="card"><h2>LEAGUE STANDINGS</h2><div class="div-tabs"><button id="tabE" class="active" onclick="setDivision('E')">EAST</button><button id="tabW" onclick="setDivision('W')">WEST</button></div><div class="standings-wrap"><table><thead><tr><th>#</th><th>TEAM</th><th class="num">W</th><th class="num">L</th><th class="num">T</th><th class="num">PF</th><th class="num">PA</th></tr></thead><tbody id="standings"></tbody></table></div><button type="button" class="button playoffs-trigger" id="showPlayoffs">🏆 PLAYOFF PICTURE</button><p class="hint">Fictional opponents' games are simulated as your season advances.</p></section></div></div></section></div></body></html>
+<div><section class="card"><h2>LEAGUE STANDINGS</h2><div class="div-tabs"><button id="tabE" class="active" onclick="setDivision('E')">EAST</button><button id="tabW" onclick="setDivision('W')">WEST</button></div><div class="standings-wrap"><table><thead><tr><th>#</th><th><button type="button" class="standings-sort" data-sort="name" onclick="sortStandings(&quot;name&quot;)">TEAM <span class="sort-arrow"></span></button></th><th class="num"><button type="button" class="standings-sort" data-sort="pct" onclick="sortStandings(&quot;pct&quot;)">W% <span class="sort-arrow">↓</span></button></th><th class="num"><button type="button" class="standings-sort" data-sort="w" onclick="sortStandings(&quot;w&quot;)">W <span class="sort-arrow"></span></button></th><th class="num"><button type="button" class="standings-sort" data-sort="l" onclick="sortStandings(&quot;l&quot;)">L <span class="sort-arrow"></span></button></th><th class="num"><button type="button" class="standings-sort" data-sort="t" onclick="sortStandings(&quot;t&quot;)">T <span class="sort-arrow"></span></button></th><th class="num"><button type="button" class="standings-sort" data-sort="pf" onclick="sortStandings(&quot;pf&quot;)">PF <span class="sort-arrow"></span></button></th><th class="num"><button type="button" class="standings-sort" data-sort="pa" onclick="sortStandings(&quot;pa&quot;)">PA <span class="sort-arrow"></span></button></th></tr></thead><tbody id="standings"></tbody></table></div><button type="button" class="button playoffs-trigger" id="showPlayoffs">🏆 PLAYOFF PICTURE</button><p class="hint">Fictional opponents' games are simulated as your season advances.</p></section></div></div></section></div></body></html>
