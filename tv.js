@@ -189,13 +189,13 @@ function deal(){
 function startHostedMatch(){
  if(!links.every(c=>c?.open))return;
  const selectedLength=Number(document.querySelector('input[name="tvGameLength"]:checked')?.value)===4?4:8;
- G={drivesPerTeam:selectedLength,stage:'play',scores:[0,0],off:0,pos:35,goal:45,down:1,passes:2,play:'run',
+ G={drivesPerTeam:selectedLength,stage:'coin-call',scores:[0,0],off:0,pos:35,goal:45,down:1,passes:2,play:'run',
  ready:[false,false],dice:[null,null],rollSeq:[0,0],net:null,move:null,triple:false,passDouble:false,xpReady:[false,false],
  deck:shuffledDeck(),hands:[[],[]],usedCards:[false,false],cardPicks:[null,null],starter:-1,cardRound:0,
  convKind:0,convPicks:[null,null],convCommitted:[false,false],convNet:0,
  results:[[],[]],startScore:0,lastDrive:[false,false],flight:null,flightId:0,
- serial:0,annId:0,announcement:null,recovery:null,quarterBreaks:[false,false,false],goalKick:null,goalKickId:0,message:'HOME takes possession. Both players roll.'};
- deal();lastHostReaction=[0,0];E('hostEmojiRain').replaceChildren();E('gameCode').textContent=room;showScreen('hostScreen');broadcast();announce('Game On!','gold','Both teams ready',2100);
+ serial:0,annId:0,announcement:null,recovery:null,quarterBreaks:[false,false,false],goalKick:null,goalKickId:0,message:'Away team calls heads or tails.'};
+ deal();lastHostReaction=[0,0];E('hostEmojiRain').replaceChildren();E('gameCode').textContent=room;showScreen('hostScreen');broadcast();announce('COIN TOSS','gold',nameOf(1)+' calls heads or tails.',0);
 }
 function sharePublic(){
  const {hands,deck,cardPicks,convPicks,...publicState}=G;
@@ -223,7 +223,8 @@ function validPicks(side,values){
 function removePicks(side,picks){const h=G.hands[side],values=picks.map(k=>h[k]);G.hands[side]=h.filter((_,i)=>!picks.includes(i));return values}
 function recordDrive(){const n=Math.max(0,G.scores[G.off]-G.startScore);if(G.results[G.off].length<G.drivesPerTeam)G.results[G.off].push(n)}
 function endDrive(location,description){
- recordDrive();
+ if(!G.openingKickoff)recordDrive();
+ G.openingKickoff=false;
  if(G.results[0].length>=G.drivesPerTeam&&G.results[1].length>=G.drivesPerTeam){
   G.stage='finished';G.ready=[false,false];G.dice=[null,null];G.recovery=null;
   G.winner=G.scores[0]===G.scores[1]?-1:G.scores[0]>G.scores[1]?0:1;
@@ -476,6 +477,13 @@ function action(side,a){
   return;
  }
  if(G.stage==='flight'||G.stage==='finished')return;
+ if(kind==='coinCall'&&G.stage==='coin-call'&&side===1&&['HEADS','TAILS'].includes(a.call)){
+  const result=Math.random()<.5?'HEADS':'TAILS';G.stage='coin-flip';G.message='Coin in the air…';announce('🪙 COIN FLIP','gold','Coin in the air…',0);
+  const game=G;setTimeout(()=>{if(G!==game||G.stage!=='coin-flip')return;G.tossWinner=result===a.call?1:0;G.stage='coin-choice';G.message=result+'! '+nameOf(G.tossWinner)+' won the toss.';announce('🪙 '+result,'gold',nameOf(G.tossWinner)+' chooses receive or kick.',0)},1000);return;
+ }
+ if(kind==='coinChoice'&&G.stage==='coin-choice'&&side===G.tossWinner&&['receive','kick'].includes(a.choice)){
+  const receiver=a.choice==='receive'?side:1-side;G.off=1-receiver;G.pos=G.off===0?20:80;G.goal=G.pos;G.openingKickoff=true;G.stage='kickoff';G.message=nameOf(receiver)+' receives the opening kickoff.';announce('OPENING KICKOFF','gold',G.message,2200);return;
+ }
  if(kind==='play'&&(G.stage==='play'||G.stage==='two-ready')&&side===G.off&&!G.ready.some(Boolean)){
   if(a.play==='pass'&&G.passes<=0){announce('No more Pass plays left','bad','Choose Run instead',1300);return}
   G.play=a.play==='pass'?'pass':'run';
@@ -793,6 +801,16 @@ function renderController(){
   second.textContent='PUNT';second.onclick=()=>startKick('punt');
  }
  if(!kickType&&!['conversion-choice'].includes(stage))E('controllerKickPanel').hidden=true;
+ if(['coin-call','coin-flip','coin-choice'].includes(stage)){
+  const panel=E('controllerKickPanel');panel.hidden=false;panel.replaceChildren();
+  const coin=document.createElement('div');coin.textContent=stage==='coin-choice'?(v.message.startsWith('HEADS')?'H':'T'):'H / T';coin.style.cssText='margin:12px auto;width:90px;height:90px;display:grid;place-items:center;border:5px double #997124;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff1a9,#d6a641 65%,#a67424);color:#4b3011;font-size:26px;font-weight:1000';panel.append(coin);
+  if(stage==='coin-flip')coin.animate([{transform:'rotateY(0deg)'},{transform:'rotateY(1800deg)'}],{duration:1000});
+  const row=document.createElement('div');row.className='controller-call';panel.append(row);
+  const add=(label,payload)=>{const b=document.createElement('button');b.textContent=label;b.onclick=()=>sendAction(payload);row.append(b)};
+  if(stage==='coin-call'&&seat===1){add('HEADS',{kind:'coinCall',call:'HEADS'});add('TAILS',{kind:'coinCall',call:'TAILS'})}
+  if(stage==='coin-choice'&&seat===v.tossWinner){add('RECEIVE',{kind:'coinChoice',choice:'receive'});add('KICK OFF',{kind:'coinChoice',choice:'kick'})}
+ }
+
  if(kickType&&!(v.stage==='play'&&offense||v.stage==='kickoff'&&offense||(v.stage==='xp-ready'||v.stage==='xp-kick')&&offense)){
   stopKick();E('controllerKickPanel').hidden=true;
  }
