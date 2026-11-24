@@ -1191,4 +1191,56 @@ function openAccount(){E('accountOverlay').style.display='flex';E('accountHeadin
 function closeAccount(){E('accountOverlay').style.display='none';}
 function saveLocalProfile(){const n=E('profileName').value.trim();if(n.length<2){E('accountStatus').textContent='Enter at least 2 characters.';return}localStorage.setItem('dieball-profile',n);E('accountStatus').textContent='Saved on this device as '+n+'.';E('homeScreen').querySelector('.home-account-btn').textContent=n+' ↗';}
 
+/* Season resumable state: only plain game data, never DOM nodes or timer IDs. */
+window.DFL_capture=function(){
+ if(!g||!window.seasonTeamName)return null;
+ // Store only stable states. Mid-animation resumes from the most recent checkpoint.
+ if(['flight','triple-animation','two-rolling','touchdown','two'].includes(g.state))return null;
+ if(rolling&&g.state!=='fumble')return null;
+ if(g.state==='fumble'&&pendingFumble?.started)return null;
+ return JSON.parse(JSON.stringify({
+  version:1,game:g,choice,selection,pending,pendingFumble:pendingFumble?{off:pendingFumble.off,result:null,started:false}:null,
+  kickMarker:kpos,updatedAt:Date.now()
+ }));
+};
+window.DFL_restore=function(snapshot){
+ if(!snapshot||snapshot.version!==1||!snapshot.game||!Array.isArray(snapshot.game.score))return false;
+ animationSeq++;clearInterval(kickTimer);clearInterval(diceCycleTimer);clearTimeout(phaseTimer);
+ clearTimeout(announcementTimer);clearTimeout(fumbleTimer);
+ E('overlay').classList.remove('open');
+ E('fieldAnnouncement').className='field-announcement';
+ E('fumbleRollBtn').style.display='none';
+ g=JSON.parse(JSON.stringify(snapshot.game));
+ choice=snapshot.choice==='pass'?'pass':'run';
+ pending=snapshot.pending||null;selection=[];
+ pendingFumble=null;rolling=false;
+ const state=g.state;
+ if(state==='fumble'){
+  pendingFumble={off:g.off,token:++animationSeq,result:null,started:false};
+  rolling=true;
+  showFieldAnnouncement('Fumble!','red',600000,'Roll one die to determine possession.');
+  E('fumbleRollBtn').style.display='block';
+ }else if(state==='kick'){
+  const kind=g.kickType,prev=g.kickPreviousState||'play';
+  g.state=prev;render();kick(kind,true);
+  kpos=Number(snapshot.kickMarker)||0;
+  if(E('kickoffMark'))E('kickoffMark').style.top=(100-kpos)+'%';
+ }else if(state==='convert-menu'){
+  render();conversionMenu();
+ }else if(state==='convert-cards'&&pending?.side===8){
+  const actor=pending.actor;
+  openConversionCards(actor);
+ }else if(state==='play'&&pending&&[0,1,3].includes(pending.side)){
+  const savedPending=pending;
+  render();pending=savedPending;
+  showCardModal();
+ }else if(state==='over'){
+  render();
+  window.DieBallStats?.final();
+ }else{
+  render();
+ }
+ return true;
+};
+
 reset();if(localStorage.getItem("dieball-profile"))E("homeScreen").querySelector(".home-account-btn").textContent=localStorage.getItem("dieball-profile")+" ↗";if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));</script><script defer src="/auth.js"></script><script defer src="/season-game.js"></script><script defer src="/game-stats.js"></script></body></html>
