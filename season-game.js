@@ -2,7 +2,7 @@
 /* Connect the Season dashboard to the existing full DieBall CPU match rules. */
 (function(){
  const params=new URLSearchParams(location.search);
- if(!location.pathname.endsWith('/season-play.html')&&params.get('seasonGame')!=='1')return;
+ if(!/^\/season-play(?:\.html)?\/?$/.test(location.pathname)&&params.get('seasonGame')!=='1')return;
  let launched=false,saving=false,saved=false,context=null;
  function currentWeek(s){let n=0;while(s.results[String(n)])n++;return n}
  function deterministicScore(team,week,salt){
@@ -76,8 +76,17 @@
    info.style.cssText='font-size:10px;color:#b8fb8b;font-weight:900;text-align:center;padding:2px 4px';
    document.querySelector('#bodymode .scorebar').before(info);
   }catch(err){
-   launched=false;alert('Unable to start your season game: '+(err.message||err));
-   location.replace('/season.html');
+   launched=false;
+   console.error('Season match launch error',err);
+   const loading=document.getElementById('seasonLaunching');
+   if(loading){
+    loading.innerHTML='';
+    const content=document.createElement('div');
+    const heading=document.createElement('strong');heading.textContent='UNABLE TO START SEASON GAME';
+    const explanation=document.createElement('p');explanation.textContent=err.message||String(err);explanation.style.cssText='color:#ffd99d;font-size:13px;font-weight:500;max-width:480px;line-height:1.5';
+    const link=document.createElement('a');link.href='/season';link.textContent='← RETURN TO SEASON';link.style.cssText='color:#b8fb8b;font-size:13px;text-decoration:underline';
+    content.append(heading,explanation,link);loading.append(content);
+   }
   }
  }
  async function finish(){
