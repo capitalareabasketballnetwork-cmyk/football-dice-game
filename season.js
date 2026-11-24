@@ -494,6 +494,7 @@ async function init(){
   await window.DieBallAccount.init();
   if(!await window.DieBallAccount.currentUser()){show('auth');return}
   season=await window.DieBallAccount.loadSeason();
+  if(season?.resetLeague)season=null;
   if(season){
    const corrected=balanceHomeAway(season.weeks,season.results||{});
    if(corrected.balanced){
@@ -566,3 +567,22 @@ const selectedCity=installCityPicker();
 el('createForm').addEventListener('submit',submitCreate);
 el('playNext').addEventListener('click',()=>{if(season&&playedWeeks()<16)location.href='/season-play'});
 init();
+
+const restartLeague=document.createElement('button');
+restartLeague.type='button';restartLeague.textContent='RESTART LEAGUE';
+restartLeague.style.cssText='background:#812e32;color:white;border:1px solid #f28c88;border-radius:8px;padding:10px 14px;font-weight:900;margin:0 0 12px';
+el('dashboard').prepend(restartLeague);
+const restartDialog=document.createElement('dialog');
+restartDialog.style.cssText='background:#102a1c;color:#eaffea;border:1px solid #a95b60;border-radius:14px;padding:22px;width:min(90vw,420px)';
+restartDialog.innerHTML='<h2 style="margin-top:0">Restart your league?</h2><p>This permanently resets your season standings, schedule results, statistics and saved game. You will create a new team and league.</p><p id="restartError" role="alert" style="color:#ffaaaa"></p><div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap"><button type="button" id="cancelRestart" class="secondary">CANCEL</button><button type="button" id="confirmRestart" style="background:#a12f35;color:white;border:1px solid #ff9898;border-radius:8px;padding:10px;font-weight:900">YES, RESTART</button></div>';
+document.body.append(restartDialog);
+restartLeague.onclick=()=>{el('restartError').textContent='';restartDialog.showModal()};
+el('cancelRestart').onclick=()=>restartDialog.close();
+el('confirmRestart').onclick=async()=>{
+ const button=el('confirmRestart');button.disabled=true;el('cancelRestart').disabled=true;
+ try{
+  await window.DieBallAccount.saveSeason({resetLeague:true,createdAt:new Date().toISOString()});
+  season=null;restartDialog.close();location.reload();
+ }catch(e){el('restartError').textContent=e.message||String(e)}
+ finally{button.disabled=false;el('cancelRestart').disabled=false}
+};
