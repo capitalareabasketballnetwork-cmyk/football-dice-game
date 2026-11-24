@@ -646,6 +646,10 @@ function renderHost(){
  }else stopHostRecoverySpin();
 
  const announ=E('hostAnnouncement');announ.hidden=!g.announcement;
+ const tossStage=['coin-call','coin-flip','coin-choice'].includes(g.stage);
+ let hostCoin=E('hostPregameCoin');if(!hostCoin){hostCoin=document.createElement('div');hostCoin.id='hostPregameCoin';hostCoin.style.cssText='margin:14px auto;width:100px;height:100px;display:grid;place-items:center;border:6px double #997124;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff1a9,#d6a641 65%,#a67424);color:#4b3011;font-size:32px;font-weight:1000';E('hostAnnouncementTitle').after(hostCoin)}
+ hostCoin.style.display=tossStage?'grid':'none';
+ if(tossStage&&hostCoin.dataset.stage!==g.stage){hostCoin.dataset.stage=g.stage;hostCoin.textContent=g.stage==='coin-choice'?(g.message.startsWith('HEADS')?'H':'T'):'H / T';hostCoin.style.animation=g.stage==='coin-flip'?'tvCoinFlip 1s ease-in-out both':'none';}
  if(g.announcement){
   announ.className='tv-announcement '+g.announcement.tone;
   E('hostAnnouncementTitle').textContent=g.announcement.title;E('hostAnnouncementDetail').textContent=g.announcement.detail;
@@ -804,7 +808,7 @@ function renderController(){
  if(['coin-call','coin-flip','coin-choice'].includes(stage)){
   const panel=E('controllerKickPanel');panel.hidden=false;panel.replaceChildren();
   const coin=document.createElement('div');coin.textContent=stage==='coin-choice'?(v.message.startsWith('HEADS')?'H':'T'):'H / T';coin.style.cssText='margin:12px auto;width:90px;height:90px;display:grid;place-items:center;border:5px double #997124;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff1a9,#d6a641 65%,#a67424);color:#4b3011;font-size:26px;font-weight:1000';panel.append(coin);
-  if(stage==='coin-flip')coin.animate([{transform:'rotateY(0deg)'},{transform:'rotateY(1800deg)'}],{duration:1000});
+  if(stage==='coin-flip')coin.style.animation='tvCoinFlip 1s ease-in-out both';
   const row=document.createElement('div');row.className='controller-call';panel.append(row);
   const add=(label,payload)=>{const b=document.createElement('button');b.textContent=label;b.onclick=()=>sendAction(payload);row.append(b)};
   if(stage==='coin-call'&&seat===1){add('HEADS',{kind:'coinCall',call:'HEADS'});add('TAILS',{kind:'coinCall',call:'TAILS'})}
@@ -901,3 +905,4 @@ function completeKick(){
  sendAction({kind:'kick',type,position:value,power:value});
 }
 showScreen('chooseScreen');
+const tvCoinStyle=document.createElement('style');tvCoinStyle.textContent='@keyframes tvCoinFlip{0%{transform:translateY(0) rotateY(0deg)}50%{transform:translateY(-35px) rotateY(900deg)}100%{transform:translateY(0) rotateY(1800deg)}}';document.head.append(tvCoinStyle);
