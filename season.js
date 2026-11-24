@@ -178,7 +178,7 @@ function showTeamMapDetail(id){
 window.showTeamMapDetail=showTeamMapDetail;
 function updateMap(){
  const current=playedWeeks();
- if(shownTripWeek===null||shownTripWeek<current)shownTripWeek=current<16?current:null;
+ if(shownTripWeek===null)shownTripWeek=current<16?current:15;
  const pair=selectedLeagueFixture||(shownTripWeek===null?null:season.weeks[shownTripWeek].find(g=>g.home===season.userTeamId||g.away===season.userTeamId));
  const me=season.teams[season.userTeamId];
  const op=pair?season.teams[pair.home===season.userTeamId?pair.away:pair.home]:null;
