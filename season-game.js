@@ -36,6 +36,7 @@
    context={season,week,match,opponent,me:my};
    window.seasonTeamName=my.city+' '+my.name;
    window.seasonOpponentName=opponent.city+' '+opponent.name;
+   window.seasonOpponentNickname=opponent.name;
    const home=season.teams[match.home],away=season.teams[match.away];
    window.seasonHomeName=home.city+' '+home.name;
    window.seasonAwayName=away.city+' '+away.name;
