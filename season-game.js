@@ -103,7 +103,7 @@
    const games=[];
    for(const fixture of latest.weeks[context.week]){
     if(fixture.home===latest.userTeamId||fixture.away===latest.userTeamId){
-     games.push({...fixture,hs:fixture.home===latest.userTeamId?g.score[0]:g.score[1],as:fixture.away===latest.userTeamId?g.score[0]:g.score[1]});
+     games.push({...fixture,hs:fixture.home===latest.userTeamId?g.score[0]:g.score[1],as:fixture.away===latest.userTeamId?g.score[0]:g.score[1],stats:g.gameStats||null,drives:g.driveHistory||null});
     }else{
      games.push({...fixture,hs:deterministicScore(fixture.home,context.week,1),as:deterministicScore(fixture.away,context.week,2)});
     }
