@@ -52,7 +52,7 @@ const EXTRA_CITIES=[
 const CITIES=[...new Map([...TEAMS.map(t=>[t.city,t.lat,t.lng]),...EXTRA_CITIES].map(c=>[c[0].toLowerCase(),c])).values()].sort((a,b)=>a[0].localeCompare(b[0]));
 const el=id=>document.getElementById(id);
 const htmlSafe=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','"':'&quot;'}[c]));
-let season=null,division='E',map=null,markers=null,route=null;
+let season=null,division='E';
 function show(section){for(const id of ['loading','auth','create','dashboard'])el(id).hidden=id!==section}
 function name(t){return t.city+' '+t.name}
 function teamsFor(season){return season.teams}
@@ -98,39 +98,45 @@ function selectDivision(next){division=next;el('tabE').classList.toggle('active'
  el('standings').innerHTML=clubs.map((t,i)=>'<tr class="'+(t.user?'mine':'')+'"><td>'+(i+1)+'</td><td>'+htmlSafe(name(t))+(t.user?' ★':'')+'</td><td class="num">'+t.w+'</td><td class="num">'+t.l+'</td><td class="num">'+t.t+'</td></tr>').join('');
 }
 window.setDivision=selectDivision;
-function dot(latlng,color,radius=6){return L.circleMarker(latlng,{radius,color:'#fff',weight:1.5,fillColor:color,fillOpacity:1})}
+
+/* Stationary schematic of the contiguous United States. No online tiles, zoom or drag. */
+const US_OUTLINE="M64,52 L441,52 L441,47 L445,46 L448,55 L452,58 L489,66 L500,64 L521,68 L533,63 L581,85 L584,92 L591,91 L594,97 L600,99 L598,102 L612,109 L618,137 L605,160 L610,166 L661,148 L658,138 L664,136 L690,136 L695,130 L717,114 L763,114 L764,111 L774,107 L783,88 L793,77 L798,81 L807,78 L813,82 L813,104 L824,117 L781,135 L772,148 L772,156 L776,164 L782,164 L780,159 L785,162 L783,167 L744,173 L733,178 L753,175 L757,178 L738,182 L729,180 L725,185 L729,185 L726,197 L716,208 L715,204 L708,200 L714,211 L714,217 L702,235 L705,224 L698,218 L697,205 L694,212 L697,222 L688,219 L697,224 L698,239 L702,240 L705,261 L696,272 L682,277 L673,286 L667,287 L660,293 L658,298 L643,308 L629,325 L627,336 L629,346 L640,371 L646,395 L642,421 L631,421 L629,415 L624,411 L608,380 L611,369 L597,348 L591,346 L578,353 L560,341 L533,341 L517,345 L522,358 L519,360 L514,358 L509,361 L499,360 L489,352 L477,354 L467,350 L447,355 L414,381 L411,388 L411,398 L414,411 L409,411 L388,403 L382,385 L362,357 L352,350 L341,351 L333,363 L321,358 L314,354 L306,337 L286,320 L263,320 L263,326 L225,326 L174,308 L175,305 L142,308 L140,300 L131,291 L125,289 L123,285 L95,276 L93,267 L80,251 L68,230 L69,226 L52,208 L50,196 L43,187 L46,161 L41,149 L47,135 L50,106 L48,86 L39,65 L41,62 L61,67 L68,82 L71,78 L64,52Z";
+let shownTripWeek=null;
+function mapPoint(t){return {x:35+(Number(t.lng)+125)*13.6,y:440-(Number(t.lat)-24)*15.5}}
 function updateMap(){
- if(typeof L==='undefined'){el('map').innerHTML='<p style="padding:20px;color:#183c25">Map service unavailable. The full team schedule and standings are still available.</p>';return}
- if(!map){
-  map=L.map('map',{scrollWheelZoom:false,attributionControl:true}).setView([39.3,-97.5],4);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:12,attribution:'© OpenStreetMap contributors'}).addTo(map);
- }
- if(markers)map.removeLayer(markers);if(route)map.removeLayer(route);
- markers=L.layerGroup().addTo(map);route=L.layerGroup().addTo(map);
- const next=playedWeeks(),fixture=next<16?season.weeks[next].find(g=>g.home===season.userTeamId||g.away===season.userTeamId):null;
- const away=fixture?.away===season.userTeamId?null:fixture?.away;
- season.teams.forEach(t=>{
-  const color=t.user?'#ffbd43':away===t.id?'#ff8265':'#367a51';
-  dot([t.lat,t.lng],color,t.user?9:away===t.id?8:5).bindPopup('<b>'+htmlSafe(name(t))+'</b><br>'+(t.user?'YOUR TEAM':t.division==='E'?'East Division':'West Division')).addTo(markers);
- });
- const my=season.teams[season.userTeamId];
- if(away!=null){
-  const opponent=season.teams[away];
-  L.polyline([[my.lat,my.lng],[opponent.lat,opponent.lng]],{color:'#faaa52',weight:3,dashArray:'3 9',opacity:.95}).addTo(route);
-  el('mapHint').textContent='Dotted line: your next away trip to '+name(opponent)+'.';
- }else el('mapHint').textContent=fixture?'Your next game is at home. Select an upcoming away game in the schedule to preview its travel route.':'Season complete!';
- map.invalidateSize();
+ const current=playedWeeks();
+ if(shownTripWeek===null||shownTripWeek<current)shownTripWeek=current<16?current:null;
+ const pair=shownTripWeek===null?null:season.weeks[shownTripWeek].find(g=>g.home===season.userTeamId||g.away===season.userTeamId);
+ const me=season.teams[season.userTeamId];
+ const op=pair?season.teams[pair.home===season.userTeamId?pair.away:pair.home]:null;
+ const isAway=!!pair&&pair.away===season.userTeamId;
+ const here=mapPoint(me),there=op?mapPoint(op):null;
+ const routeSVG=isAway&&there?
+  '<line x1="'+here.x.toFixed(1)+'" y1="'+here.y.toFixed(1)+'" x2="'+there.x.toFixed(1)+'" y2="'+there.y.toFixed(1)+'" stroke="#ffdc86" stroke-width="3" stroke-dasharray="3 10" stroke-linecap="round" opacity=".98"/>'+
+  '<circle cx="'+there.x.toFixed(1)+'" cy="'+there.y.toFixed(1)+'" r="12" stroke="#ffb67b" stroke-width="1.5" fill="none" opacity=".75"/>':'';
+ const points=season.teams.map(t=>{
+  const p=mapPoint(t);
+  const color=t.user?'#ffc34d':isAway&&op?.id===t.id?'#ff8570':'#78af86';
+  const r=t.user?8:isAway&&op?.id===t.id?7:4.4;
+  const label=htmlSafe(name(t)+(t.user?' · Your team':isAway&&op?.id===t.id?' · Away opponent':''));
+  return '<g><title>'+label+'</title><circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="'+r+'" fill="'+color+'" stroke="#102a19" stroke-width="2"/>'+
+   (t.user?'<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="12" fill="none" stroke="#ffc34d" stroke-width="1.5" opacity=".7"/>':'')+'</g>';
+ }).join('');
+ el('map').innerHTML='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 480" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Fixed map of United States with 32 DieBall football team cities">'+
+  '<defs><pattern id="mapGrid" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M25 0H0V25" fill="none" stroke="#315540" stroke-width=".55" opacity=".25"/></pattern></defs>'+
+  '<rect width="900" height="480" rx="14" fill="#0a2418"/><rect width="900" height="480" fill="url(#mapGrid)"/>'+
+  '<path d="'+US_OUTLINE+'" fill="#225339" stroke="#84c58f" stroke-width="3" stroke-linejoin="round"/>'+
+  '<path d="'+US_OUTLINE+'" fill="none" stroke="#163e2a" stroke-width="1.2" stroke-dasharray="2 8"/>'+
+  routeSVG+points+
+  '<text x="38" y="470" fill="#86aa8f" font-size="14" font-weight="700" letter-spacing="2">DIEBALL FOOTBALL LEAGUE · UNITED STATES</text></svg>';
+ el('mapHint').textContent=isAway&&op?
+  'Week '+(shownTripWeek+1)+' away game: '+name(op)+'. Dotted line from '+me.city+' to '+op.city+'.':
+  pair?'Week '+(shownTripWeek+1)+' is at home vs '+name(op)+'. Pick an away week below to see its route.':'Season complete · all 32 teams on the map.';
 }
 window.previewTrip=function(week){
- const g=season.weeks[week].find(x=>x.home===season.userTeamId||x.away===season.userTeamId);
- if(!g||!map||!route)return;
- route.clearLayers();
- const my=season.teams[season.userTeamId],op=season.teams[g.home===season.userTeamId?g.away:g.home];
- if(g.away===season.userTeamId){
-  L.polyline([[my.lat,my.lng],[op.lat,op.lng]],{color:'#faaa52',weight:3,dashArray:'3 9',opacity:.95}).addTo(route);
-  el('mapHint').textContent='Week '+(week+1)+' away game: '+name(op)+'. Dotted line from '+my.city+' to '+op.city+'.';
- }else el('mapHint').textContent='Week '+(week+1)+' is a home game against '+name(op)+'.';
- map.flyToBounds(L.latLngBounds([[my.lat,my.lng],[op.lat,op.lng]]).pad(.32),{maxZoom:6});
+ if(!season||!Number.isInteger(week)||week<0||week>=16)return;
+ shownTripWeek=week;
+ updateMap();
 };
 function render(){
  if(!season)return;
@@ -178,5 +184,5 @@ async function init(){
  }catch(err){show('auth');el('authError').textContent=err.message||String(err)}
 }
 el('createForm').addEventListener('submit',submitCreate);
-el('playNext').addEventListener('click',()=>{if(season&&playedWeeks()<16)location.href='/?seasonGame=1'});
+el('playNext').addEventListener('click',()=>{if(season&&playedWeeks()<16)location.href='/season-play.html'});
 init();
