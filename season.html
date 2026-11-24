@@ -36,6 +36,7 @@
 .game.result-loss:hover,.game.result-loss.selected{background:#67322e}
 .result-badge{display:inline-block;min-width:22px;text-align:center;font-weight:1000;border-radius:5px;padding:3px 5px;margin-right:5px}
 .result-win .result-badge{background:#339259;color:#fff}.result-tie .result-badge{background:#b38b28;color:#fff}.result-loss .result-badge{background:#b44b4b;color:#fff}
+.playoff-divisions{display:block;grid-template-columns:none}
 .playoff-panel{overflow:hidden}
 .playoff-bracket{display:grid;grid-template-columns:minmax(0,1fr) minmax(130px,.27fr) minmax(0,1fr);gap:12px;align-items:stretch;margin-top:18px}
 .playoff-side h3{text-align:center;color:#e4ffc9;margin:0 0 14px;font-size:14px}
@@ -49,6 +50,8 @@
 .playoff-round .playoff-match.playoff-bye{background:#3f361d;border-color:#d3ac56}
 .playoff-side.east .playoff-round:not(:last-child) .playoff-match:after{content:"";position:absolute;width:11px;right:-12px;top:50%;border-top:2px solid #84be8a}
 .playoff-side.west .playoff-round:not(:first-child) .playoff-match:before{content:"";position:absolute;width:11px;left:-12px;top:50%;border-top:2px solid #84be8a}
+.playoff-side.east .round-final .playoff-match:after{content:"";position:absolute;right:-12px;top:50%;width:11px;border-top:2px solid #d6bd76}
+.playoff-side.west .round-final .playoff-match:before{content:"";position:absolute;left:-12px;top:50%;width:11px;border-top:2px solid #d6bd76}
 .playoff-final{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:9px;text-align:center;padding:9px;border-radius:12px;border:1px solid #a98c50;background:linear-gradient(145deg,#3a3420,#163523);align-self:center;min-height:135px}
 .playoff-final .trophy{font-size:31px}.playoff-final strong{font-size:12px}.playoff-final small{font-size:10px;color:#b8caad}
 @media(max-width:1000px){.playoff-bracket{min-width:790px}.playoff-panel{overflow-x:auto}.playoff-rounds{min-height:390px}}
